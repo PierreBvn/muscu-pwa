@@ -1,9 +1,21 @@
 import Dexie, { type EntityTable } from 'dexie';
 
+export const MUSCLE_GROUPS = [
+  'Pectoraux',
+  'Dos',
+  'Épaules',
+  'Bras',
+  'Jambes',
+  'Abdominaux',
+] as const;
+
+export type MuscleGroup = (typeof MUSCLE_GROUPS)[number];
+
 export interface Exercise {
   id?: number;
   name: string;
-  muscleGroup: string;
+  muscleGroup: MuscleGroup;
+  archived?: boolean;
 }
 
 export interface Session {
