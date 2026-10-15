@@ -46,8 +46,16 @@ les mêmes exercices. À la salle, je veux enregistrer chaque série en
 ## Saisie d'une série
 - Boutons de poids (vraies séries) :
   [mode − pas] [MODE] [mode + pas] [mode + 2 pas] [Autre]
-  - mode = poids le plus fréquent sur les vraies séries des
-    5 dernières séances contenant cet exercice ; égalité → le plus récent.
+  - mode = Poids de référence (vraies séries) :
+  1. Séance en cours contenant déjà une vraie série de cet exercice
+     → poids de la dernière de ces séries.
+  2. Sinon → poids le plus lourd parmi les vraies séries de la séance
+     terminée la plus récente contenant au moins une vraie série
+     de cet exercice.
+  3. Sinon → null (saisie manuelle uniquement).
+- Boutons : [réf − pas] [RÉF] [réf + pas] [réf + 2 pas] [Autre],
+  RÉF présélectionné. Boutons < 0 masqués. Poids arrondis au centième.
+
   - pas = weightStep de l'exercice (2,5 par défaut).
   - Ne jamais proposer de poids < 0.
   - Aucun historique → saisie manuelle uniquement.
