@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify-and-build:
+    name: Verify & Build (TZ=${{ matrix.tz }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tz:
+          - UTC
+          - Europe/Paris
+          - Pacific/Kiritimati
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run verification checks
+        env:
+          TZ: ${{ matrix.tz }}
+        run: npm run verify
+
+      - name: Build application
+        run: npm run build
