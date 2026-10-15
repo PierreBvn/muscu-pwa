@@ -20,3 +20,4 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Avant toute commande destructive (overwrite, rm, --force, reset) :
   vérifier que le travail est commité.
 - Ne jamais supposer le comportement d'un flag CLI : vérifier avec --help.
+- Faire un commit à la fin de chaque étape du plan (pas seulement à la fin).
