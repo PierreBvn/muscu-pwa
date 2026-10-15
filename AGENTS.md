@@ -24,3 +24,10 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Les scripts d'outillage sont en Node (.mjs), jamais en bash ou PowerShell.
 - Implémenter uniquement ce qui est demandé. Proposer les idées
   en plus dans une section "Suggestions" du plan, sans les coder.
+- Schéma Dexie : ne JAMAIS modifier une version existante.
+  Tout changement = nouvelle db.version(n+1) avec upgrade() si besoin,
+  et un test de migration.
+- Les specs de docs/specs/ font foi. Si une demande les contredit
+  ou si une spec est ambiguë : le signaler dans le plan, ne pas trancher seul.
+- Toute opération qui supprime des données saisies par l'utilisateur
+  (séries, séances) doit être explicitement demandée par la spec.

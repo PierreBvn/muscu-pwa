@@ -111,3 +111,5 @@ notifications, synchronisation.
 - Wake Lock redemandé à chaque retour au premier plan pendant une séance.
 - Saisie "Autre" : <input type="text" inputMode="decimal">, parsing
   via la fonction testée de la couche données.
+- Reps présélectionnées, par type de série (warmup et work séparés) :
+  dernière série du même type sur cet exercice, sinon aucune présélection.
