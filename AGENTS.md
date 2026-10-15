@@ -21,3 +21,4 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
   vérifier que le travail est commité.
 - Ne jamais supposer le comportement d'un flag CLI : vérifier avec --help.
 - Faire un commit à la fin de chaque étape du plan (pas seulement à la fin).
+- Les scripts d'outillage sont en Node (.mjs), jamais en bash ou PowerShell.
