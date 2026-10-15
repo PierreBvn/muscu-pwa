@@ -231,23 +231,29 @@ export async function getWeightSuggestions(
 }
 
 /**
- * Fournit les suggestions de répétitions pour un exercice donné.
- * Présélection :
- * 1. Série précédente de cet exercice dans la séance en cours (warmup ou work).
- * 2. Sinon -> dernière vraie série ('work') de la séance terminée précédente.
- * 3. Sinon -> null.
+ * Fournit les suggestions de répétitions pour un exercice donné selon le type de série.
+ * Présélection séparée par type (warmup et work séparés) :
+ * 1. Dernière série du même type sur cet exercice dans la séance en cours.
+ * 2. Sinon -> dernière série du même type sur cet exercice dans les séances passées.
+ * 3. Sinon -> null (aucune présélection).
  */
 export async function getRepSuggestions(
   exerciseId: number,
-  options: { currentSessionId: number }
+  options: {
+    currentSessionId: number;
+    isWarmup?: boolean;
+    type?: 'warmup' | 'work';
+  }
 ): Promise<RepSuggestions> {
   const buttons = [6, 8, 10, 12];
+  const targetType: 'warmup' | 'work' =
+    options.type ?? (options.isWarmup ? 'warmup' : 'work');
 
-  // 1. Série précédente dans la séance en cours
+  // 1. Même type dans la séance en cours
   const currentSets = await db.sets
     .where('sessionId')
     .equals(options.currentSessionId)
-    .filter((s) => s.exerciseId === exerciseId)
+    .filter((s) => s.exerciseId === exerciseId && s.type === targetType)
     .toArray();
 
   if (currentSets.length > 0) {
@@ -258,39 +264,21 @@ export async function getRepSuggestions(
     };
   }
 
-  // 2. Dernière vraie série de la séance terminée précédente
+  // 2. Dernière série du même type dans les séances passées
   const allSets = await db.sets
     .where('exerciseId')
     .equals(exerciseId)
+    .filter(
+      (s) => s.sessionId !== options.currentSessionId && s.type === targetType
+    )
     .toArray();
 
-  const pastWorkSets = allSets.filter(
-    (s) => s.sessionId !== options.currentSessionId && s.type === 'work'
-  );
-
-  if (pastWorkSets.length > 0) {
-    const pastSessionIds = Array.from(new Set(pastWorkSets.map((s) => s.sessionId)));
-    const sessions = await db.sessions.where('id').anyOf(pastSessionIds).toArray();
-    const completedSessions = sessions.filter((s) => s.endedAt !== undefined);
-
-    if (completedSessions.length > 0) {
-      completedSessions.sort((a, b) => {
-        const dateA = a.endedAt ?? a.startedAt;
-        const dateB = b.endedAt ?? b.startedAt;
-        return dateB.localeCompare(dateA);
-      });
-
-      const mostRecentSessionId = completedSessions[0].id!;
-      const sessionSets = pastWorkSets.filter((s) => s.sessionId === mostRecentSessionId);
-      sessionSets.sort((a, b) => b.order - a.order);
-
-      if (sessionSets.length > 0) {
-        return {
-          buttons,
-          preselectedReps: sessionSets[0].reps,
-        };
-      }
-    }
+  if (allSets.length > 0) {
+    allSets.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return {
+      buttons,
+      preselectedReps: allSets[0].reps,
+    };
   }
 
   return {
@@ -309,6 +297,7 @@ export async function getExerciseSuggestions(
   const weight = await getWeightSuggestions(exerciseId, options);
   const reps = await getRepSuggestions(exerciseId, {
     currentSessionId: options.currentSessionId,
+    isWarmup: options.isWarmup,
   });
 
   return {

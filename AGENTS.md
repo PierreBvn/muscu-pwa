@@ -31,3 +31,4 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
   ou si une spec est ambiguë : le signaler dans le plan, ne pas trancher seul.
 - Toute opération qui supprime des données saisies par l'utilisateur
   (séries, séances) doit être explicitement demandée par la spec.
+- Une tâche n'est terminée que si `npm run verify` passe.

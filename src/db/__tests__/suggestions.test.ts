@@ -305,6 +305,37 @@ describe('Suggestions engine (src/db/suggestions.ts)', () => {
       const suggestions = await getRepSuggestions(exId, { currentSessionId: currentSid });
       expect(suggestions.preselectedReps).toBe(12);
     });
+
+    it('separates preselected reps by set type: warmup at 12 reps then 1st work set preselects last work set reps (not 12)', async () => {
+      const exId = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+
+      // Séance passée avec une vraie série à 8 reps
+      const sPast = await startSession({ now: new Date(2026, 9, 12, 8, 0) });
+      await addSet({ sessionId: sPast, exerciseId: exId, reps: 8, weight: 80, type: 'work' });
+      await finishSession(sPast, { now: new Date(2026, 9, 12, 9, 0) });
+
+      // Séance du jour
+      const currentSid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
+
+      // Échauffement réalisé à 12 reps
+      await addSet({ sessionId: currentSid, exerciseId: exId, reps: 12, weight: 40, type: 'warmup' });
+
+      // Demande de suggestions pour la 1re vraie série (work)
+      const suggestions = await getRepSuggestions(exId, {
+        currentSessionId: currentSid,
+        isWarmup: false,
+      });
+
+      // La présélection doit être les reps de la dernière vraie série (8) et PAS l'échauffement (12)
+      expect(suggestions.preselectedReps).toBe(8);
+
+      // Pour une série d'échauffement (warmup), la présélection est celle de l'échauffement (12)
+      const warmupSuggestions = await getRepSuggestions(exId, {
+        currentSessionId: currentSid,
+        isWarmup: true,
+      });
+      expect(warmupSuggestions.preselectedReps).toBe(12);
+    });
   });
 
   describe('getExerciseSuggestions', () => {

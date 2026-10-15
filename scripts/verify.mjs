@@ -7,13 +7,15 @@ import { fileURLToPath } from 'node:url';
 // 1. Début du chronométrage et lecture de stdin (Input Contract)
 const startTime = Date.now();
 let hookInput = {};
-try {
-  const stdinBuffer = fs.readFileSync(0, 'utf-8');
-  if (stdinBuffer.trim()) {
-    hookInput = JSON.parse(stdinBuffer);
+if (process.env.npm_lifecycle_event !== 'verify') {
+  try {
+    const stdinBuffer = fs.readFileSync(0, 'utf-8');
+    if (stdinBuffer.trim()) {
+      hookInput = JSON.parse(stdinBuffer);
+    }
+  } catch {
+    // Stdin vide ou non-JSON (exécution manuelle directe)
   }
-} catch {
-  // Stdin vide ou non-JSON (exécution manuelle directe)
 }
 
 // 2. Détermination de la racine du workspace et métadonnées

@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "typecheck": "tsc -b",
     "test": "vitest run",
-    "hook-stats": "node scripts/hook-stats.mjs"
+    "hook-stats": "node scripts/hook-stats.mjs",
+    "verify": "node scripts/verify.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
