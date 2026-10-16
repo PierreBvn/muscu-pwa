@@ -67,10 +67,14 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
     );
   }
 
+  const hasWeightSuggestions =
+    !weightSuggestions.manualOnly && weightSuggestions.buttons.length > 0;
+
   // Dérivation directe sans dépendre de useEffect asynchrone
   const isCustomWeight =
-    isCustomWeightMode ??
-    (weightSuggestions.manualOnly || weightSuggestions.preselectedWeight === null);
+    !hasWeightSuggestions ||
+    (isCustomWeightMode ??
+      (weightSuggestions.manualOnly || weightSuggestions.preselectedWeight === null));
 
   const effectiveSelectedWeight = isCustomWeight
     ? null
@@ -171,14 +175,9 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
   return (
     <div className="rounded-xl bg-surface-2/40 border border-line p-3.5 space-y-3.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-widest text-gold font-semibold">
-          Prochaine série : {setLabel}
-        </span>
-        {isWarmup && (
-          <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-surface border border-line text-muted">
-            Échauffement
-          </span>
-        )}
+        <h3 className="text-xs uppercase tracking-widest text-gold font-semibold">
+          {setLabel}
+        </h3>
       </div>
 
       {/* Sélection du poids */}
@@ -186,53 +185,75 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
         <span className="block text-xs uppercase tracking-widest text-muted mb-1.5">
           Poids (kg)
         </span>
-        <div className="flex flex-wrap gap-1.5">
-          {weightSuggestions.buttons.map((btnWeight) => {
-            const isSelected = !isCustomWeight && effectiveSelectedWeight === btnWeight;
-            const isRef = weightSuggestions.mode === btnWeight;
 
-            return (
+        {hasWeightSuggestions ? (
+          <>
+            <div className="w-full flex items-center justify-between gap-1.5">
+              {weightSuggestions.buttons.map((btnWeight) => {
+                const isSelected = !isCustomWeight && effectiveSelectedWeight === btnWeight;
+                const isRef = weightSuggestions.mode === btnWeight;
+
+                return (
+                  <button
+                    key={btnWeight}
+                    type="button"
+                    onClick={() => handleWeightBtnClick(btnWeight)}
+                    aria-label={`${btnWeight} kg`}
+                    className={`min-h-[44px] flex-1 py-1.5 px-1 rounded-xl text-xs font-semibold tabular-nums transition flex flex-col items-center justify-center gap-0.5 ${
+                      isSelected
+                        ? 'bg-gold text-gold-ink shadow-sm'
+                        : 'bg-surface-2 border border-line text-text hover:bg-surface'
+                    }`}
+                  >
+                    <span>{btnWeight}</span>
+                    <span
+                      className={`w-1 h-1 rounded-full ${
+                        isRef
+                          ? isSelected
+                            ? 'bg-gold-ink'
+                            : 'bg-gold'
+                          : 'bg-transparent'
+                      }`}
+                      aria-hidden="true"
+                    />
+                  </button>
+                );
+              })}
+
               <button
-                key={btnWeight}
                 type="button"
-                onClick={() => handleWeightBtnClick(btnWeight)}
-                aria-label={isRef ? `${btnWeight} kg (RÉF)` : `${btnWeight} kg`}
-                className={`min-h-[44px] min-w-[52px] px-2.5 rounded-xl text-xs font-semibold tabular-nums transition flex flex-col items-center justify-center ${
-                  isSelected
+                onClick={handleCustomWeightBtnClick}
+                aria-label="Autre poids"
+                className={`min-h-[44px] flex-1 py-1.5 px-1 rounded-xl text-xs font-semibold transition flex flex-col items-center justify-center gap-0.5 ${
+                  isCustomWeight
                     ? 'bg-gold text-gold-ink shadow-sm'
                     : 'bg-surface-2 border border-line text-text hover:bg-surface'
                 }`}
               >
-                <span>{btnWeight}</span>
-                {isRef && (
-                  <span
-                    className={`text-[9px] uppercase font-bold tracking-tight ${
-                      isSelected ? 'text-gold-ink/80' : 'text-gold'
-                    }`}
-                  >
-                    RÉF
-                  </span>
-                )}
+                <span>Autre</span>
+                <span className="w-1 h-1 rounded-full bg-transparent" aria-hidden="true" />
               </button>
-            );
-          })}
+            </div>
 
-          <button
-            type="button"
-            onClick={handleCustomWeightBtnClick}
-            aria-label="Autre poids"
-            className={`min-h-[44px] px-3 rounded-xl text-xs font-semibold transition ${
-              isCustomWeight
-                ? 'bg-gold text-gold-ink'
-                : 'bg-surface-2 border border-line text-text hover:bg-surface'
-            }`}
-          >
-            Autre
-          </button>
-        </div>
-
-        {isCustomWeight && (
-          <div className="mt-2">
+            {isCustomWeight && (
+              <div className="mt-2">
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={customWeightInput}
+                  onChange={(e) => {
+                    setCustomWeightInput(e.target.value);
+                    setError(null);
+                  }}
+                  placeholder="Ex: 82,5"
+                  aria-label="Poids personnalisé"
+                  className="w-full min-h-[44px] rounded-xl bg-surface border border-line px-3 text-sm text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold tabular-nums transition"
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="mt-1">
             <input
               type="text"
               inputMode="decimal"
@@ -243,7 +264,7 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
               }}
               placeholder="Ex: 82,5"
               aria-label="Poids personnalisé"
-              autoFocus={weightSuggestions.manualOnly}
+              autoFocus
               className="w-full min-h-[44px] rounded-xl bg-surface border border-line px-3 text-sm text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold tabular-nums transition"
             />
           </div>
@@ -255,7 +276,7 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
         <span className="block text-xs uppercase tracking-widest text-muted mb-1.5">
           Répétitions
         </span>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="w-full flex items-center justify-between gap-1.5">
           {repSuggestions.buttons.map((btnReps) => {
             const isSelected = !isCustomReps && effectiveSelectedReps === btnReps;
 
@@ -265,7 +286,7 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
                 type="button"
                 onClick={() => handleRepBtnClick(btnReps)}
                 aria-label={`${btnReps} reps`}
-                className={`min-h-[44px] min-w-[44px] px-3 rounded-xl text-xs font-semibold tabular-nums transition flex items-center justify-center ${
+                className={`min-h-[44px] flex-1 py-1.5 px-1 rounded-xl text-xs font-semibold tabular-nums transition flex items-center justify-center ${
                   isSelected
                     ? 'bg-gold text-gold-ink shadow-sm'
                     : 'bg-surface-2 border border-line text-text hover:bg-surface'
@@ -280,9 +301,9 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
             type="button"
             onClick={handleCustomRepsBtnClick}
             aria-label="Autres répétitions"
-            className={`min-h-[44px] px-3 rounded-xl text-xs font-semibold transition ${
+            className={`min-h-[44px] flex-1 py-1.5 px-1 rounded-xl text-xs font-semibold transition flex items-center justify-center ${
               isCustomReps
-                ? 'bg-gold text-gold-ink'
+                ? 'bg-gold text-gold-ink shadow-sm'
                 : 'bg-surface-2 border border-line text-text hover:bg-surface'
             }`}
           >

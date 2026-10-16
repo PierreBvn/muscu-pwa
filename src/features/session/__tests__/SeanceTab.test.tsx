@@ -334,14 +334,15 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     render(<SeanceTab />);
 
-    // La prochaine série (Série 2) doit proposer 75 kg en RÉF (séance en cours)
+    // La prochaine série (Série 2) doit proposer 75 kg en référence (séance en cours)
     await waitFor(() => {
-      expect(screen.getByText('Prochaine série : Série 2')).toBeInTheDocument();
+      expect(screen.getByText('Série 2')).toBeInTheDocument();
     });
 
-    const refBtn = screen.getByRole('button', { name: /75/i });
+    const refBtn = screen.getByRole('button', { name: '75 kg' });
     expect(refBtn).toBeInTheDocument();
-    expect(refBtn).toHaveTextContent('RÉF');
+    expect(refBtn).not.toHaveTextContent('RÉF');
+    expect(screen.queryByText(/réf/i)).not.toBeInTheDocument();
   });
 
   it('14. prend le poids de référence dans la dernière séance terminée si aucune vraie série dans la séance', async () => {
@@ -368,13 +369,14 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     render(<SeanceTab />);
 
     await waitFor(() => {
-      const refBtn = screen.getByRole('button', { name: /100/i });
+      const refBtn = screen.getByRole('button', { name: '100 kg' });
       expect(refBtn).toBeInTheDocument();
-      expect(refBtn).toHaveTextContent('RÉF');
+      expect(refBtn).not.toHaveTextContent('RÉF');
+      expect(screen.queryByText(/réf/i)).not.toBeInTheDocument();
     });
   });
 
-  it('15. premier entraînement (aucun poids de référence) : ouvre directement la saisie personnalisée', async () => {
+  it('15. premier entraînement (aucun poids de référence) : ouvre directement la saisie personnalisée sans bouton Autre', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
     const exId = await addExercise({ name: 'Oiseau poulie', muscleGroup: 'Épaules' });
@@ -388,6 +390,9 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     // L'input personnalisé de poids doit être directement visible
     const weightInput = await screen.findByLabelText(/poids personnalisé/i);
     expect(weightInput).toBeInTheDocument();
+
+    // Aucun bouton "Autre" pour le poids
+    expect(screen.queryByRole('button', { name: /autre poids/i })).not.toBeInTheDocument();
 
     // Les boutons de répétitions sont disponibles
     expect(screen.getByRole('button', { name: /8 reps/i })).toBeInTheDocument();
@@ -418,8 +423,10 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     render(<SeanceTab />);
 
     await waitFor(() => {
-      // 2 kg est présent (avec RÉF)
-      expect(screen.getByRole('button', { name: /2 kg \(RÉF\)/i })).toBeInTheDocument();
+      // 2 kg est présent
+      expect(screen.getByRole('button', { name: '2 kg' })).toBeInTheDocument();
+      // Aucun texte RÉF
+      expect(screen.queryByText(/réf/i)).not.toBeInTheDocument();
       // Aucun bouton négatif "-0.5"
       expect(screen.queryByRole('button', { name: /-0\.5/i })).not.toBeInTheDocument();
     });
@@ -456,7 +463,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     });
   });
 
-  it('18. saisie « Autre » avec « 82,5 » : remplace la virgule et enregistre 82.5 kg', async () => {
+  it('18. saisie personnalisée sans suggestion avec « 82,5 » : remplace la virgule et enregistre 82.5 kg', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
     const exId = await addExercise({ name: 'Développé incliné', muscleGroup: 'Pectoraux' });
@@ -467,10 +474,9 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     render(<SeanceTab />);
 
-    const otherWeightBtn = await screen.findByRole('button', { name: /autre poids/i });
-    fireEvent.click(otherWeightBtn);
-
-    const weightInput = screen.getByLabelText(/poids personnalisé/i);
+    // Sans suggestion : le champ est affiché directement sans bouton "Autre"
+    expect(screen.queryByRole('button', { name: /autre poids/i })).not.toBeInTheDocument();
+    const weightInput = await screen.findByLabelText(/poids personnalisé/i);
     fireEvent.change(weightInput, { target: { value: '82,5' } });
 
     // Sélectionner reps 8
@@ -489,7 +495,39 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     });
   });
 
-  it('19. saisie « Autre » avec « abc » : refusée avec message d’erreur et rien n’est enregistré', async () => {
+  it('18b. bouton « Autre » présent quand des suggestions existent', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId = await addExercise({ name: 'Développé incliné', muscleGroup: 'Pectoraux' });
+    const progId = await createProgram({ name: 'Push', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId, warmupSets: 0, workSets: 3 });
+
+    // Poids d'historique 80 kg
+    const prevSessionId = await startSession({ now: new Date(2026, 9, 12, 10, 0, 0) });
+    await addSet({
+      sessionId: prevSessionId,
+      exerciseId: exId,
+      reps: 10,
+      weight: 80,
+      type: 'work',
+      now: new Date(2026, 9, 12, 10, 30, 0),
+    });
+    await finishSession(prevSessionId);
+
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    // Le bouton "Autre" est présent à côté des suggestions
+    const otherWeightBtn = await screen.findByRole('button', { name: /autre poids/i });
+    expect(otherWeightBtn).toBeInTheDocument();
+    fireEvent.click(otherWeightBtn);
+
+    const weightInput = screen.getByLabelText(/poids personnalisé/i);
+    expect(weightInput).toBeInTheDocument();
+  });
+
+  it('19. saisie personnalisée avec « abc » : refusée avec message d’erreur et rien n’est enregistré', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
     const exId = await addExercise({ name: 'Développé incliné', muscleGroup: 'Pectoraux' });
@@ -500,10 +538,8 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     render(<SeanceTab />);
 
-    const otherWeightBtn = await screen.findByRole('button', { name: /autre poids/i });
-    fireEvent.click(otherWeightBtn);
-
-    const weightInput = screen.getByLabelText(/poids personnalisé/i);
+    // Sans suggestion : input direct
+    const weightInput = await screen.findByLabelText(/poids personnalisé/i);
     fireEvent.change(weightInput, { target: { value: 'abc' } });
 
     const rep10Btn = screen.getByRole('button', { name: /10 reps/i });
@@ -670,11 +706,8 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
       expect(screen.getByText('Écarté poulie')).toBeInTheDocument();
     });
 
-    // Saisie d'une série sur le premier exercice
-    const otherWeightBtn = (await screen.findAllByRole('button', { name: /autre poids/i }))[0];
-    fireEvent.click(otherWeightBtn);
-
-    const weightInput = screen.getAllByLabelText(/poids personnalisé/i)[0];
+    // Saisie d'une série sur le premier exercice (sans historique -> saisie directe)
+    const weightInput = (await screen.findAllByLabelText(/poids personnalisé/i))[0];
     fireEvent.change(weightInput, { target: { value: '80' } });
 
     const rep10Btn = screen.getAllByRole('button', { name: /10 reps/i })[0];
