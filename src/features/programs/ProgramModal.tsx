@@ -92,8 +92,7 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex: PPL Push, Upper, Jambes..."
-              autoFocus
-              className="w-full min-h-[48px] rounded-xl bg-surface-2 border border-line px-3.5 text-sm text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition"
+              className="w-full min-h-[48px] rounded-xl bg-surface-2 border border-line px-3.5 text-base text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition"
             />
           </div>
 

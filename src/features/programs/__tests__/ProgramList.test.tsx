@@ -28,6 +28,7 @@ describe('ProgramList UI', () => {
     expect(
       screen.getByRole('heading', { name: /nouvelle séance type/i })
     ).toBeInTheDocument();
+    expect(screen.getByLabelText(/nom de la séance type/i).hasAttribute('autofocus')).toBe(false);
   });
 
   it('validates program name and weekdays before creating', async () => {

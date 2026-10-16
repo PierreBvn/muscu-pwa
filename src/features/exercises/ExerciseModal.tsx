@@ -88,7 +88,6 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="ex: Développé couché"
-              autoFocus
               className="w-full min-h-[48px] rounded-xl bg-surface-2 border border-line px-4 text-base text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold"
             />
           </div>

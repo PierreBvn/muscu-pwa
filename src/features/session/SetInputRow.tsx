@@ -246,7 +246,7 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
                   }}
                   placeholder="Ex: 82,5"
                   aria-label="Poids personnalisé"
-                  className="w-full min-h-[44px] rounded-xl bg-surface border border-line px-3 text-sm text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold tabular-nums transition"
+                  className="w-full min-h-[44px] rounded-xl bg-surface border border-line px-3 text-base text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold tabular-nums transition"
                 />
               </div>
             )}
@@ -263,8 +263,7 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
               }}
               placeholder="Ex: 82,5"
               aria-label="Poids personnalisé"
-              autoFocus
-              className="w-full min-h-[44px] rounded-xl bg-surface border border-line px-3 text-sm text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold tabular-nums transition"
+              className="w-full min-h-[44px] rounded-xl bg-surface border border-line px-3 text-base text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold tabular-nums transition"
             />
           </div>
         )}
@@ -322,7 +321,7 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
               }}
               placeholder="Ex: 10"
               aria-label="Répétitions personnalisées"
-              className="w-full min-h-[44px] rounded-xl bg-surface border border-line px-3 text-sm text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold tabular-nums transition"
+              className="w-full min-h-[44px] rounded-xl bg-surface border border-line px-3 text-base text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold tabular-nums transition"
             />
           </div>
         )}

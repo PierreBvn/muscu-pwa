@@ -78,8 +78,7 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher un exercice..."
             aria-label="Rechercher un exercice"
-            autoFocus
-            className="w-full min-h-[44px] rounded-xl bg-surface-2 border border-line px-3.5 text-sm text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition"
+            className="w-full min-h-[44px] rounded-xl bg-surface-2 border border-line px-3.5 text-base text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition"
           />
         </div>
 

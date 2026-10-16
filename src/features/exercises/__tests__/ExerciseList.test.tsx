@@ -40,6 +40,7 @@ describe('ExerciseList UI component', () => {
 
     // Fill name
     const input = screen.getByLabelText(/nom de l’exercice/i);
+    expect(input.hasAttribute('autofocus')).toBe(false);
     fireEvent.change(input, { target: { value: 'Hip Thrust' } });
 
     // Select "Jambes"
