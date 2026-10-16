@@ -53,6 +53,18 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Champs de saisie : texte ≥ 16px, jamais d'autoFocus. Ne jamais bloquer le zoom (pas de maximum-scale / user-scalable=no).
 - Les plans signalent explicitement ce qui ne peut être vérifié que sur iPhone.
 
+## Mise en page iOS
+- L'en-tête et la barre de navigation sont en position fixed, jamais sticky. L'en-tête inclut safe-area-inset-top, la barre de navigation safe-area-inset-bottom.
+- Le contenu compense leurs hauteurs avec une méthode unique (variable CSS), jamais un chiffre recopié écran par écran.
+- html et body ont le fond du token bg et overscroll-behavior: none.
+- Barres de défilement masquées sur html, body et tout conteneur qui défile.
+- Toute liste qui défile automatiquement vers un élément prévoit un espace en bas pour que le dernier élément puisse atteindre la position voulue.
+
+## Bugs d'affichage
+- Les tests jsdom ne voient pas la mise en page : citer la cause dans le code (fichier:ligne) avant de corriger.
+- Finir le plan par une liste de vérifications à faire sur iPhone.
+
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
