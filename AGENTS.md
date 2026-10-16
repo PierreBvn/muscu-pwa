@@ -72,3 +72,5 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Toute opération qui supprime des données saisies par l'utilisateur
   (séries, séances) doit être explicitement demandée par la spec.
 - Une tâche n'est terminée que si `npm run verify` passe.
+- Chaque commit inclut les tests de ce qu'il change (anciens adaptés + nouveaux). Jamais de commit « tests » séparé à la fin.
+- Les correspondances sur un type union (ex. MuscleGroup) sont typées Record<Type, …> pour être exhaustives.

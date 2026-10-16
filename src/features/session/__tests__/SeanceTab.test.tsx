@@ -778,6 +778,10 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     render(<SeanceTab />);
 
+    // Ouvrir le menu ⋯ de Fentes
+    const optionsBtn = await screen.findByRole('button', { name: /options fentes/i });
+    fireEvent.click(optionsBtn);
+
     const removeBtn = await screen.findByRole('button', { name: /retirer fentes/i });
     fireEvent.click(removeBtn);
 
@@ -794,6 +798,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     expect(screen.getByText('Fentes')).toBeInTheDocument();
 
     // Rouvrir et confirmer
+    fireEvent.click(screen.getByRole('button', { name: /options fentes/i }));
     fireEvent.click(screen.getByRole('button', { name: /retirer fentes/i }));
     const confirmBtn = screen.getByRole('button', { name: /^retirer$/i });
     fireEvent.click(confirmBtn);
@@ -803,7 +808,9 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
       expect(remainingEx).toHaveLength(0);
     });
 
-    expect(screen.queryByText('Fentes')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Fentes')).not.toBeInTheDocument();
+    });
   });
 
   it('27. ne permet pas de retirer un exercice ayant déjà des séries enregistrées', async () => {
@@ -829,11 +836,16 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
       expect(screen.getByText('Dips')).toBeInTheDocument();
     });
 
-    // Le bouton "Retirer Dips" ne doit pas exister
-    expect(screen.queryByRole('button', { name: /retirer dips/i })).not.toBeInTheDocument();
+    // Ouvrir le menu ⋯
+    const optionsBtn = await screen.findByRole('button', { name: /options dips/i });
+    fireEvent.click(optionsBtn);
+
+    // Le bouton "Retirer Dips" est visible mais désactivé
+    const removeBtn = screen.getByRole('button', { name: /retirer dips/i });
+    expect(removeBtn).toBeDisabled();
   });
 
-  it('28. permet de passer un exercice (skipped) et de le rétablir', async () => {
+  it('28. permet de passer un exercice (skipped) et de le rétablir via le menu ⋯', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
     const exId = await addExercise({ name: 'Crunch', muscleGroup: 'Abdominaux' });
@@ -844,29 +856,31 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     render(<SeanceTab />);
 
+    // Ouvrir le menu ⋯
+    const optionsBtn = await screen.findByRole('button', { name: /options crunch/i });
+    fireEvent.click(optionsBtn);
+
     const skipBtn = await screen.findByRole('button', { name: /passer crunch/i });
     fireEvent.click(skipBtn);
 
-    // Badge "Passé" apparaît
-    await waitFor(() => {
-      expect(screen.getByText(/^passé$/i)).toBeInTheDocument();
+    // En base, skipped est true
+    await waitFor(async () => {
+      const seList = await getSessionExercises(currentSessionId);
+      expect(seList[0].skipped).toBe(true);
     });
 
-    // En base, skipped est true
-    let seList = await getSessionExercises(currentSessionId);
-    expect(seList[0].skipped).toBe(true);
-
-    // Rétablir
+    // Rétablir via le menu ⋯
+    fireEvent.click(screen.getByRole('button', { name: /options crunch/i }));
     const restoreBtn = screen.getByRole('button', { name: /rétablir crunch/i });
     fireEvent.click(restoreBtn);
 
     await waitFor(async () => {
-      seList = await getSessionExercises(currentSessionId);
+      const seList = await getSessionExercises(currentSessionId);
       expect(seList[0].skipped).toBe(false);
     });
   });
 
-  it('29. réordonne avec ↑ ↓ et désactive les boutons aux extrémités', async () => {
+  it('29. réordonne avec ↑ ↓ via le menu ⋯ et désactive les boutons aux extrémités', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
     const exId1 = await addExercise({ name: 'Exercice Un', muscleGroup: 'Bras' });
@@ -879,12 +893,12 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     render(<SeanceTab />);
 
-    const upBtn1 = await screen.findByRole('button', { name: /monter exercice un/i });
-    const downBtn2 = await screen.findByRole('button', { name: /descendre exercice deux/i });
+    // Ouvrir menu Exercice Un
+    const optionsBtn1 = await screen.findByRole('button', { name: /options exercice un/i });
+    fireEvent.click(optionsBtn1);
 
-    // Le premier ne peut pas monter, le dernier ne peut pas descendre
+    const upBtn1 = screen.getByRole('button', { name: /monter exercice un/i });
     expect(upBtn1).toBeDisabled();
-    expect(downBtn2).toBeDisabled();
 
     // Descendre le premier
     const downBtn1 = screen.getByRole('button', { name: /descendre exercice un/i });
@@ -895,48 +909,39 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
       expect(seList[0].exerciseId).toBe(exId2);
       expect(seList[1].exerciseId).toBe(exId1);
     });
+
+    // Attendre que le DOM soit réordonné : Exercice Deux en premier, Exercice Un en second
+    await waitFor(() => {
+      const names = screen.getAllByText(/exercice (un|deux)/i);
+      expect(names[0]).toHaveTextContent('Exercice Deux');
+      expect(names[1]).toHaveTextContent('Exercice Un');
+    });
+
+    // Exercice Un est maintenant le second -> descendre est désactivé
+    fireEvent.click(screen.getByRole('button', { name: /options exercice un/i }));
+    const downBtnEnd = screen.getByRole('button', { name: /descendre exercice un/i });
+    expect(downBtnEnd).toBeDisabled();
   });
 
-  it('30. change le nombre de séries de travail (workSets) aux bornes [1, 6]', async () => {
+  it('30. plus aucun réglage du nombre de séries dans la séance', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
     const exId = await addExercise({ name: 'Presse inclinée', muscleGroup: 'Jambes' });
     const progId = await createProgram({ name: 'Legs', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId, warmupSets: 1, workSets: 2 });
 
-    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
 
     render(<SeanceTab />);
 
-    const decBtn = await screen.findByRole('button', { name: /diminuer séries de travail presse inclinée/i });
-    const incBtn = await screen.findByRole('button', { name: /augmenter séries de travail presse inclinée/i });
-
-    // Diminuer à 1
-    fireEvent.click(decBtn);
-
-    await waitFor(async () => {
-      const seList = await getSessionExercises(currentSessionId);
-      expect(seList[0].workSets).toBe(1);
-    });
-
-    // À 1, le bouton Diminuer doit être désactivé
     await waitFor(() => {
-      expect(decBtn).toBeDisabled();
+      expect(screen.getByText('Presse inclinée')).toBeInTheDocument();
     });
 
-    // Augmenter pas à pas jusqu'à 6
-    for (let target = 2; target <= 6; target++) {
-      fireEvent.click(incBtn);
-      await waitFor(async () => {
-        const seList = await getSessionExercises(currentSessionId);
-        expect(seList[0].workSets).toBe(target);
-      });
-    }
-
-    // À 6, le bouton Augmenter doit être désactivé
-    await waitFor(() => {
-      expect(incBtn).toBeDisabled();
-    });
+    // Aucun bouton d'incrément ou décrément de séries de travail
+    expect(screen.queryByRole('button', { name: /diminuer séries/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /augmenter séries/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/travail :/i)).not.toBeInTheDocument();
   });
 
   it('31. garantit que la séance type reste strictement intacte après les actions de séance', async () => {
@@ -957,21 +962,21 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     render(<SeanceTab />);
 
-    // 1. Ajouter un exercice
+    // 1. Ajouter un exercice via bouton flottant
     const addBtn = await screen.findByRole('button', { name: /ajouter un exercice/i });
     fireEvent.click(addBtn);
     const selectExtra = await screen.findByRole('button', { name: /rowing barre/i });
     fireEvent.click(selectExtra);
 
-    // 2. Passer un exercice
+    // 2. Passer un exercice via menu ⋯
+    const optionsBtn1 = await screen.findByRole('button', { name: /options tractions/i });
+    fireEvent.click(optionsBtn1);
     const skipBtn = await screen.findByRole('button', { name: /passer tractions/i });
     fireEvent.click(skipBtn);
 
-    // 3. Modifier les workSets
-    const incBtn = await screen.findByRole('button', { name: /augmenter séries de travail tractions/i });
-    fireEvent.click(incBtn);
-
-    // 4. Déplacer un exercice
+    // 3. Déplacer un exercice via menu ⋯
+    const optionsBtn2 = await screen.findByRole('button', { name: /options tractions/i });
+    fireEvent.click(optionsBtn2);
     const downBtn = await screen.findByRole('button', { name: /descendre tractions/i });
     fireEvent.click(downBtn);
 
@@ -998,11 +1003,15 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     const { unmount } = render(<SeanceTab />);
 
-    // Inverser l'ordre (descendre Curl barre)
+    // Inverser l'ordre (descendre Curl barre via menu ⋯)
+    const optionsBtn1 = await screen.findByRole('button', { name: /options curl barre/i });
+    fireEvent.click(optionsBtn1);
     const downBtn = await screen.findByRole('button', { name: /descendre curl barre/i });
     fireEvent.click(downBtn);
 
-    // Passer Barre au front
+    // Passer Barre au front via menu ⋯
+    const optionsBtn2 = await screen.findByRole('button', { name: /options barre au front/i });
+    fireEvent.click(optionsBtn2);
     const skipBtn = await screen.findByRole('button', { name: /passer barre au front/i });
     fireEvent.click(skipBtn);
 
@@ -1018,13 +1027,211 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     render(<SeanceTab />);
 
     await waitFor(() => {
-      expect(screen.getByText(/^passé$/i)).toBeInTheDocument();
+      // Barre au front est passée, donc fermée avec ✓
+      expect(screen.getByRole('button', { name: /ouvrir barre au front/i })).toBeInTheDocument();
     });
 
     const seListAfter = await getSessionExercises(currentSessionId);
     expect(seListAfter[0].exerciseId).toBe(exId2);
     expect(seListAfter[0].skipped).toBe(true);
     expect(seListAfter[1].exerciseId).toBe(exId1);
+  });
+
+  // --- NOUVEAUX TESTS TÂCHE 4E ---
+  it('33. le premier exercice non terminé est ouvert par défaut', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    const exId2 = await addExercise({ name: 'Écarté haltères', muscleGroup: 'Pectoraux' });
+
+    const progId = await createProgram({ name: 'Pecs', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId1 });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId2 });
+
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    // Développé couché est ouvert : bouton de validation visible
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /valider/i })).toBeInTheDocument();
+    });
+
+    // Écarté haltères est fermé : bouton Ouvrir présent
+    expect(screen.getByRole('button', { name: /ouvrir écarté haltères/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /ouvrir développé couché/i })).not.toBeInTheDocument();
+  });
+
+  it('34. taper sur un exercice fermé l’ouvre et ferme le précédent', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    const exId2 = await addExercise({ name: 'Écarté haltères', muscleGroup: 'Pectoraux' });
+
+    const progId = await createProgram({ name: 'Pecs', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId1 });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId2 });
+
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    // Taper sur Écarté haltères fermé
+    const closedEx2 = await screen.findByRole('button', { name: /ouvrir écarté haltères/i });
+    fireEvent.click(closedEx2);
+
+    // Écarté haltères est maintenant ouvert, Développé couché est fermé
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /ouvrir développé couché/i })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /ouvrir écarté haltères/i })).not.toBeInTheDocument();
+    });
+  });
+
+  it('35. un exercice terminé affiche « ✓ », un exercice commencé « 1/3 »', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    const exId2 = await addExercise({ name: 'Écarté haltères', muscleGroup: 'Pectoraux' });
+
+    const progId = await createProgram({ name: 'Pecs', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId1, warmupSets: 0, workSets: 3 });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId2, warmupSets: 0, workSets: 3 });
+
+    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    // 1 série de travail sur ex1 -> commencé (1/3)
+    await addSet({
+      sessionId: currentSessionId,
+      exerciseId: exId1,
+      reps: 10,
+      weight: 80,
+      type: 'work',
+      now: new Date(2026, 9, 19, 10, 10, 0),
+    });
+
+    render(<SeanceTab />);
+
+    // Ouvrir ex2 pour fermer ex1
+    const closedEx2 = await screen.findByRole('button', { name: /ouvrir écarté haltères/i });
+    fireEvent.click(closedEx2);
+
+    // ex1 fermé affiche "1/3"
+    await waitFor(() => {
+      expect(screen.getByText('1/3')).toBeInTheDocument();
+    });
+
+    // Passer ex1 via le menu
+    const optionsBtn1 = screen.getByRole('button', { name: /options développé couché/i });
+    fireEvent.click(optionsBtn1);
+    const skipBtn = screen.getByRole('button', { name: /passer développé couché/i });
+    fireEvent.click(skipBtn);
+
+    // ex1 passé (terminé) fermé affiche "✓"
+    await waitFor(() => {
+      expect(screen.getByText('✓')).toBeInTheDocument();
+    });
+  });
+
+  it('36. quand l’exercice ouvert devient terminé, il se ferme et le premier non terminé s’ouvre', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    const exId2 = await addExercise({ name: 'Écarté haltères', muscleGroup: 'Pectoraux' });
+
+    const progId = await createProgram({ name: 'Pecs', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId1, warmupSets: 0, workSets: 1 });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId2, warmupSets: 0, workSets: 1 });
+
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    // Développé couché est ouvert au départ
+    const weightInput = await screen.findByLabelText(/poids personnalisé/i);
+    fireEvent.change(weightInput, { target: { value: '80' } });
+
+    const rep10Btn = screen.getByRole('button', { name: /10 reps/i });
+    fireEvent.click(rep10Btn);
+
+    const validateBtn = screen.getByRole('button', { name: /valider série 1/i });
+    fireEvent.click(validateBtn);
+
+    // Dès la série validée, ex1 est terminé (1/1) -> se ferme, et ex2 (premier non terminé) s'ouvre !
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /ouvrir développé couché/i })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /ouvrir écarté haltères/i })).not.toBeInTheDocument();
+    });
+  });
+
+  it('37. quand tous les exercices sont terminés, aucun exercice n’est ouvert', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    const progId = await createProgram({ name: 'Pecs', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId, warmupSets: 0, workSets: 1 });
+
+    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+    await addSet({
+      sessionId: currentSessionId,
+      exerciseId: exId,
+      reps: 10,
+      weight: 80,
+      type: 'work',
+      now: new Date(2026, 9, 19, 10, 10, 0),
+    });
+
+    render(<SeanceTab />);
+
+    // Tous terminés -> aucun exercice ouvert, pas de formulaire de saisie
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /ouvrir développé couché/i })).toBeInTheDocument();
+      expect(screen.queryByLabelText(/poids personnalisé/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it('38. bouton flottant carré « + » présent et aucun bouton en fin de liste', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    const progId = await createProgram({ name: 'Pecs', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId });
+
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    // Bouton flottant avec aria-label « Ajouter un exercice »
+    const floatBtn = await screen.findByRole('button', { name: 'Ajouter un exercice' });
+    expect(floatBtn).toBeInTheDocument();
+    expect(floatBtn).toHaveTextContent('+');
+
+    // Aucun bouton textuel "+ Ajouter un exercice"
+    expect(screen.queryByRole('button', { name: /\+ ajouter un exercice/i })).not.toBeInTheDocument();
+  });
+
+  it('39. le menu ⋯ s’ouvre sans ouvrir la carte fermée', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    const exId2 = await addExercise({ name: 'Écarté haltères', muscleGroup: 'Pectoraux' });
+
+    const progId = await createProgram({ name: 'Pecs', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId1 });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId2 });
+
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    // ex2 est fermé
+    const optionsBtn2 = await screen.findByRole('button', { name: /options écarté haltères/i });
+    fireEvent.click(optionsBtn2);
+
+    // Le menu ⋯ est ouvert (item "Monter" visible)
+    expect(screen.getByRole('button', { name: /monter écarté haltères/i })).toBeInTheDocument();
+
+    // Mais ex2 reste FERMÉ (le bouton "Ouvrir Écarté haltères" est toujours présent)
+    expect(screen.getByRole('button', { name: /ouvrir écarté haltères/i })).toBeInTheDocument();
   });
 });
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import type { Session, Program, SetEntry, SessionExercise, Exercise } from '../../db/schema';
 import type { SessionDetails } from '../../db/sessions';
 import {
@@ -8,8 +9,8 @@ import {
   addExerciseToSession,
   removeExerciseFromSession,
   skipSessionExercise,
-  updateSessionExerciseSetsCount,
   moveSessionExercise,
+  getSessionProgress,
 } from '../../db/sessions';
 import { ExerciseCard } from './ExerciseCard';
 import { SetEditModal } from './SetEditModal';
@@ -33,6 +34,14 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
 
   const [isAddExerciseModalOpen, setIsAddExerciseModalOpen] = useState(false);
 
+  const [openedSessionExerciseId, setOpenedSessionExerciseId] = useState<number | null>(null);
+
+  // Progrès de la séance depuis Dexie
+  const sessionProgress = useLiveQuery(
+    async () => (session.id ? await getSessionProgress(session.id) : null),
+    [session.id, details.sets.length, details.exercises]
+  );
+
   const [editingSetInfo, setEditingSetInfo] = useState<{
     set: SetEntry;
     label: string;
@@ -53,6 +62,11 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   const isProgramDeleted = session.programId !== undefined && program === undefined;
   const isFreeSession = session.programId === undefined;
 
+  // L'exercice ouvert par défaut est firstIncompleteSessionExerciseId.
+  // Si tous les exercices sont terminés et qu'aucun n'est sélectionné manuellement -> null (aucun ouvert).
+  const currentOpenId =
+    openedSessionExerciseId ?? sessionProgress?.firstIncompleteSessionExerciseId ?? null;
+
   const handleConfirmFinish = async () => {
     if (isFinishing) return;
     try {
@@ -72,6 +86,9 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
     type: 'warmup' | 'work';
   }) => {
     await addSet(data);
+    // Décision (3) : quand l'exercice ouvert devient terminé,
+    // il se ferme et le premier non terminé s'ouvre (retour au défaut getSessionProgress).
+    setOpenedSessionExerciseId(null);
   };
 
   const handleSaveEditedSet = async (
@@ -95,32 +112,12 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   const handleAddExercise = async (exercise: Exercise) => {
     if (!exercise.id || !session.id) return;
 
-    // Déterminer l'endroit actuel de la séance au moment de l'ajout
-    // (juste après le premier exercice non terminé et non sauté, ou à la fin)
-    const currentIdx = details.exercises.findIndex((e) => {
-      if (e.skipped) return false;
-      const workSetsDone = details.sets.filter(
-        (s) => s.exerciseId === e.exerciseId && s.type === 'work'
-      ).length;
-      return workSetsDone < e.workSets;
-    });
-
-    const targetIndex =
-      currentIdx !== -1 ? currentIdx + 1 : details.exercises.length;
-
-    // Ajout à la fin (order = max + 1)
-    const newSessionExerciseId = await addExerciseToSession({
+    await addExerciseToSession({
       sessionId: session.id,
       exerciseId: exercise.id,
       warmupSets: 1,
       workSets: 3,
     });
-
-    // Repositionnement à l'endroit actuel si nécessaire
-    const stepsUp = details.exercises.length - targetIndex;
-    for (let i = 0; i < stepsUp; i++) {
-      await moveSessionExercise(newSessionExerciseId, 'up');
-    }
   };
 
   const handleConfirmRemoveExercise = async () => {
@@ -146,19 +143,13 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
     skipped: boolean
   ) => {
     await skipSessionExercise(sessionExerciseId, skipped);
-  };
-
-  const handleUpdateWorkSets = async (
-    sessionExerciseId: number,
-    workSets: number
-  ) => {
-    await updateSessionExerciseSetsCount(sessionExerciseId, { workSets });
+    setOpenedSessionExerciseId(null);
   };
 
   const existingExerciseIds = details.exercises.map((e) => e.exerciseId);
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col min-h-svh pb-16">
+    <div className="w-full max-w-md mx-auto flex flex-col min-h-svh pb-32">
       {/* En-tête de la séance en cours */}
       <header className="sticky top-0 z-20 bg-bg/90 backdrop-blur-md border-b border-line px-4 py-3 flex items-center justify-between">
         <div>
@@ -188,7 +179,7 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
       </header>
 
       {/* Liste des exercices de la séance */}
-      <main className="flex-1 px-4 py-4 space-y-4">
+      <main className="flex-1 px-4 py-4 space-y-3">
         {details.exercises.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[260px] text-center p-6 rounded-xl bg-surface border border-dashed border-line">
             <p className="text-sm text-muted mb-4">
@@ -203,58 +194,75 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
             </button>
           </div>
         ) : (
-          <>
-            {details.exercises.map((item, index) => {
-              const exerciseSets = details.sets.filter(
-                (s) => s.exerciseId === item.exerciseId
-              );
+          details.exercises.map((item, index) => {
+            const exerciseSets = details.sets.filter(
+              (s) => s.exerciseId === item.exerciseId
+            );
 
-              return (
-                <ExerciseCard
-                  key={item.id ?? index}
-                  item={item}
-                  index={index}
-                  totalExercises={details.exercises.length}
-                  sets={exerciseSets}
-                  sessionId={session.id!}
-                  onAddSet={handleAddSet}
-                  onEditSet={(s) =>
-                    setEditingSetInfo({
-                      set: s,
-                      label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
-                    })
-                  }
-                  onDeleteSet={(s) =>
-                    setSetToDelete({
-                      set: s,
-                      label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
-                    })
-                  }
-                  onMoveExercise={handleMoveExercise}
-                  onSkipExercise={handleSkipExercise}
-                  onUpdateWorkSets={handleUpdateWorkSets}
-                  onRequestRemoveExercise={(exItem: SessionExercise & { exercise?: Exercise }) =>
-                    setExerciseToRemove({
-                      id: exItem.id!,
-                      name: exItem.exercise?.name ?? 'l’exercice',
-                    })
-                  }
-                />
-              );
-            })}
+            const itemProgress = sessionProgress?.exercises.find(
+              (e) => e.sessionExerciseId === item.id
+            );
 
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => setIsAddExerciseModalOpen(true)}
-                className="w-full min-h-[48px] rounded-xl bg-surface-2 border border-line text-sm font-semibold text-text hover:bg-surface active:opacity-90 transition flex items-center justify-center gap-1.5"
-              >
-                <span>+ Ajouter un exercice</span>
-              </button>
-            </div>
-          </>
+            const isCompleted = itemProgress?.completed ?? false;
+            const workSetsDone = itemProgress?.workSetsDone ?? 0;
+            const isOpen = currentOpenId === item.id;
+
+            return (
+              <ExerciseCard
+                key={item.id ?? index}
+                item={item}
+                index={index}
+                totalExercises={details.exercises.length}
+                sets={exerciseSets}
+                sessionId={session.id!}
+                isOpen={isOpen}
+                isCompleted={isCompleted}
+                workSetsDone={workSetsDone}
+                onToggleOpen={() => {
+                  if (isOpen) {
+                    setOpenedSessionExerciseId(null);
+                  } else {
+                    setOpenedSessionExerciseId(item.id ?? null);
+                  }
+                }}
+                onAddSet={handleAddSet}
+                onEditSet={(s) =>
+                  setEditingSetInfo({
+                    set: s,
+                    label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
+                  })
+                }
+                onDeleteSet={(s) =>
+                  setSetToDelete({
+                    set: s,
+                    label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
+                  })
+                }
+                onMoveExercise={handleMoveExercise}
+                onSkipExercise={handleSkipExercise}
+                onRequestRemoveExercise={(exItem: SessionExercise & { exercise?: Exercise }) =>
+                  setExerciseToRemove({
+                    id: exItem.id!,
+                    name: exItem.exercise?.name ?? 'l’exercice',
+                  })
+                }
+              />
+            );
+          })
         )}
       </main>
+
+      {/* Bouton flottant carré 56px « + » (Ajouter un exercice) */}
+      {details.exercises.length > 0 && (
+        <button
+          type="button"
+          aria-label="Ajouter un exercice"
+          onClick={() => setIsAddExerciseModalOpen(true)}
+          className="fixed right-4 bottom-[calc(4rem+env(safe-area-inset-bottom)+16px)] w-14 h-14 min-w-[56px] min-h-[56px] rounded-xl bg-gold text-gold-ink font-bold text-2xl flex items-center justify-center shadow-lg active:opacity-90 transition z-30"
+        >
+          +
+        </button>
+      )}
 
       {/* Modale d'ajout d'exercice */}
       {isAddExerciseModalOpen && (
