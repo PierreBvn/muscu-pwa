@@ -114,3 +114,4 @@ notifications, synchronisation.
   via la fonction testée de la couche données.
 - Reps présélectionnées, par type de série (warmup et work séparés) :
   dernière série du même type sur cet exercice, sinon aucune présélection.
+- Vocabulaire : dans l'interface, « programme » s'affiche toujours « séance type » (ex. « Séance type supprimée », « Choisir une séance type »). Le code garde le nom Program.
