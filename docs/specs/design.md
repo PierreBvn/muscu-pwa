@@ -38,3 +38,12 @@
 
 ## Groupes musculaires
 - Monogramme de 2 lettres dans un cercle de 28px, bordure line, texte muted ; gold seulement sur l'exercice ouvert. Même monogramme dans l'onglet Exercices.
+
+## iOS et structure
+- Fond bg sur html, body et #root ; la barre d'état iOS est transparente (black-translucent), le contenu commence sous env(safe-area-inset-top).
+- L'en-tête de chaque écran reste fixé en haut au défilement (sticky).
+- Barres de défilement masquées (le défilement reste possible).
+- Champs de saisie : texte ≥ 16px (évite le zoom iOS). Jamais d'autoFocus.
+- Modales : plein écran, ancrées en haut, défilement interne ; la page derrière ne défile pas.
+- Pendant un chargement (données pas encore disponibles) : rien n'est affiché, aucun texte « Chargement ».
+- Onglet actif : icône et libellé gold, sans fond.

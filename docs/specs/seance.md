@@ -102,6 +102,10 @@ notifications, synchronisation.
   - Pas de texte « Réf » : le bouton égal au poids de référence porte un repère visuel (voir design.md).
   - Sans aucune suggestion de poids (premier entraînement) : le champ de saisie est affiché directement, aucun bouton « Autre », rien n'est en surbrillance.
 - Ajouter un exercice : bouton flottant (voir design.md), plus de bouton en fin de liste.
+- L'exercice ouvert défile automatiquement en 2e position visible (l'exercice précédent reste visible au-dessus), avec un défilement doux.
+- Exercice ouvert : bouton « Passer » visible à côté de « ⋯ » (Passer reste aussi dans le menu).
+- Écran Séances types : bouton « Nouvelle ».
+
 
 
 ## Décisions complémentaires
