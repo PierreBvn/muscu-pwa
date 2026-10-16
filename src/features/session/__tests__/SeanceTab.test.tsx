@@ -1247,6 +1247,43 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     // Aucun texte "Chargement" ne doit être présent dans le DOM
     expect(screen.queryByText(/chargement/i)).not.toBeInTheDocument();
   });
+
+  it("41. l'exercice ouvert affiche un bouton Passer visible à côté de ⋯ qui saute l'exercice et disparaît", async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    const exId2 = await addExercise({ name: 'Écarté couché', muscleGroup: 'Pectoraux' });
+    const progId = await createProgram({ name: 'Pectoraux', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId1 });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId2 });
+
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    // L'exercice 1 est ouvert par défaut : le bouton "Passer" visible est présent à côté de ⋯
+    const skipBtn = await screen.findByRole('button', { name: /^passer$/i });
+    expect(skipBtn).toBeInTheDocument();
+
+    // Clic sur Passer
+    fireEvent.click(skipBtn);
+
+    // L'exercice 1 devient passé. L'exercice 2 devient alors le premier incomplet et s'ouvre.
+    await screen.findByRole('heading', { name: /^écarté couché$/i });
+
+    // Si on réouvre l'exercice 1 pour vérifier son état :
+    const openEx1 = await screen.findByRole('button', { name: /ouvrir développé couché/i });
+    fireEvent.click(openEx1);
+
+    await waitFor(() => {
+      expect(screen.getByText(/exercice passé/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^rétablir$/i })).toBeInTheDocument();
+    });
+
+    // Dans l'exercice 1 rouvert et sauté, le bouton "Passer" visible direct n'est plus affiché
+    expect(screen.queryByRole('button', { name: /^passer$/i })).not.toBeInTheDocument();
+  });
 });
+
 
 

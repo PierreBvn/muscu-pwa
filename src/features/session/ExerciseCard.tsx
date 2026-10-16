@@ -232,7 +232,20 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
           )}
         </div>
 
-        <div className="flex items-center shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
+          {!isSkipped && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (item.id) onSkipExercise(item.id, true);
+              }}
+              className="min-h-[44px] px-3 rounded-xl bg-surface-2 border border-line text-xs font-semibold text-text hover:bg-surface active:opacity-90 transition"
+            >
+              Passer
+            </button>
+          )}
+
           <button
             type="button"
             aria-label={`Options ${exName}`}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Session, Program, SetEntry, SessionExercise, Exercise } from '../../db/schema';
 import type { SessionDetails } from '../../db/sessions';
@@ -66,6 +66,39 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   // Si tous les exercices sont terminés et qu'aucun n'est sélectionné manuellement -> null (aucun ouvert).
   const currentOpenId =
     openedSessionExerciseId ?? sessionProgress?.firstIncompleteSessionExerciseId ?? null;
+
+  const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+  // Défilement automatique de l'exercice ouvert en 2e position visible (avec l'exercice précédent au-dessus)
+  useEffect(() => {
+    if (currentOpenId === null) return;
+    const openIndex = details.exercises.findIndex((e) => e.id === currentOpenId);
+    if (openIndex === -1) return;
+
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const behavior: ScrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
+
+    if (openIndex === 0) {
+      if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+        window.scrollTo({ top: 0, behavior });
+      }
+    } else {
+      const prevExercise = details.exercises[openIndex - 1];
+      const prevEl = prevExercise?.id ? cardRefs.current.get(prevExercise.id) : null;
+      if (prevEl) {
+        if (typeof prevEl.scrollIntoView === 'function') {
+          prevEl.scrollIntoView({ behavior, block: 'start' });
+        } else if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+          const headerOffset = 80;
+          const elementPosition = prevEl.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({ top: Math.max(0, elementPosition - headerOffset), behavior });
+        }
+      }
+    }
+  }, [currentOpenId, details.exercises]);
 
   const handleConfirmFinish = async () => {
     if (isFinishing) return;
@@ -208,45 +241,55 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
             const isOpen = currentOpenId === item.id;
 
             return (
-              <ExerciseCard
+              <div
                 key={item.id ?? index}
-                item={item}
-                index={index}
-                totalExercises={details.exercises.length}
-                sets={exerciseSets}
-                sessionId={session.id!}
-                isOpen={isOpen}
-                isCompleted={isCompleted}
-                workSetsDone={workSetsDone}
-                onToggleOpen={() => {
-                  if (isOpen) {
-                    setOpenedSessionExerciseId(null);
-                  } else {
-                    setOpenedSessionExerciseId(item.id ?? null);
+                ref={(el) => {
+                  if (item.id) {
+                    if (el) cardRefs.current.set(item.id, el);
+                    else cardRefs.current.delete(item.id);
                   }
                 }}
-                onAddSet={handleAddSet}
-                onEditSet={(s) =>
-                  setEditingSetInfo({
-                    set: s,
-                    label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
-                  })
-                }
-                onDeleteSet={(s) =>
-                  setSetToDelete({
-                    set: s,
-                    label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
-                  })
-                }
-                onMoveExercise={handleMoveExercise}
-                onSkipExercise={handleSkipExercise}
-                onRequestRemoveExercise={(exItem: SessionExercise & { exercise?: Exercise }) =>
-                  setExerciseToRemove({
-                    id: exItem.id!,
-                    name: exItem.exercise?.name ?? 'l’exercice',
-                  })
-                }
-              />
+                className="scroll-mt-[calc(4.5rem+env(safe-area-inset-top))]"
+              >
+                <ExerciseCard
+                  item={item}
+                  index={index}
+                  totalExercises={details.exercises.length}
+                  sets={exerciseSets}
+                  sessionId={session.id!}
+                  isOpen={isOpen}
+                  isCompleted={isCompleted}
+                  workSetsDone={workSetsDone}
+                  onToggleOpen={() => {
+                    if (isOpen) {
+                      setOpenedSessionExerciseId(null);
+                    } else {
+                      setOpenedSessionExerciseId(item.id ?? null);
+                    }
+                  }}
+                  onAddSet={handleAddSet}
+                  onEditSet={(s) =>
+                    setEditingSetInfo({
+                      set: s,
+                      label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
+                    })
+                  }
+                  onDeleteSet={(s) =>
+                    setSetToDelete({
+                      set: s,
+                      label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
+                    })
+                  }
+                  onMoveExercise={handleMoveExercise}
+                  onSkipExercise={handleSkipExercise}
+                  onRequestRemoveExercise={(exItem: SessionExercise & { exercise?: Exercise }) =>
+                    setExerciseToRemove({
+                      id: exItem.id!,
+                      name: exItem.exercise?.name ?? 'l’exercice',
+                    })
+                  }
+                />
+              </div>
             );
           })
         )}
