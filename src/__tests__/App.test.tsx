@@ -15,8 +15,8 @@ describe('App navigation & TabBar', () => {
     const tablist = screen.getByRole('tablist', { name: /navigation principale/i });
     expect(tablist).toBeInTheDocument();
 
-    const seanceTab = screen.getByRole('tab', { name: /séance/i });
-    const programsTab = screen.getByRole('tab', { name: /programmes/i });
+    const seanceTab = screen.getByRole('tab', { name: /^séance$/i });
+    const programsTab = screen.getByRole('tab', { name: /séances types/i });
     const exercisesTab = screen.getByRole('tab', { name: /exercices/i });
 
     expect(seanceTab).toBeInTheDocument();
@@ -45,22 +45,22 @@ describe('App navigation & TabBar', () => {
       ).toBeInTheDocument();
     });
 
-    const seanceTab = screen.getByRole('tab', { name: /séance/i });
+    const seanceTab = screen.getByRole('tab', { name: /^séance$/i });
     fireEvent.click(seanceTab);
 
     expect(seanceTab).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText(/à venir/i)).toBeInTheDocument();
   });
 
-  it('navigates to Programmes tab', () => {
+  it('navigates to Séances types tab', () => {
     render(<App />);
 
-    const programsTab = screen.getByRole('tab', { name: /programmes/i });
+    const programsTab = screen.getByRole('tab', { name: /séances types/i });
     fireEvent.click(programsTab);
 
     expect(programsTab).toHaveAttribute('aria-selected', 'true');
     expect(
-      screen.getByRole('heading', { name: /programmes/i })
+      screen.getByRole('heading', { name: /séances types/i })
     ).toBeInTheDocument();
   });
 });

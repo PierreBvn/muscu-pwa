@@ -38,7 +38,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
   if (programData === undefined) {
     return (
       <div className="w-full max-w-md mx-auto min-h-svh bg-zinc-950 text-zinc-100 flex items-center justify-center text-sm text-zinc-500">
-        Chargement du programme...
+        Chargement de la séance type...
       </div>
     );
   }
@@ -46,13 +46,13 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
   if (programData === null || !programData.program) {
     return (
       <div className="w-full max-w-md mx-auto min-h-svh bg-zinc-950 text-zinc-100 flex flex-col p-4 items-center justify-center text-center">
-        <p className="text-sm text-zinc-400 mb-4">Programme introuvable.</p>
+        <p className="text-sm text-zinc-400 mb-4">Séance type introuvable.</p>
         <button
           type="button"
           onClick={onBack}
           className="min-h-[44px] px-4 rounded-xl bg-purple-600 text-sm font-semibold text-white"
         >
-          Retour aux programmes
+          Retour
         </button>
       </div>
     );
@@ -77,16 +77,6 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
     setIsAddModalOpen(false);
   };
 
-  const handleWarmupChange = async (
-    programExerciseId: number,
-    currentWarmup: number,
-    delta: number
-  ) => {
-    const next = currentWarmup + delta;
-    if (next < 0 || next > 4) return;
-    await updateProgramExercise(programExerciseId, { warmupSets: next });
-  };
-
   const handleWorkChange = async (
     programExerciseId: number,
     currentWork: number,
@@ -107,7 +97,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
             onClick={onBack}
             className="min-h-[44px] min-w-[44px] flex items-center justify-center -ml-2 rounded-xl text-purple-400 hover:text-purple-300 active:bg-zinc-800 transition"
           >
-            <span className="text-sm font-semibold">← Programmes</span>
+            <span className="text-sm font-semibold">← Retour</span>
           </button>
           <h1 className="text-xl font-bold text-white tracking-tight truncate max-w-[200px]">
             {program.name}
@@ -138,7 +128,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
         {exercises.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[200px] text-center p-6 rounded-2xl bg-zinc-900/40 border border-dashed border-zinc-800">
             <p className="text-sm text-zinc-400 mb-3">
-              Aucun exercice dans ce programme.
+              Aucun exercice dans cette séance type.
             </p>
             <button
               type="button"
@@ -257,84 +247,42 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                     </div>
                   </div>
 
-                  {/* Réglage des séries */}
-                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-zinc-800/60">
-                    {/* Échauffement (0 - 4) */}
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs text-zinc-400 font-medium">
-                        Échauffement : {pe.warmupSets}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          aria-label={`Diminuer séries d’échauffement ${exName}`}
-                          disabled={pe.warmupSets <= 0}
-                          onClick={() =>
-                            pe.id && handleWarmupChange(pe.id, pe.warmupSets, -1)
-                          }
-                          className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-zinc-800 text-lg font-bold transition ${
-                            pe.warmupSets <= 0
-                              ? 'text-zinc-600 opacity-40 cursor-not-allowed'
-                              : 'text-zinc-200 hover:bg-zinc-700 active:bg-zinc-650'
-                          }`}
-                        >
-                          −
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={`Augmenter séries d’échauffement ${exName}`}
-                          disabled={pe.warmupSets >= 4}
-                          onClick={() =>
-                            pe.id && handleWarmupChange(pe.id, pe.warmupSets, 1)
-                          }
-                          className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-zinc-800 text-lg font-bold transition ${
-                            pe.warmupSets >= 4
-                              ? 'text-zinc-600 opacity-40 cursor-not-allowed'
-                              : 'text-zinc-200 hover:bg-zinc-700 active:bg-zinc-650'
-                          }`}
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Travail (1 - 6) */}
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs text-zinc-400 font-medium">
-                        Travail : {pe.workSets}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          aria-label={`Diminuer séries de travail ${exName}`}
-                          disabled={pe.workSets <= 1}
-                          onClick={() =>
-                            pe.id && handleWorkChange(pe.id, pe.workSets, -1)
-                          }
-                          className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-zinc-800 text-lg font-bold transition ${
-                            pe.workSets <= 1
-                              ? 'text-zinc-600 opacity-40 cursor-not-allowed'
-                              : 'text-zinc-200 hover:bg-zinc-700 active:bg-zinc-650'
-                          }`}
-                        >
-                          −
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={`Augmenter séries de travail ${exName}`}
-                          disabled={pe.workSets >= 6}
-                          onClick={() =>
-                            pe.id && handleWorkChange(pe.id, pe.workSets, 1)
-                          }
-                          className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-zinc-800 text-lg font-bold transition ${
-                            pe.workSets >= 6
-                              ? 'text-zinc-600 opacity-40 cursor-not-allowed'
-                              : 'text-zinc-200 hover:bg-zinc-700 active:bg-zinc-650'
-                          }`}
-                        >
-                          +
-                        </button>
-                      </div>
+                  {/* Réglage des séries de travail (l'échauffement n'est pas réglable ici, warmupSets = 1 par défaut) */}
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
+                    <span className="text-xs text-zinc-400 font-medium">
+                      Travail : {pe.workSets}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        aria-label={`Diminuer séries de travail ${exName}`}
+                        disabled={pe.workSets <= 1}
+                        onClick={() =>
+                          pe.id && handleWorkChange(pe.id, pe.workSets, -1)
+                        }
+                        className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-zinc-800 text-lg font-bold transition ${
+                          pe.workSets <= 1
+                            ? 'text-zinc-600 opacity-40 cursor-not-allowed'
+                            : 'text-zinc-200 hover:bg-zinc-700 active:bg-zinc-650'
+                        }`}
+                      >
+                        −
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Augmenter séries de travail ${exName}`}
+                        disabled={pe.workSets >= 6}
+                        onClick={() =>
+                          pe.id && handleWorkChange(pe.id, pe.workSets, 1)
+                        }
+                        className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-zinc-800 text-lg font-bold transition ${
+                          pe.workSets >= 6
+                            ? 'text-zinc-600 opacity-40 cursor-not-allowed'
+                            : 'text-zinc-200 hover:bg-zinc-700 active:bg-zinc-650'
+                        }`}
+                      >
+                        +
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -370,13 +318,13 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
             </div>
 
             <p className="text-xs text-zinc-400 mb-3">
-              Choisissez un exercice à ajouter au programme.
+              Choisissez un exercice à ajouter à la séance type.
             </p>
 
             <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
               {filteredAvailableExercises.length === 0 ? (
                 <div className="py-8 text-center text-xs text-zinc-500">
-                  Tous les exercices disponibles sont déjà dans ce programme.
+                  Tous les exercices disponibles sont déjà dans cette séance type.
                 </div>
               ) : (
                 filteredAvailableExercises.map((exercise) => (

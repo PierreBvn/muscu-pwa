@@ -15,25 +15,25 @@ describe('ProgramList UI', () => {
     render(<ProgramList />);
 
     expect(
-      screen.getByRole('heading', { name: /programmes/i })
+      screen.getByRole('heading', { name: /séances types/i })
     ).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText(/aucun programme/i)).toBeInTheDocument();
+      expect(screen.getByText(/aucune séance type/i)).toBeInTheDocument();
     });
 
-    const addBtn = screen.getByRole('button', { name: /nouveau programme/i });
+    const addBtn = screen.getByRole('button', { name: /nouvelle séance type/i });
     fireEvent.click(addBtn);
 
     expect(
-      screen.getByRole('heading', { name: /nouveau programme/i })
+      screen.getByRole('heading', { name: /nouvelle séance type/i })
     ).toBeInTheDocument();
   });
 
   it('validates program name and weekdays before creating', async () => {
     render(<ProgramList />);
 
-    const addBtn = screen.getByRole('button', { name: /nouveau programme/i });
+    const addBtn = screen.getByRole('button', { name: /nouvelle séance type/i });
     fireEvent.click(addBtn);
 
     const saveBtn = screen.getByRole('button', { name: /enregistrer/i });
@@ -41,15 +41,14 @@ describe('ProgramList UI', () => {
     // Nom vide
     fireEvent.click(saveBtn);
     expect(
-      screen.getByText(/le nom du programme ne peut pas être vide/i)
+      screen.getByText(/le nom de la séance type ne peut pas être vide/i)
     ).toBeInTheDocument();
 
     // Remplir le nom mais aucun jour
-    const nameInput = screen.getByLabelText(/nom du programme/i);
+    const nameInput = screen.getByLabelText(/nom de la séance type/i);
     fireEvent.change(nameInput, { target: { value: 'Full Body' } });
 
     // Désélectionner les jours si cochés par défaut, ou vérifier l'erreur si aucun jour
-    // Si la modale a des boutons pour les jours : Lundi...
     const lundiCheckbox = screen.getByRole('checkbox', { name: /lundi/i });
     if (lundiCheckbox.getAttribute('aria-checked') === 'true') {
       fireEvent.click(lundiCheckbox);
@@ -72,10 +71,10 @@ describe('ProgramList UI', () => {
   it('creates a new program with chosen weekdays', async () => {
     render(<ProgramList />);
 
-    const addBtn = screen.getByRole('button', { name: /nouveau programme/i });
+    const addBtn = screen.getByRole('button', { name: /nouvelle séance type/i });
     fireEvent.click(addBtn);
 
-    const nameInput = screen.getByLabelText(/nom du programme/i);
+    const nameInput = screen.getByLabelText(/nom de la séance type/i);
     fireEvent.change(nameInput, { target: { value: 'Upper Body' } });
 
     // Cocher Lundi et Jeudi
@@ -113,10 +112,10 @@ describe('ProgramList UI', () => {
     fireEvent.click(editBtn);
 
     expect(
-      screen.getByRole('heading', { name: /modifier le programme/i })
+      screen.getByRole('heading', { name: /modifier la séance type/i })
     ).toBeInTheDocument();
 
-    const nameInput = screen.getByLabelText(/nom du programme/i);
+    const nameInput = screen.getByLabelText(/nom de la séance type/i);
     expect(nameInput).toHaveValue('Legs');
 
     fireEvent.change(nameInput, { target: { value: 'Legs & Core' } });

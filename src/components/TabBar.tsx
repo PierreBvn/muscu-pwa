@@ -36,7 +36,7 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
     },
     {
       id: 'programs',
-      label: 'Programmes',
+      label: 'Séances types',
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { ProgramDetail } from '../ProgramDetail';
 import { db } from '../../../db/schema';
-import { createProgram, addExerciseToProgram } from '../../../db/programs';
+import { createProgram, addExerciseToProgram, getProgramExercises } from '../../../db/programs';
 import { addExercise } from '../../../db/exercises';
 
 describe('ProgramDetail UI', () => {
@@ -27,7 +27,7 @@ describe('ProgramDetail UI', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /full body a/i })).toBeInTheDocument();
-      expect(screen.getByText(/aucun exercice dans ce programme/i)).toBeInTheDocument();
+      expect(screen.getByText(/aucun exercice dans cette séance type/i)).toBeInTheDocument();
     });
   });
 
@@ -47,12 +47,17 @@ describe('ProgramDetail UI', () => {
     const benchOption = screen.getByRole('button', { name: /développé couché/i });
     fireEvent.click(benchOption);
 
-    // Exercice ajouté dans la liste
+    // Exercice ajouté dans la liste avec 3 séries de travail par défaut
     await waitFor(() => {
       expect(screen.getByText('Développé couché')).toBeInTheDocument();
-      expect(screen.getByText(/échauffement : 1/i)).toBeInTheDocument();
       expect(screen.getByText(/travail : 3/i)).toBeInTheDocument();
     });
+
+    // En base, warmupSets vaut bien 1 par défaut
+    const programExercises = await getProgramExercises(programId);
+    expect(programExercises).toHaveLength(1);
+    expect(programExercises[0].warmupSets).toBe(1);
+    expect(programExercises[0].workSets).toBe(3);
   });
 
   it('filters out exercises already present in the program from the add selector', async () => {
@@ -73,42 +78,6 @@ describe('ProgramDetail UI', () => {
     // Squat et Soulevé de terre doivent l'être
     expect(within(dialog).getByText('Squat')).toBeInTheDocument();
     expect(within(dialog).getByText('Soulevé de terre')).toBeInTheDocument();
-  });
-
-  it('enforces warmupSets bounds (0 to 4, default 1)', async () => {
-    await addExerciseToProgram({ programId, exerciseId: exBenchId });
-
-    render(<ProgramDetail programId={programId} onBack={() => {}} />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Développé couché')).toBeInTheDocument();
-    });
-
-    const minusWarmup = screen.getByRole('button', {
-      name: /diminuer séries d’échauffement développé couché/i,
-    });
-    const plusWarmup = screen.getByRole('button', {
-      name: /augmenter séries d’échauffement développé couché/i,
-    });
-
-    // De 1 à 0
-    fireEvent.click(minusWarmup);
-    await waitFor(() => {
-      expect(screen.getByText(/échauffement : 0/i)).toBeInTheDocument();
-      expect(minusWarmup).toBeDisabled();
-    });
-
-    // Monter jusqu'à 4
-    for (let i = 1; i <= 4; i++) {
-      fireEvent.click(plusWarmup);
-      await waitFor(() => {
-        expect(screen.getByText(new RegExp(`échauffement : ${i}`, 'i'))).toBeInTheDocument();
-      });
-    }
-
-    await waitFor(() => {
-      expect(plusWarmup).toBeDisabled();
-    });
   });
 
   it('enforces workSets bounds (1 to 6, default 3)', async () => {
@@ -198,7 +167,7 @@ describe('ProgramDetail UI', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('Développé couché')).not.toBeInTheDocument();
-      expect(screen.getByText(/aucun exercice dans ce programme/i)).toBeInTheDocument();
+      expect(screen.getByText(/aucun exercice dans cette séance type/i)).toBeInTheDocument();
     });
   });
 

@@ -58,7 +58,7 @@ export const ProgramList: React.FC = () => {
       <header className="sticky top-0 z-20 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white tracking-tight">
-            Programmes
+            Séances types
           </h1>
           <p className="text-xs text-zinc-400">
             Gérez vos routines d’entraînement
@@ -70,14 +70,14 @@ export const ProgramList: React.FC = () => {
           className="flex min-h-[44px] items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 text-sm font-semibold text-white shadow-md shadow-purple-600/30 hover:bg-purple-500 active:bg-purple-700 transition"
         >
           <span className="text-lg leading-none">+</span>
-          <span>Nouveau programme</span>
+          <span>Nouvelle séance type</span>
         </button>
       </header>
 
       <main className="flex-1 px-4 py-5">
         {programs === undefined ? (
           <div className="flex min-h-[200px] items-center justify-center text-sm text-zinc-500">
-            Chargement des programmes...
+            Chargement des séances types...
           </div>
         ) : programs.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[260px] text-center p-6 rounded-2xl bg-zinc-900/40 border border-dashed border-zinc-800">
@@ -99,17 +99,17 @@ export const ProgramList: React.FC = () => {
               </svg>
             </div>
             <h3 className="text-base font-semibold text-white mb-1">
-              Aucun programme
+              Aucune séance type
             </h3>
             <p className="text-xs text-zinc-400 max-w-xs mb-4">
-              Créez votre premier programme pour organiser vos séances hebdomadaires.
+              Créez votre première séance type pour organiser vos séances hebdomadaires.
             </p>
             <button
               type="button"
               onClick={handleOpenCreate}
               className="min-h-[44px] px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-semibold text-purple-400 transition"
             >
-              Créer un programme
+              Créer une séance type
             </button>
           </div>
         ) : (
@@ -149,7 +149,7 @@ export const ProgramList: React.FC = () => {
               id="delete-program-dialog-title"
               className="text-lg font-bold text-white mb-2"
             >
-              Supprimer le programme ?
+              Supprimer la séance type ?
             </h3>
             <p className="text-sm text-zinc-300 mb-2">
               Êtes-vous sûr de vouloir supprimer{' '}

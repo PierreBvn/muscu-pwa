@@ -43,11 +43,11 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {
-      setError('Le nom du programme ne peut pas être vide.');
+      setError('Le nom de la séance type ne peut pas être vide.');
       return;
     }
     if (weekdays.length === 0) {
-      setError('Sélectionnez au moins un jour pour ce programme.');
+      setError('Sélectionnez au moins un jour pour cette séance type.');
       return;
     }
 
@@ -75,7 +75,7 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
           id="program-modal-title"
           className="text-lg font-bold text-white mb-4"
         >
-          {program ? 'Modifier le programme' : 'Nouveau programme'}
+          {program ? 'Modifier la séance type' : 'Nouvelle séance type'}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,7 +84,7 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
               htmlFor="program-name"
               className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5"
             >
-              Nom du programme
+              Nom de la séance type
             </label>
             <input
               id="program-name"

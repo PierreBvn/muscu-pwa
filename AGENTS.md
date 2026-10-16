@@ -26,6 +26,9 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - docs/specs/design.md fait foi. Couleurs uniquement via les tokens @theme : aucune couleur codée en dur, jamais de violet/indigo ni de dégradé.
 - Une tâche de style ne modifie ni la logique, ni src/db/, ni les tests.
 
+## Vocabulaire
+- Interface : « séance type » (jamais « programme »). Code : Program / programs. Ne pas renommer le code pour suivre l'interface.
+
 
 
 ## Règles
