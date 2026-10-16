@@ -10,6 +10,16 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - `npm run dev` : serveur de dev
 - `npm run lint` / `npm test` / `npm run build` : vérifications
 
+## Interface mobile
+- La meta viewport contient `viewport-fit=cover` ; tout élément fixé en bas utilise `env(safe-area-inset-bottom)`.
+- Tests d'interface : requêtes par rôle ou libellé (getByRole, getByLabelText). Pas de test sur les classes CSS.
+- Une tâche d'interface ne modifie pas `src/db/`. Un besoin manquant est signalé dans le plan, pas implémenté.
+
+## Architecture
+- Les composants n'importent jamais `db` directement : toute lecture/écriture passe par les fonctions de `src/db/`.
+- Dans la section « Ambiguïtés » d'un plan : poser la question et proposer une option, sans écrire « l'UI fera X ». La décision revient à l'utilisateur.
+
+
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
 - Une ligne par série (SetEntry), jamais de "3x10" stocké en texte.
