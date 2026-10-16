@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Program } from '../../db/schema';
+import { useModalScrollLock } from '../../hooks/useModalScrollLock';
 
 interface ProgramPickerModalProps {
   isOpen: boolean;
@@ -14,6 +15,8 @@ export const ProgramPickerModal: React.FC<ProgramPickerModalProps> = ({
   onClose,
   onSelect,
 }) => {
+  useModalScrollLock(isOpen);
+
   if (!isOpen) {
     return null;
   }
@@ -23,10 +26,10 @@ export const ProgramPickerModal: React.FC<ProgramPickerModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="program-picker-title"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
+      className="fixed inset-0 z-50 flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="w-full max-w-md rounded-xl bg-surface border border-line p-5 shadow-2xl flex flex-col max-h-[80vh]">
-        <div className="flex items-center justify-between mb-4">
+      <div className="w-full max-w-md mx-auto flex-1 flex flex-col p-4 overflow-hidden">
+        <div className="flex items-center justify-between mb-4 shrink-0">
           <h2
             id="program-picker-title"
             className="text-lg font-semibold text-text tracking-tight"
@@ -37,7 +40,7 @@ export const ProgramPickerModal: React.FC<ProgramPickerModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Fermer"
-            className="w-10 h-10 rounded-full flex items-center justify-center text-muted hover:text-text hover:bg-surface-2 transition"
+            className="min-h-[44px] min-w-[44px] rounded-full flex items-center justify-center text-muted hover:text-text hover:bg-surface-2 transition"
           >
             ✕
           </button>
@@ -69,7 +72,7 @@ export const ProgramPickerModal: React.FC<ProgramPickerModalProps> = ({
           )}
         </div>
 
-        <div className="mt-4 pt-3 border-t border-line">
+        <div className="mt-4 pt-3 border-t border-line shrink-0">
           <button
             type="button"
             onClick={onClose}

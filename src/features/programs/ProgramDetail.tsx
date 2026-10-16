@@ -9,6 +9,7 @@ import {
   moveProgramExercise,
 } from '../../db/programs';
 import { getAllExercises } from '../../db/exercises';
+import { useModalScrollLock } from '../../hooks/useModalScrollLock';
 
 interface ProgramDetailProps {
   programId: number;
@@ -20,6 +21,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
   onBack,
 }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  useModalScrollLock(isAddModalOpen);
 
   // Données du programme et ses exercices enrichis emballées
   const programDataQuery = useLiveQuery(
@@ -295,10 +297,10 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="add-exercise-dialog-title"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
+          className="fixed inset-0 z-50 flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
         >
-          <div className="w-full max-w-md max-h-[80vh] flex flex-col rounded-xl bg-surface border border-line p-5 shadow-2xl">
-            <div className="flex items-center justify-between mb-3">
+          <div className="w-full max-w-md mx-auto flex-1 flex flex-col p-4 overflow-hidden">
+            <div className="flex items-center justify-between mb-3 shrink-0">
               <h2
                 id="add-exercise-dialog-title"
                 className="text-lg font-semibold text-text tracking-tight"
@@ -308,13 +310,14 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
+                aria-label="Fermer"
                 className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted hover:text-text active:bg-surface-2 rounded-xl"
               >
                 ✕
               </button>
             </div>
 
-            <p className="text-xs text-muted mb-3">
+            <p className="text-xs text-muted mb-3 shrink-0">
               Choisissez un exercice à ajouter à la séance type.
             </p>
 
@@ -345,7 +348,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
               )}
             </div>
 
-            <div className="pt-3 border-t border-line mt-2">
+            <div className="pt-3 border-t border-line mt-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}

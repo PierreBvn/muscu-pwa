@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { SetEntry } from '../../db/schema';
 import { parseWeight, parseReps } from '../../db/suggestions';
+import { useModalScrollLock } from '../../hooks/useModalScrollLock';
 
 interface SetEditModalProps {
   set: SetEntry;
@@ -17,6 +18,7 @@ export const SetEditModal: React.FC<SetEditModalProps> = ({
   onClose,
   onSave,
 }) => {
+  useModalScrollLock(isOpen);
   const [weightInput, setWeightInput] = useState(String(set.weight));
   const [repsInput, setRepsInput] = useState(String(set.reps));
   const [error, setError] = useState<string | null>(null);
@@ -58,17 +60,27 @@ export const SetEditModal: React.FC<SetEditModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="edit-set-title"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
+      className="fixed inset-0 z-50 flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="w-full max-w-sm rounded-xl bg-surface border border-line p-5 shadow-2xl">
-        <h2
-          id="edit-set-title"
-          className="text-lg font-semibold text-text tracking-tight mb-4"
-        >
-          Modifier {label}
-        </h2>
+      <div className="w-full max-w-md mx-auto flex-1 flex flex-col p-4 overflow-hidden">
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <h2
+            id="edit-set-title"
+            className="text-lg font-semibold text-text tracking-tight"
+          >
+            Modifier {label}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer"
+            className="min-h-[44px] min-w-[44px] rounded-full flex items-center justify-center text-muted hover:text-text hover:bg-surface-2 transition"
+          >
+            ✕
+          </button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-4">
           <div>
             <label
               htmlFor="edit-weight-input"

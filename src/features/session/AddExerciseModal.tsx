@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Exercise } from '../../db/schema';
 import { getAllExercises } from '../../db/exercises';
+import { useModalScrollLock } from '../../hooks/useModalScrollLock';
 
 interface AddExerciseModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
   onClose,
   onSelectExercise,
 }) => {
+  useModalScrollLock(isOpen);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
@@ -51,10 +53,10 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="add-exercise-modal-title"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
+      className="fixed inset-0 z-50 flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="w-full max-w-md rounded-xl bg-surface border border-line p-5 shadow-2xl flex flex-col max-h-[85vh]">
-        <div className="flex items-center justify-between mb-4">
+      <div className="w-full max-w-md mx-auto flex-1 flex flex-col p-4 overflow-hidden">
+        <div className="flex items-center justify-between mb-4 shrink-0">
           <h2
             id="add-exercise-modal-title"
             className="text-lg font-semibold text-text tracking-tight"
@@ -65,13 +67,13 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Fermer"
-            className="w-10 h-10 rounded-full flex items-center justify-center text-muted hover:text-text hover:bg-surface-2 transition"
+            className="min-h-[44px] min-w-[44px] rounded-full flex items-center justify-center text-muted hover:text-text hover:bg-surface-2 transition"
           >
             ✕
           </button>
         </div>
 
-        <div className="mb-3">
+        <div className="mb-3 shrink-0">
           <input
             type="text"
             value={searchQuery}
@@ -114,7 +116,7 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
           )}
         </div>
 
-        <div className="mt-4 pt-3 border-t border-line">
+        <div className="mt-4 pt-3 border-t border-line shrink-0">
           <button
             type="button"
             onClick={onClose}

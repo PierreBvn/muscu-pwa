@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Program } from '../../db/schema';
+import { useModalScrollLock } from '../../hooks/useModalScrollLock';
 
 const WEEKDAYS = [
   { value: 1, label: 'Lundi', short: 'Lun' },
@@ -24,6 +25,7 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
   onClose,
   onSave,
 }) => {
+  useModalScrollLock(isOpen);
   const [name, setName] = useState(program ? program.name : '');
   const [weekdays, setWeekdays] = useState<number[]>(
     program ? program.weekdays : [1]
@@ -68,17 +70,27 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="program-modal-title"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
+      className="fixed inset-0 z-50 flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="w-full max-w-md rounded-xl bg-surface border border-line p-5 shadow-2xl">
-        <h2
-          id="program-modal-title"
-          className="text-lg font-semibold text-text tracking-tight mb-4"
-        >
-          {program ? 'Modifier la séance type' : 'Nouvelle séance type'}
-        </h2>
+      <div className="w-full max-w-md mx-auto flex-1 flex flex-col p-4 overflow-hidden">
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <h2
+            id="program-modal-title"
+            className="text-lg font-semibold text-text tracking-tight"
+          >
+            {program ? 'Modifier la séance type' : 'Nouvelle séance type'}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer"
+            className="min-h-[44px] min-w-[44px] rounded-full flex items-center justify-center text-muted hover:text-text hover:bg-surface-2 transition"
+          >
+            ✕
+          </button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-4">
           <div>
             <label
               htmlFor="program-name"

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MUSCLE_GROUPS, type Exercise, type MuscleGroup } from '../../db/schema';
+import { useModalScrollLock } from '../../hooks/useModalScrollLock';
 
 interface ExerciseModalProps {
   isOpen: boolean;
@@ -48,10 +49,10 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-0 sm:p-4"
+      className="fixed inset-0 z-50 flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="w-full max-w-md rounded-t-xl sm:rounded-xl bg-surface border border-line p-6 shadow-2xl">
-        <div className="flex items-center justify-between pb-4 border-b border-line">
+      <div className="w-full max-w-md mx-auto flex-1 flex flex-col p-4 overflow-hidden">
+        <div className="flex items-center justify-between pb-4 border-b border-line shrink-0">
           <h2 id="modal-title" className="text-xl font-semibold text-text tracking-tight">
             {isEditing ? 'Modifier l’exercice' : 'Nouvel exercice'}
           </h2>
@@ -65,7 +66,7 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-5">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto mt-4 space-y-5 pr-1">
           {error && (
             <div
               role="alert"
@@ -146,6 +147,7 @@ export const ExerciseModal: React.FC<ExerciseModalProps> = ({
   onClose,
   onSave,
 }) => {
+  useModalScrollLock(isOpen);
   if (!isOpen) return null;
 
   return (
