@@ -41,6 +41,10 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 ## Actions irréversibles
 - Terminer une séance, supprimer une donnée : toujours un dialogue de confirmation (role="alertdialog").
 
+## Saisie
+- Champs numériques : input type="text" inputMode="decimal", validés par parseWeight/parseReps. Jamais type="number" ni parseFloat dans un composant.
+- Aucun calcul métier (poids, pas, arrondi, choix de référence) dans les composants : uniquement via src/db/.
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.

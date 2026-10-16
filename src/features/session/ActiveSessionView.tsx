@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import type { Session, Program } from '../../db/schema';
+import type { Session, Program, SetEntry } from '../../db/schema';
 import type { SessionDetails } from '../../db/sessions';
+import { addSet, updateSet, deleteSet } from '../../db/sessions';
+import { ExerciseCard } from './ExerciseCard';
+import { SetEditModal } from './SetEditModal';
 
 interface ActiveSessionViewProps {
   session: Session;
@@ -15,8 +18,19 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   program,
   onFinishSession,
 }) => {
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
+
+  const [editingSetInfo, setEditingSetInfo] = useState<{
+    set: SetEntry;
+    label: string;
+  } | null>(null);
+
+  const [setToDelete, setSetToDelete] = useState<{
+    set: SetEntry;
+    label: string;
+  } | null>(null);
+  const [isDeletingSet, setIsDeletingSet] = useState(false);
 
   const isProgramDeleted = session.programId !== undefined && program === undefined;
   const isFreeSession = session.programId === undefined;
@@ -26,9 +40,37 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
     try {
       setIsFinishing(true);
       await onFinishSession();
-      setShowConfirmDialog(false);
+      setShowFinishConfirm(false);
     } finally {
       setIsFinishing(false);
+    }
+  };
+
+  const handleAddSet = async (data: {
+    sessionId: number;
+    exerciseId: number;
+    weight: number;
+    reps: number;
+    type: 'warmup' | 'work';
+  }) => {
+    await addSet(data);
+  };
+
+  const handleSaveEditedSet = async (
+    setId: number,
+    changes: { weight: number; reps: number }
+  ) => {
+    await updateSet(setId, changes);
+  };
+
+  const handleConfirmDeleteSet = async () => {
+    if (!setToDelete?.set.id || isDeletingSet) return;
+    try {
+      setIsDeletingSet(true);
+      await deleteSet(setToDelete.set.id);
+      setSetToDelete(null);
+    } finally {
+      setIsDeletingSet(false);
     }
   };
 
@@ -53,7 +95,7 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
 
         <button
           type="button"
-          onClick={() => setShowConfirmDialog(true)}
+          onClick={() => setShowFinishConfirm(true)}
           className="min-h-[44px] px-3.5 rounded-xl bg-surface-2 border border-line text-xs font-semibold text-text hover:border-danger/60 hover:text-danger active:opacity-90 transition"
         >
           Terminer la séance
@@ -61,7 +103,7 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
       </header>
 
       {/* Liste des exercices de la séance */}
-      <main className="flex-1 px-4 py-4 space-y-3">
+      <main className="flex-1 px-4 py-4 space-y-4">
         {details.exercises.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[220px] text-center p-6 rounded-xl bg-surface border border-dashed border-line">
             <p className="text-sm text-muted">
@@ -69,55 +111,94 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {details.exercises.map((item, index) => {
-              const isArchived = item.exercise?.archived === true;
+          details.exercises.map((item, index) => {
+            const exerciseSets = details.sets.filter(
+              (s) => s.exerciseId === item.exerciseId
+            );
 
-              return (
-                <div
-                  key={item.id ?? index}
-                  className="rounded-xl bg-surface border border-line p-4 transition"
-                >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs text-muted font-mono">
-                          #{index + 1}
-                        </span>
-                        <h2 className="text-base font-semibold text-text">
-                          {item.exercise?.name ?? 'Exercice'}
-                        </h2>
-                        {isArchived && (
-                          <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-surface-2 border border-line text-muted">
-                            Archivé
-                          </span>
-                        )}
-                      </div>
-                      {item.exercise?.muscleGroup && (
-                        <p className="text-xs text-muted mt-0.5">
-                          {item.exercise.muscleGroup}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-xs text-muted pt-2 border-t border-line/60">
-                    <span>
-                      {item.warmupSets > 0 && (
-                        <span>{item.warmupSets} échauffement · </span>
-                      )}
-                      <span>{item.workSets} travail</span>
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+            return (
+              <ExerciseCard
+                key={item.id ?? index}
+                item={item}
+                index={index}
+                sets={exerciseSets}
+                sessionId={session.id!}
+                onAddSet={handleAddSet}
+                onEditSet={(s) =>
+                  setEditingSetInfo({
+                    set: s,
+                    label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
+                  })
+                }
+                onDeleteSet={(s) =>
+                  setSetToDelete({
+                    set: s,
+                    label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
+                  })
+                }
+              />
+            );
+          })
         )}
       </main>
 
+      {/* Modale d'édition d'une série */}
+      {editingSetInfo && (
+        <SetEditModal
+          set={editingSetInfo.set}
+          label={editingSetInfo.label}
+          isOpen={editingSetInfo !== null}
+          onClose={() => setEditingSetInfo(null)}
+          onSave={handleSaveEditedSet}
+        />
+      )}
+
+      {/* Dialogue de suppression de série */}
+      {setToDelete && (
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="delete-set-dialog-title"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
+        >
+          <div className="w-full max-w-sm rounded-xl bg-surface border border-line p-5 shadow-2xl">
+            <h3
+              id="delete-set-dialog-title"
+              className="text-lg font-semibold text-text tracking-tight mb-2"
+            >
+              Supprimer la série ?
+            </h3>
+            <p className="text-sm text-muted mb-5">
+              Êtes-vous sûr de vouloir supprimer cette série de{' '}
+              <strong className="text-text font-semibold">
+                {setToDelete.set.weight} kg × {setToDelete.set.reps} reps
+              </strong>{' '}
+              ?
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setSetToDelete(null)}
+                disabled={isDeletingSet}
+                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-surface-2 border border-line text-sm font-medium text-text hover:bg-surface active:opacity-90 transition disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteSet}
+                disabled={isDeletingSet}
+                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-danger text-sm font-semibold text-text hover:opacity-95 active:opacity-90 transition disabled:opacity-50"
+              >
+                {isDeletingSet ? 'Suppression...' : 'Supprimer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Dialogue de confirmation de fin de séance */}
-      {showConfirmDialog && (
+      {showFinishConfirm && (
         <div
           role="alertdialog"
           aria-modal="true"
@@ -137,7 +218,7 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => setShowConfirmDialog(false)}
+                onClick={() => setShowFinishConfirm(false)}
                 disabled={isFinishing}
                 className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-surface-2 border border-line text-sm font-medium text-text hover:bg-surface active:opacity-90 transition disabled:opacity-50"
               >
