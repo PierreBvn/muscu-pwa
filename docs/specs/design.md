@@ -29,3 +29,12 @@
 - Bouton principal : fond gold, texte gold-ink, hauteur ≥ 48px.
 - Bouton secondaire : fond surface-2, bordure line.
 - Zones tactiles ≥ 44px (inchangé).
+
+## Séance
+- Rangées de boutons de valeurs : pleine largeur, espacement régulier (justify-between).
+- Gold = valeur présélectionnée/sélectionnée uniquement. Jamais sur un bouton qui n'est pas un choix.
+- Repère du poids de référence : point gold de 4px centré sous le bouton, aucun texte.
+- Bouton « Ajouter un exercice » : carré 56px, rayon 12px, fond gold, « + » gold-ink, fixe en bas à droite, au-dessus de la barre d'onglets (bottom = hauteur des onglets + env(safe-area-inset-bottom) + 16px). Pas de texte visible, aria-label « Ajouter un exercice ». La liste a assez de marge en bas pour ne jamais être masquée.
+
+## Groupes musculaires
+- Monogramme de 2 lettres dans un cercle de 28px, bordure line, texte muted ; gold seulement sur l'exercice ouvert. Même monogramme dans l'onglet Exercices.

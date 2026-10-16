@@ -90,6 +90,20 @@ Pas de bibliothèque de routing sauf justification.
 Historique, graphiques, modification d'une séance terminée,
 notifications, synchronisation.
 
+## Déroulé de la séance (v2)
+- Exercice terminé : au moins workSets vraies séries enregistrées, ou exercice passé. Des séries supplémentaires restent possibles.
+- Un seul exercice ouvert à la fois. Par défaut : le premier non terminé. Taper sur un exercice fermé l'ouvre et ferme l'autre ; un exercice terminé peut être rouvert.
+- Exercice fermé : monogramme du groupe musculaire + nom + « ✓ » (terminé) ou « n/N » (commencé). Rien d'autre.
+- Menu « ⋯ » par exercice : ↑, ↓, Passer, Retirer. Plus aucun réglage du nombre de séries pendant la séance.
+- Exercice ajouté pendant la séance : inséré juste avant le premier exercice non terminé (à la fin si tous sont terminés).
+- Exercice ouvert :
+  - Libellé de la prochaine série : « Échauffement » ou « Série N », rien d'autre.
+  - Pas de ligne récapitulative (échauffement / travail / − +).
+  - Pas de texte « Réf » : le bouton égal au poids de référence porte un repère visuel (voir design.md).
+  - Sans aucune suggestion de poids (premier entraînement) : le champ de saisie est affiché directement, aucun bouton « Autre », rien n'est en surbrillance.
+- Ajouter un exercice : bouton flottant (voir design.md), plus de bouton en fin de liste.
+
+
 ## Décisions complémentaires
 - Jour sans programme : "Aucun programme prévu aujourd'hui" + "Choisir
   un programme" + "Séance libre" (0 exercice au départ).
