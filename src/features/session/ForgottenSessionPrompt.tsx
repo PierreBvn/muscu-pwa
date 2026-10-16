@@ -25,7 +25,7 @@ export const ForgottenSessionPrompt: React.FC<ForgottenSessionPromptProps> = ({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[70vh]">
+    <div className="w-full max-w-md mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[70vh] pt-[env(safe-area-inset-top)]">
       <div className="w-full rounded-xl bg-surface border border-line p-6 text-center space-y-4 shadow-xl">
         <div className="w-12 h-12 rounded-xl bg-surface-2 border border-line flex items-center justify-center mx-auto text-gold">
           <svg

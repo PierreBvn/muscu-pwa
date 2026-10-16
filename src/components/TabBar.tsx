@@ -85,7 +85,7 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
       aria-label="Navigation principale"
       className="fixed bottom-0 left-0 right-0 z-40 bg-bg/95 backdrop-blur-md border-t border-line pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="max-w-md mx-auto grid grid-cols-3 px-2 py-1">
+      <div className="max-w-md mx-auto grid grid-cols-3 px-2 h-[var(--tabbar-height)] items-center">
         {tabs.map((tab) => {
           const isSelected = activeTab === tab.id;
           return (

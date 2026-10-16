@@ -12,12 +12,30 @@
   --color-danger: #E5484D;
 }
 
+:root {
+  --header-height: 4rem;
+  --tabbar-height: 4rem;
+}
+
+html {
+  min-height: calc(100% + env(safe-area-inset-top));
+}
+
 html,
 body,
 #root {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overscroll-behavior: none;
+}
+
+.pt-header {
+  padding-top: calc(var(--header-height) + env(safe-area-inset-top));
+}
+
+.pb-tabbar {
+  padding-bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom));
 }
 
 * {

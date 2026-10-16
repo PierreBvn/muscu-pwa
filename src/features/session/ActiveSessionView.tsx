@@ -23,6 +23,9 @@ interface ActiveSessionViewProps {
   onFinishSession: () => Promise<void>;
 }
 
+const EXERCISE_HEADER_GAP_PX = 8;
+const DEFAULT_HEADER_HEIGHT_PX = 64;
+
 export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   session,
   details,
@@ -67,7 +70,9 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   const currentOpenId =
     openedSessionExerciseId ?? sessionProgress?.firstIncompleteSessionExerciseId ?? null;
 
+  const headerRef = useRef<HTMLElement>(null);
   const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const spacerRef = useRef<HTMLDivElement>(null);
 
   // Défilement automatique de l'exercice ouvert en 2e position visible (avec l'exercice précédent au-dessus)
   useEffect(() => {
@@ -82,6 +87,9 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
     const behavior: ScrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
 
     if (openIndex === 0) {
+      if (spacerRef.current) {
+        spacerRef.current.style.height = '0px';
+      }
       if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
         window.scrollTo({ top: 0, behavior });
       }
@@ -89,12 +97,29 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
       const prevExercise = details.exercises[openIndex - 1];
       const prevEl = prevExercise?.id ? cardRefs.current.get(prevExercise.id) : null;
       if (prevEl) {
-        if (typeof prevEl.scrollIntoView === 'function') {
-          prevEl.scrollIntoView({ behavior, block: 'start' });
-        } else if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
-          const headerOffset = 80;
-          const elementPosition = prevEl.getBoundingClientRect().top + window.scrollY;
-          window.scrollTo({ top: Math.max(0, elementPosition - headerOffset), behavior });
+        const headerHeight =
+          headerRef.current?.getBoundingClientRect().height ?? DEFAULT_HEADER_HEIGHT_PX;
+        const elementTop = prevEl.getBoundingClientRect().top + window.scrollY;
+        const targetY = Math.max(0, elementTop - headerHeight - EXERCISE_HEADER_GAP_PX);
+
+        if (typeof window !== 'undefined') {
+          const innerHeight = window.innerHeight;
+          const scrollHeight = document.documentElement.scrollHeight;
+          const currentSpacerHeight = spacerRef.current
+            ? parseFloat(spacerRef.current.style.height || '0') || 0
+            : 0;
+          const missingHeight = Math.max(
+            0,
+            targetY + innerHeight - (scrollHeight - currentSpacerHeight)
+          );
+
+          if (spacerRef.current) {
+            spacerRef.current.style.height = `${missingHeight}px`;
+          }
+
+          if (typeof window.scrollTo === 'function') {
+            window.scrollTo({ top: targetY, behavior });
+          }
         }
       }
     }
@@ -182,32 +207,37 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   const existingExerciseIds = details.exercises.map((e) => e.exerciseId);
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col min-h-svh pb-32">
+    <div className="w-full max-w-md mx-auto flex flex-col min-h-svh pt-header">
       {/* En-tête de la séance en cours */}
-      <header className="sticky top-0 z-20 bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)] px-4 py-3 flex items-center justify-between">
-        <div>
-          <span className="text-xs uppercase tracking-widest text-gold font-semibold block mb-0.5">
-            Séance en cours
-          </span>
-          <h1 className="text-xl font-semibold text-text tracking-tight flex items-center gap-2">
-            {isProgramDeleted ? (
-              <span className="text-muted italic">Séance type supprimée</span>
-            ) : isFreeSession ? (
-              <span>Séance libre</span>
-            ) : (
-              <span>{program?.name}</span>
-            )}
-          </h1>
-        </div>
+      <header
+        ref={headerRef}
+        className="fixed top-0 left-0 right-0 z-20 bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)]"
+      >
+        <div className="max-w-md mx-auto px-4 flex items-center justify-between h-[var(--header-height)]">
+          <div>
+            <span className="text-xs uppercase tracking-widest text-gold font-semibold block mb-0.5">
+              Séance en cours
+            </span>
+            <h1 className="text-xl font-semibold text-text tracking-tight flex items-center gap-2">
+              {isProgramDeleted ? (
+                <span className="text-muted italic">Séance type supprimée</span>
+              ) : isFreeSession ? (
+                <span>Séance libre</span>
+              ) : (
+                <span>{program?.name}</span>
+              )}
+            </h1>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowFinishConfirm(true)}
-            className="min-h-[44px] px-3.5 rounded-xl bg-surface-2 border border-line text-xs font-semibold text-text hover:border-danger/60 hover:text-danger active:opacity-90 transition"
-          >
-            Terminer la séance
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowFinishConfirm(true)}
+              className="min-h-[44px] px-3.5 rounded-xl bg-surface-2 border border-line text-xs font-semibold text-text hover:border-danger/60 hover:text-danger active:opacity-90 transition"
+            >
+              Terminer la séance
+            </button>
+          </div>
         </div>
       </header>
 
@@ -293,6 +323,8 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
             );
           })
         )}
+        {/* Spacer dynamique pour permettre à l'exercice ouvert d'atteindre la 2e position */}
+        <div ref={spacerRef} aria-hidden="true" />
       </main>
 
       {/* Bouton flottant carré 56px « + » (Ajouter un exercice) */}
@@ -301,7 +333,7 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
           type="button"
           aria-label="Ajouter un exercice"
           onClick={() => setIsAddExerciseModalOpen(true)}
-          className="fixed right-4 bottom-[calc(4rem+env(safe-area-inset-bottom)+16px)] w-14 h-14 min-w-[56px] min-h-[56px] rounded-xl bg-gold text-gold-ink font-bold text-2xl flex items-center justify-center shadow-lg active:opacity-90 transition z-30"
+          className="fixed right-4 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom)+16px)] w-14 h-14 min-w-[56px] min-h-[56px] rounded-xl bg-gold text-gold-ink font-bold text-2xl flex items-center justify-center shadow-lg active:opacity-90 transition z-30"
         >
           +
         </button>

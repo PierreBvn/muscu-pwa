@@ -58,24 +58,26 @@ export const ProgramList: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-text flex flex-col pb-12">
-      <header className="sticky top-0 z-20 bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)] px-4 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-text tracking-tight">
-            Séances types
-          </h1>
-          <p className="text-xs text-muted">
-            Gérez vos routines d’entraînement
-          </p>
+    <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-text flex flex-col pt-header">
+      <header className="fixed top-0 left-0 right-0 z-20 bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)]">
+        <div className="max-w-md mx-auto px-4 flex items-center justify-between h-[var(--header-height)]">
+          <div>
+            <h1 className="text-xl font-semibold text-text tracking-tight">
+              Séances types
+            </h1>
+            <p className="text-xs text-muted">
+              Gérez vos routines d’entraînement
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="flex min-h-[48px] items-center gap-1.5 rounded-xl bg-gold px-4 text-sm font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition"
+          >
+            <span className="text-lg leading-none" aria-hidden="true">+</span>
+            <span>Nouvelle</span>
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={handleOpenCreate}
-          className="flex min-h-[48px] items-center gap-1.5 rounded-xl bg-gold px-4 text-sm font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition"
-        >
-          <span className="text-lg leading-none" aria-hidden="true">+</span>
-          <span>Nouvelle</span>
-        </button>
       </header>
 
       <main className="flex-1 px-4 py-5">

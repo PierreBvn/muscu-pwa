@@ -50,7 +50,7 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[70vh]">
+    <div className="w-full max-w-md mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[70vh] pt-[env(safe-area-inset-top)]">
       <div className="w-16 h-16 rounded-xl bg-surface border border-line flex items-center justify-center mb-6 text-gold">
         <svg
           xmlns="http://www.w3.org/2000/svg"

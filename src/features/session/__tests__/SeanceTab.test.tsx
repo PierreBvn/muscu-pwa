@@ -1283,6 +1283,42 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     // Dans l'exercice 1 rouvert et sauté, le bouton "Passer" visible direct n'est plus affiché
     expect(screen.queryByRole('button', { name: /^passer$/i })).not.toBeInTheDocument();
   });
+
+  it('34. fait défiler la page pour placer l’exercice précédent sous l’en-tête lors de l’ouverture d’un exercice', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+    const ex1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    const ex2 = await addExercise({ name: 'Écarté couché', muscleGroup: 'Pectoraux' });
+
+    const progId = await createProgram({
+      name: 'Pecs',
+      weekdays: [1],
+    });
+    await addExerciseToProgram({ programId: progId, exerciseId: ex1 });
+    await addExerciseToProgram({ programId: progId, exerciseId: ex2 });
+
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    const scrollToMock = vi.fn();
+    window.scrollTo = scrollToMock;
+
+    render(<SeanceTab />);
+
+    // L'exercice 1 est ouvert au départ (openIndex === 0) -> scroll à 0
+    await waitFor(() => {
+      expect(scrollToMock).toHaveBeenCalledWith(
+        expect.objectContaining({ top: 0 })
+      );
+    });
+
+    // Ouvrir l'exercice 2 (openIndex === 1)
+    const openEx2 = await screen.findByRole('button', { name: /ouvrir écarté couché/i });
+    fireEvent.click(openEx2);
+
+    await waitFor(() => {
+      // scrollTo est appelé avec la position cible
+      expect(scrollToMock).toHaveBeenCalledTimes(2);
+    });
+  });
 });
 
 

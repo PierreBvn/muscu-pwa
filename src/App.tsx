@@ -9,7 +9,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabId>('seance');
 
   return (
-    <div className="min-h-svh bg-bg text-text flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom))]">
+    <div className="min-h-svh bg-bg text-text flex flex-col pb-tabbar">
       <div className="flex-1 flex flex-col">
         {activeTab === 'seance' && (
           <div
