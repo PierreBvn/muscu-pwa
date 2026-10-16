@@ -16,8 +16,9 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Une tâche d'interface ne modifie pas `src/db/`. Un besoin manquant est signalé dans le plan, pas implémenté.
 
 ## Architecture
-- Les composants n'importent jamais `db` directement : toute lecture/écriture passe par les fonctions de `src/db/`.
-- Dans la section « Ambiguïtés » d'un plan : poser la question et proposer une option, sans écrire « l'UI fera X ». La décision revient à l'utilisateur.
+- Les composants n'importent jamais l'objet `db`. Ils importent les fonctions exportées par `src/db/` (y compris les utilitaires comme toWeekday) ; ne jamais recopier une fonction existante.
+- Aucun commit avec des tests en échec.
+
 
 ## Conventions de tests
 - Les tests sont dans un dossier `__tests__/` à côté du code testé (ex. `src/__tests__/` pour `src/App.tsx`).

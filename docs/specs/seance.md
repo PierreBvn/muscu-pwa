@@ -115,3 +115,4 @@ notifications, synchronisation.
 - Reps présélectionnées, par type de série (warmup et work séparés) :
   dernière série du même type sur cet exercice, sinon aucune présélection.
 - Vocabulaire : dans l'interface, « programme » s'affiche toujours « séance type » (ex. « Séance type supprimée », « Choisir une séance type »). Le code garde le nom Program.
+- Clôturer une séance oubliée sans aucune série la supprime (rien à conserver). Avec des séries : endedAt = createdAt de la dernière série.
