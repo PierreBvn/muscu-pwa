@@ -61,21 +61,21 @@ export const ExerciseList: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto min-h-svh bg-zinc-950 text-zinc-100 flex flex-col pb-12">
+    <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-text flex flex-col pb-12">
       {/* En-tête */}
-      <header className="sticky top-0 z-20 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-20 bg-bg/90 backdrop-blur-md border-b border-line px-4 py-3 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight">
+          <h1 className="text-xl font-semibold text-text tracking-tight">
             Bibliothèque d’exercices
           </h1>
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-muted">
             Gérez vos exercices par groupe musculaire
           </p>
         </div>
         <button
           type="button"
           onClick={handleOpenAdd}
-          className="flex min-h-[44px] items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 text-sm font-semibold text-white shadow-md shadow-purple-600/30 hover:bg-purple-500 active:bg-purple-700 transition"
+          className="flex min-h-[48px] items-center gap-1.5 rounded-xl bg-gold px-4 text-sm font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition"
         >
           <span className="text-lg leading-none">+</span>
           <span>Ajouter</span>
@@ -85,7 +85,7 @@ export const ExerciseList: React.FC = () => {
       {/* Contenu principal */}
       <main className="flex-1 px-4 py-5 space-y-6">
         {groupedExercises === undefined ? (
-          <div className="flex min-h-[200px] items-center justify-center text-sm text-zinc-500">
+          <div className="flex min-h-[200px] items-center justify-center text-sm text-muted">
             Chargement des exercices...
           </div>
         ) : (
@@ -96,17 +96,17 @@ export const ExerciseList: React.FC = () => {
                 <div className="flex items-center justify-between mb-2.5">
                   <h2
                     id={`group-${group}`}
-                    className="text-sm font-semibold uppercase tracking-wider text-purple-400"
+                    className="text-xs uppercase tracking-widest text-muted font-semibold"
                   >
                     {group}
                   </h2>
-                  <span className="text-xs font-medium text-zinc-500">
+                  <span className="text-xs font-medium text-muted tabular-nums">
                     {list.length} {list.length > 1 ? 'exercices' : 'exercice'}
                   </span>
                 </div>
 
                 {list.length === 0 ? (
-                  <p className="text-xs text-zinc-500 italic py-2">
+                  <p className="text-xs text-muted italic py-2">
                     Aucun exercice dans ce groupe.
                   </p>
                 ) : (
@@ -141,18 +141,18 @@ export const ExerciseList: React.FC = () => {
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="delete-dialog-title"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-xs p-4"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
         >
-          <div className="w-full max-w-sm rounded-2xl bg-zinc-900 border border-zinc-700/60 p-5 shadow-2xl">
+          <div className="w-full max-w-sm rounded-xl bg-surface border border-line p-5 shadow-2xl">
             <h3
               id="delete-dialog-title"
-              className="text-lg font-bold text-white mb-2"
+              className="text-lg font-semibold text-text tracking-tight mb-2"
             >
               Supprimer l’exercice ?
             </h3>
-            <p className="text-sm text-zinc-300 mb-5">
+            <p className="text-sm text-muted mb-5">
               Êtes-vous sûr de vouloir supprimer{' '}
-              <strong className="text-white font-semibold">
+              <strong className="text-text font-semibold">
                 « {exerciseToDelete.name} »
               </strong>{' '}
               ? Il sera retiré de la bibliothèque.
@@ -161,14 +161,14 @@ export const ExerciseList: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setExerciseToDelete(null)}
-                className="flex-1 min-h-[44px] items-center justify-center rounded-xl bg-zinc-800 text-sm font-medium text-zinc-300 hover:bg-zinc-700 active:bg-zinc-750"
+                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-surface-2 border border-line text-sm font-medium text-text hover:bg-surface active:opacity-90 transition"
               >
                 Annuler
               </button>
               <button
                 type="button"
                 onClick={handleConfirmDelete}
-                className="flex-1 min-h-[44px] items-center justify-center rounded-xl bg-red-600 text-sm font-semibold text-white shadow-md shadow-red-600/30 hover:bg-red-500 active:bg-red-700"
+                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-danger text-sm font-semibold text-text hover:opacity-95 active:opacity-90 transition"
               >
                 Supprimer
               </button>

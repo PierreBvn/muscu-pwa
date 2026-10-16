@@ -70,10 +70,10 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
       aria-labelledby="program-modal-title"
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
     >
-      <div className="w-full max-w-md rounded-2xl bg-zinc-900 border border-zinc-700/60 p-5 shadow-2xl">
+      <div className="w-full max-w-md rounded-xl bg-surface border border-line p-5 shadow-2xl">
         <h2
           id="program-modal-title"
-          className="text-lg font-bold text-white mb-4"
+          className="text-lg font-semibold text-text tracking-tight mb-4"
         >
           {program ? 'Modifier la séance type' : 'Nouvelle séance type'}
         </h2>
@@ -82,7 +82,7 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
           <div>
             <label
               htmlFor="program-name"
-              className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5"
+              className="block text-xs uppercase tracking-widest text-muted mb-1.5"
             >
               Nom de la séance type
             </label>
@@ -93,12 +93,12 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex: PPL Push, Upper, Jambes..."
               autoFocus
-              className="w-full min-h-[44px] rounded-xl bg-zinc-800 border border-zinc-700 px-3.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition"
+              className="w-full min-h-[48px] rounded-xl bg-surface-2 border border-line px-3.5 text-sm text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition"
             />
           </div>
 
           <div>
-            <span className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-2">
+            <span className="block text-xs uppercase tracking-widest text-muted mb-2">
               Jours d’entraînement
             </span>
             <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
@@ -112,10 +112,10 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
                     aria-checked={isSelected}
                     aria-label={day.label}
                     onClick={() => toggleDay(day.value)}
-                    className={`min-h-[44px] rounded-xl px-2 py-2 text-xs font-semibold transition flex flex-col items-center justify-center ${
+                    className={`min-h-[44px] rounded-full px-2 py-2 text-xs font-semibold transition flex flex-col items-center justify-center ${
                       isSelected
-                        ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/30'
-                        : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                        ? 'bg-gold text-gold-ink font-semibold'
+                        : 'bg-surface-2 border border-line text-muted hover:text-text active:bg-surface'
                     }`}
                   >
                     <span>{day.short}</span>
@@ -126,7 +126,7 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
           </div>
 
           {error && (
-            <p role="alert" className="text-xs text-red-400 font-medium">
+            <p role="alert" className="text-xs text-danger font-medium">
               {error}
             </p>
           )}
@@ -136,14 +136,14 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1 min-h-[44px] items-center justify-center rounded-xl bg-zinc-800 text-sm font-medium text-zinc-300 hover:bg-zinc-700 active:bg-zinc-750 transition"
+              className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-surface-2 border border-line text-sm font-medium text-text hover:bg-surface active:opacity-90 transition"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 min-h-[44px] items-center justify-center rounded-xl bg-purple-600 text-sm font-semibold text-white shadow-md shadow-purple-600/30 hover:bg-purple-500 active:bg-purple-700 transition"
+              className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-gold text-sm font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition disabled:opacity-50"
             >
               {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
             </button>

@@ -13,15 +13,15 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   onDelete,
 }) => {
   return (
-    <div className="flex items-center justify-between rounded-xl bg-zinc-800/80 px-4 py-3 shadow-sm border border-zinc-700/50">
-      <span className="text-base font-medium text-zinc-100">
+    <div className="flex items-center justify-between rounded-xl bg-surface px-4 py-3 border border-line">
+      <span className="text-base font-medium text-text">
         {exercise.name}
       </span>
       <div className="flex items-center gap-1">
         <button
           type="button"
           onClick={() => onEdit(exercise)}
-          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-700/50 active:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-colors"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-muted hover:text-text active:bg-surface-2 focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
           aria-label={`Modifier ${exercise.name}`}
         >
           {/* Edit icon */}
@@ -43,7 +43,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
         <button
           type="button"
           onClick={() => onDelete(exercise)}
-          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 active:bg-red-500/20 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-colors"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-muted hover:text-danger active:bg-surface-2 focus:outline-none focus:ring-1 focus:ring-danger transition-colors"
           aria-label={`Supprimer ${exercise.name}`}
         >
           {/* Trash icon */}

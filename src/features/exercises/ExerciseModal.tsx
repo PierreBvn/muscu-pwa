@@ -48,17 +48,17 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-xs p-0 sm:p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-0 sm:p-4"
     >
-      <div className="w-full max-w-md rounded-t-2xl sm:rounded-2xl bg-zinc-900 border border-zinc-700/60 p-6 shadow-2xl">
-        <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-          <h2 id="modal-title" className="text-xl font-bold text-white">
+      <div className="w-full max-w-md rounded-t-xl sm:rounded-xl bg-surface border border-line p-6 shadow-2xl">
+        <div className="flex items-center justify-between pb-4 border-b border-line">
+          <h2 id="modal-title" className="text-xl font-semibold text-text tracking-tight">
             {isEditing ? 'Modifier l’exercice' : 'Nouvel exercice'}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-zinc-400 hover:text-white active:bg-zinc-800 focus:outline-none"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-muted hover:text-text active:bg-surface-2 focus:outline-none focus:ring-1 focus:ring-gold"
             aria-label="Fermer"
           >
             ✕
@@ -69,7 +69,7 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
           {error && (
             <div
               role="alert"
-              className="rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-sm text-red-300"
+              className="rounded-xl bg-danger/10 border border-danger/30 p-3 text-sm text-danger"
             >
               {error}
             </div>
@@ -78,7 +78,7 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
           <div>
             <label
               htmlFor="exercise-name"
-              className="block text-sm font-medium text-zinc-300 mb-1.5"
+              className="block text-xs uppercase tracking-widest text-muted mb-1.5"
             >
               Nom de l’exercice
             </label>
@@ -89,12 +89,12 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
               onChange={(e) => setName(e.target.value)}
               placeholder="ex: Développé couché"
               autoFocus
-              className="w-full min-h-[48px] rounded-xl bg-zinc-800 border border-zinc-700 px-4 text-base text-white placeholder-zinc-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+              className="w-full min-h-[48px] rounded-xl bg-surface-2 border border-line px-4 text-base text-text placeholder-muted focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-xs uppercase tracking-widest text-muted mb-2">
               Groupe musculaire
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -105,10 +105,10 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
                     key={group}
                     type="button"
                     onClick={() => setMuscleGroup(group)}
-                    className={`flex min-h-[44px] items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-all ${
+                    className={`flex min-h-[44px] items-center justify-center rounded-full px-3 py-2 text-sm font-medium transition-all ${
                       isSelected
-                        ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30 ring-2 ring-purple-400'
-                        : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 active:bg-zinc-750'
+                        ? 'bg-gold text-gold-ink font-semibold'
+                        : 'bg-surface-2 border border-line text-muted hover:text-text active:bg-surface'
                     }`}
                   >
                     {group}
@@ -123,14 +123,14 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-zinc-800 text-base font-medium text-zinc-300 hover:bg-zinc-700 active:bg-zinc-750 focus:outline-none"
+              className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-surface-2 border border-line text-base font-medium text-text hover:bg-surface active:opacity-90 focus:outline-none"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-purple-600 text-base font-semibold text-white shadow-lg shadow-purple-600/25 hover:bg-purple-500 active:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500/50 disabled:opacity-50"
+              className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-gold text-base font-semibold text-gold-ink hover:opacity-95 active:opacity-90 focus:outline-none focus:ring-1 focus:ring-gold disabled:opacity-50"
             >
               {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
             </button>

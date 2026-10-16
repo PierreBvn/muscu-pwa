@@ -54,20 +54,20 @@ export const ProgramList: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto min-h-svh bg-zinc-950 text-zinc-100 flex flex-col pb-12">
-      <header className="sticky top-0 z-20 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3 flex items-center justify-between">
+    <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-text flex flex-col pb-12">
+      <header className="sticky top-0 z-20 bg-bg/90 backdrop-blur-md border-b border-line px-4 py-3 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight">
+          <h1 className="text-xl font-semibold text-text tracking-tight">
             Séances types
           </h1>
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-muted">
             Gérez vos routines d’entraînement
           </p>
         </div>
         <button
           type="button"
           onClick={handleOpenCreate}
-          className="flex min-h-[44px] items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 text-sm font-semibold text-white shadow-md shadow-purple-600/30 hover:bg-purple-500 active:bg-purple-700 transition"
+          className="flex min-h-[48px] items-center gap-1.5 rounded-xl bg-gold px-4 text-sm font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition"
         >
           <span className="text-lg leading-none">+</span>
           <span>Nouvelle séance type</span>
@@ -76,12 +76,12 @@ export const ProgramList: React.FC = () => {
 
       <main className="flex-1 px-4 py-5">
         {programs === undefined ? (
-          <div className="flex min-h-[200px] items-center justify-center text-sm text-zinc-500">
+          <div className="flex min-h-[200px] items-center justify-center text-sm text-muted">
             Chargement des séances types...
           </div>
         ) : programs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[260px] text-center p-6 rounded-2xl bg-zinc-900/40 border border-dashed border-zinc-800">
-            <div className="w-12 h-12 rounded-xl bg-zinc-800/70 flex items-center justify-center text-zinc-400 mb-3">
+          <div className="flex flex-col items-center justify-center min-h-[260px] text-center p-6 rounded-xl bg-surface border border-dashed border-line">
+            <div className="w-12 h-12 rounded-xl bg-surface-2 flex items-center justify-center text-muted mb-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -98,16 +98,16 @@ export const ProgramList: React.FC = () => {
                 <path d="M6 10h10" />
               </svg>
             </div>
-            <h3 className="text-base font-semibold text-white mb-1">
+            <h3 className="text-base font-semibold text-text mb-1">
               Aucune séance type
             </h3>
-            <p className="text-xs text-zinc-400 max-w-xs mb-4">
+            <p className="text-xs text-muted max-w-xs mb-4">
               Créez votre première séance type pour organiser vos séances hebdomadaires.
             </p>
             <button
               type="button"
               onClick={handleOpenCreate}
-              className="min-h-[44px] px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-semibold text-purple-400 transition"
+              className="min-h-[48px] px-4 rounded-xl bg-surface-2 border border-line hover:bg-surface text-sm font-semibold text-text transition"
             >
               Créer une séance type
             </button>
@@ -144,35 +144,35 @@ export const ProgramList: React.FC = () => {
           aria-labelledby="delete-program-dialog-title"
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
         >
-          <div className="w-full max-w-sm rounded-2xl bg-zinc-900 border border-zinc-700/60 p-5 shadow-2xl">
+          <div className="w-full max-w-sm rounded-xl bg-surface border border-line p-5 shadow-2xl">
             <h3
               id="delete-program-dialog-title"
-              className="text-lg font-bold text-white mb-2"
+              className="text-lg font-semibold text-text tracking-tight mb-2"
             >
               Supprimer la séance type ?
             </h3>
-            <p className="text-sm text-zinc-300 mb-2">
+            <p className="text-sm text-muted mb-2">
               Êtes-vous sûr de vouloir supprimer{' '}
-              <strong className="text-white font-semibold">
+              <strong className="text-text font-semibold">
                 « {programToDelete.name} »
               </strong>{' '}
               ?
             </p>
-            <p className="text-xs text-emerald-400 font-medium mb-5 bg-emerald-950/40 border border-emerald-800/40 p-2.5 rounded-xl">
+            <p className="text-xs text-muted font-medium mb-5 bg-surface-2 border border-line p-2.5 rounded-xl">
               ✓ Les séances passées sont conservées.
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setProgramToDelete(null)}
-                className="flex-1 min-h-[44px] items-center justify-center rounded-xl bg-zinc-800 text-sm font-medium text-zinc-300 hover:bg-zinc-700 active:bg-zinc-750 transition"
+                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-surface-2 border border-line text-sm font-medium text-text hover:bg-surface active:opacity-90 transition"
               >
                 Annuler
               </button>
               <button
                 type="button"
                 onClick={handleConfirmDelete}
-                className="flex-1 min-h-[44px] items-center justify-center rounded-xl bg-red-600 text-sm font-semibold text-white shadow-md shadow-red-600/30 hover:bg-red-500 active:bg-red-700 transition"
+                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-danger text-sm font-semibold text-text hover:opacity-95 active:opacity-90 transition"
               >
                 Supprimer
               </button>

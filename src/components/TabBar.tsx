@@ -83,9 +83,9 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
     <nav
       role="tablist"
       aria-label="Navigation principale"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-md border-t border-zinc-800/80 pb-[env(safe-area-inset-bottom)]"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-bg/95 backdrop-blur-md border-t border-line pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="max-w-md mx-auto grid grid-cols-3 px-2">
+      <div className="max-w-md mx-auto grid grid-cols-3 px-2 py-1">
         {tabs.map((tab) => {
           const isSelected = activeTab === tab.id;
           return (
@@ -97,16 +97,20 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
               aria-selected={isSelected}
               aria-controls={`panel-${tab.id}`}
               onClick={() => onTabChange(tab.id)}
-              className={`flex flex-col items-center justify-center min-h-[44px] py-1.5 transition-colors ${
-                isSelected
-                  ? 'text-purple-400 font-semibold'
-                  : 'text-zinc-400 hover:text-zinc-200 active:text-zinc-100'
-              }`}
+              className="flex flex-col items-center justify-center min-h-[48px] py-1 px-1 transition-colors"
             >
-              <span className="flex items-center justify-center mb-0.5">
-                {tab.icon}
-              </span>
-              <span className="text-xs leading-tight">{tab.label}</span>
+              <div
+                className={`flex flex-col sm:flex-row items-center justify-center gap-1 px-3 py-1 rounded-full transition ${
+                  isSelected
+                    ? 'bg-surface-2 text-gold font-semibold'
+                    : 'text-muted hover:text-text'
+                }`}
+              >
+                <span className="flex items-center justify-center">
+                  {tab.icon}
+                </span>
+                <span className="text-xs leading-tight">{tab.label}</span>
+              </div>
             </button>
           );
         })}

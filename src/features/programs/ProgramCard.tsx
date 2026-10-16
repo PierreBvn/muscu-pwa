@@ -48,18 +48,18 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({
     <div
       role="article"
       aria-label={program.name}
-      className="rounded-2xl bg-zinc-900/90 border border-zinc-800/80 p-4 transition hover:border-zinc-700/80 shadow-sm"
+      className="rounded-xl bg-surface border border-line p-4 transition shadow-none"
     >
       <div className="flex items-start justify-between gap-3 mb-2">
         <button
           type="button"
           onClick={() => onSelect(program)}
-          className="text-left flex-1 min-h-[44px] flex flex-col justify-center -m-1 p-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500"
+          className="text-left flex-1 min-h-[44px] flex flex-col justify-center -m-1 p-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold"
         >
-          <h2 className="text-base font-bold text-white tracking-tight hover:text-purple-300 transition">
+          <h2 className="text-base font-semibold text-text tracking-tight transition">
             {program.name}
           </h2>
-          <p className="text-xs text-purple-400 font-medium mt-0.5">
+          <p className="text-xs text-muted font-medium mt-0.5">
             {formattedDays || 'Aucun jour'}
           </p>
         </button>
@@ -69,7 +69,7 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({
             type="button"
             aria-label={`Modifier ${program.name}`}
             onClick={() => onEdit(program)}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 active:bg-zinc-750 transition"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:text-text active:bg-surface-2 focus:outline-none focus:ring-1 focus:ring-gold transition"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -90,7 +90,7 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({
             type="button"
             aria-label={`Supprimer ${program.name}`}
             onClick={() => onDelete(program)}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-zinc-400 hover:text-red-400 hover:bg-zinc-800 active:bg-zinc-750 transition"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:text-danger active:bg-surface-2 focus:outline-none focus:ring-1 focus:ring-danger transition"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -111,12 +111,12 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 text-xs text-zinc-400">
-        <span>{exerciseCountText}</span>
+      <div className="flex items-center justify-between pt-2 border-t border-line text-xs text-muted">
+        <span className="tabular-nums">{exerciseCountText}</span>
         <button
           type="button"
           onClick={() => onSelect(program)}
-          className="min-h-[44px] text-purple-400 font-medium hover:text-purple-300 flex items-center gap-1"
+          className="min-h-[44px] text-gold font-medium hover:opacity-80 flex items-center gap-1 focus:outline-none"
         >
           <span>Gérer les exercices</span>
           <span aria-hidden="true">→</span>

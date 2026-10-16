@@ -37,7 +37,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
 
   if (programData === undefined) {
     return (
-      <div className="w-full max-w-md mx-auto min-h-svh bg-zinc-950 text-zinc-100 flex items-center justify-center text-sm text-zinc-500">
+      <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-muted flex items-center justify-center text-sm">
         Chargement de la séance type...
       </div>
     );
@@ -45,12 +45,12 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
 
   if (programData === null || !programData.program) {
     return (
-      <div className="w-full max-w-md mx-auto min-h-svh bg-zinc-950 text-zinc-100 flex flex-col p-4 items-center justify-center text-center">
-        <p className="text-sm text-zinc-400 mb-4">Séance type introuvable.</p>
+      <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-text flex flex-col p-4 items-center justify-center text-center">
+        <p className="text-sm text-muted mb-4">Séance type introuvable.</p>
         <button
           type="button"
           onClick={onBack}
-          className="min-h-[44px] px-4 rounded-xl bg-purple-600 text-sm font-semibold text-white"
+          className="min-h-[48px] px-4 rounded-xl bg-gold text-sm font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition"
         >
           Retour
         </button>
@@ -88,18 +88,18 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto min-h-svh bg-zinc-950 text-zinc-100 flex flex-col pb-12">
+    <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-text flex flex-col pb-12">
       {/* Header */}
-      <header className="sticky top-0 z-20 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-20 bg-bg/90 backdrop-blur-md border-b border-line px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onBack}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center -ml-2 rounded-xl text-purple-400 hover:text-purple-300 active:bg-zinc-800 transition"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center -ml-2 rounded-xl text-gold hover:opacity-80 active:bg-surface-2 transition"
           >
             <span className="text-sm font-semibold">← Retour</span>
           </button>
-          <h1 className="text-xl font-bold text-white tracking-tight truncate max-w-[200px]">
+          <h1 className="text-xl font-semibold text-text tracking-tight truncate max-w-[200px]">
             {program.name}
           </h1>
         </div>
@@ -107,7 +107,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
         <button
           type="button"
           onClick={() => setIsAddModalOpen(true)}
-          className="flex min-h-[44px] items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 text-sm font-semibold text-white shadow-md shadow-purple-600/30 hover:bg-purple-500 active:bg-purple-700 transition"
+          className="flex min-h-[48px] items-center gap-1.5 rounded-xl bg-gold px-4 text-sm font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition"
         >
           <span className="text-lg leading-none">+</span>
           <span>Ajouter</span>
@@ -117,23 +117,23 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
       {/* Main content */}
       <main className="flex-1 px-4 py-5 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-purple-400">
+          <h2 className="text-xs uppercase tracking-widest text-muted font-semibold">
             Exercices prévus
           </h2>
-          <span className="text-xs font-medium text-zinc-400">
+          <span className="text-xs font-medium text-muted tabular-nums">
             {exercises.length} {exercises.length > 1 ? 'exercices' : 'exercice'}
           </span>
         </div>
 
         {exercises.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[200px] text-center p-6 rounded-2xl bg-zinc-900/40 border border-dashed border-zinc-800">
-            <p className="text-sm text-zinc-400 mb-3">
+          <div className="flex flex-col items-center justify-center min-h-[200px] text-center p-6 rounded-xl bg-surface border border-dashed border-line">
+            <p className="text-sm text-muted mb-3">
               Aucun exercice dans cette séance type.
             </p>
             <button
               type="button"
               onClick={() => setIsAddModalOpen(true)}
-              className="min-h-[44px] px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-sm font-semibold text-white shadow-md shadow-purple-600/30 transition"
+              className="min-h-[48px] px-4 rounded-xl bg-gold text-sm font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition"
             >
               Ajouter un exercice
             </button>
@@ -147,19 +147,19 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
               return (
                 <div
                   key={pe.id}
-                  className="rounded-2xl bg-zinc-900/90 border border-zinc-800/80 p-4 shadow-sm"
+                  className="rounded-xl bg-surface border border-line p-4 shadow-none"
                 >
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-semibold text-zinc-500 w-5">
+                        <span className="text-xs font-mono font-semibold text-muted w-5 tabular-nums">
                           #{index + 1}
                         </span>
-                        <h3 className="text-base font-bold text-white truncate">
+                        <h3 className="text-base font-semibold text-text truncate">
                           {exName}
                         </h3>
                         {isArchived && (
-                          <span className="inline-flex items-center rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400 ring-1 ring-inset ring-amber-500/20">
+                          <span className="inline-flex items-center rounded-full bg-surface-2 border border-line px-2 py-0.5 text-xs font-medium text-muted">
                             Archivé
                           </span>
                         )}
@@ -175,8 +175,8 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                         onClick={() => pe.id && moveProgramExercise(pe.id, 'up')}
                         className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl transition ${
                           index === 0
-                            ? 'text-zinc-600 opacity-40 cursor-not-allowed'
-                            : 'text-zinc-300 hover:text-white hover:bg-zinc-800 active:bg-zinc-750'
+                            ? 'text-muted/30 cursor-not-allowed'
+                            : 'text-muted hover:text-text active:bg-surface-2'
                         }`}
                       >
                         <svg
@@ -202,8 +202,8 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                         onClick={() => pe.id && moveProgramExercise(pe.id, 'down')}
                         className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl transition ${
                           index === exercises.length - 1
-                            ? 'text-zinc-600 opacity-40 cursor-not-allowed'
-                            : 'text-zinc-300 hover:text-white hover:bg-zinc-800 active:bg-zinc-750'
+                            ? 'text-muted/30 cursor-not-allowed'
+                            : 'text-muted hover:text-text active:bg-surface-2'
                         }`}
                       >
                         <svg
@@ -226,7 +226,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                         type="button"
                         aria-label={`Retirer ${exName}`}
                         onClick={() => pe.id && removeExerciseFromProgram(pe.id)}
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-zinc-400 hover:text-red-400 hover:bg-zinc-800 active:bg-zinc-750 transition"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:text-danger active:bg-surface-2 transition"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -248,8 +248,8 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                   </div>
 
                   {/* Réglage des séries de travail (l'échauffement n'est pas réglable ici, warmupSets = 1 par défaut) */}
-                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
-                    <span className="text-xs text-zinc-400 font-medium">
+                  <div className="flex items-center justify-between pt-2 border-t border-line">
+                    <span className="text-xs uppercase tracking-widest text-muted font-medium tabular-nums">
                       Travail : {pe.workSets}
                     </span>
                     <div className="flex items-center gap-1">
@@ -260,10 +260,10 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                         onClick={() =>
                           pe.id && handleWorkChange(pe.id, pe.workSets, -1)
                         }
-                        className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-zinc-800 text-lg font-bold transition ${
+                        className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-surface-2 border border-line text-lg font-bold transition ${
                           pe.workSets <= 1
-                            ? 'text-zinc-600 opacity-40 cursor-not-allowed'
-                            : 'text-zinc-200 hover:bg-zinc-700 active:bg-zinc-650'
+                            ? 'text-muted/30 cursor-not-allowed'
+                            : 'text-text hover:bg-surface active:bg-surface-2'
                         }`}
                       >
                         −
@@ -275,10 +275,10 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                         onClick={() =>
                           pe.id && handleWorkChange(pe.id, pe.workSets, 1)
                         }
-                        className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-zinc-800 text-lg font-bold transition ${
+                        className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-surface-2 border border-line text-lg font-bold transition ${
                           pe.workSets >= 6
-                            ? 'text-zinc-600 opacity-40 cursor-not-allowed'
-                            : 'text-zinc-200 hover:bg-zinc-700 active:bg-zinc-650'
+                            ? 'text-muted/30 cursor-not-allowed'
+                            : 'text-text hover:bg-surface active:bg-surface-2'
                         }`}
                       >
                         +
@@ -300,30 +300,30 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
           aria-labelledby="add-exercise-dialog-title"
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
         >
-          <div className="w-full max-w-md max-h-[80vh] flex flex-col rounded-2xl bg-zinc-900 border border-zinc-700/60 p-5 shadow-2xl">
+          <div className="w-full max-w-md max-h-[80vh] flex flex-col rounded-xl bg-surface border border-line p-5 shadow-2xl">
             <div className="flex items-center justify-between mb-3">
               <h2
                 id="add-exercise-dialog-title"
-                className="text-lg font-bold text-white"
+                className="text-lg font-semibold text-text tracking-tight"
               >
                 Ajouter un exercice
               </h2>
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-400 hover:text-white"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted hover:text-text active:bg-surface-2 rounded-xl"
               >
                 ✕
               </button>
             </div>
 
-            <p className="text-xs text-zinc-400 mb-3">
+            <p className="text-xs text-muted mb-3">
               Choisissez un exercice à ajouter à la séance type.
             </p>
 
             <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
               {filteredAvailableExercises.length === 0 ? (
-                <div className="py-8 text-center text-xs text-zinc-500">
+                <div className="py-8 text-center text-xs text-muted">
                   Tous les exercices disponibles sont déjà dans cette séance type.
                 </div>
               ) : (
@@ -332,27 +332,27 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                     key={exercise.id}
                     type="button"
                     onClick={() => handleAddExercise(exercise)}
-                    className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-750 text-left flex items-center justify-between transition group"
+                    className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-surface-2 border border-line hover:border-gold/50 text-left flex items-center justify-between transition group"
                   >
                     <div>
-                      <span className="text-sm font-semibold text-white group-hover:text-purple-300">
+                      <span className="text-sm font-semibold text-text">
                         {exercise.name}
                       </span>
-                      <span className="block text-xs text-zinc-400">
+                      <span className="block text-xs uppercase tracking-widest text-muted">
                         {exercise.muscleGroup}
                       </span>
                     </div>
-                    <span className="text-purple-400 text-sm font-bold">+</span>
+                    <span className="text-gold text-sm font-bold">+</span>
                   </button>
                 ))
               )}
             </div>
 
-            <div className="pt-3 border-t border-zinc-800 mt-2">
+            <div className="pt-3 border-t border-line mt-2">
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="w-full min-h-[44px] rounded-xl bg-zinc-800 text-sm font-semibold text-zinc-300 hover:bg-zinc-750"
+                className="w-full min-h-[48px] rounded-xl bg-surface-2 border border-line text-sm font-medium text-text hover:bg-surface active:opacity-90"
               >
                 Fermer
               </button>

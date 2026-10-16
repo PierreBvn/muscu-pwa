@@ -7,7 +7,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabId>('seance');
 
   return (
-    <div className="min-h-svh bg-zinc-950 text-zinc-100 flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom))]">
+    <div className="min-h-svh bg-bg text-text flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom))]">
       <div className="flex-1 flex flex-col">
         {activeTab === 'seance' && (
           <div
@@ -16,7 +16,7 @@ function App() {
             aria-labelledby="tab-seance"
             className="flex-1 w-full max-w-md mx-auto flex flex-col items-center justify-center p-6 text-center"
           >
-            <div className="w-16 h-16 rounded-2xl bg-purple-950/60 border border-purple-800/50 flex items-center justify-center mb-4 text-purple-400">
+            <div className="w-16 h-16 rounded-xl bg-surface border border-line flex items-center justify-center mb-4 text-gold">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -37,11 +37,13 @@ function App() {
                 <path d="M6 12h12" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">
+            <h1 className="text-2xl font-semibold text-text mb-2 tracking-tight">
               Séance
             </h1>
-            <p className="text-purple-400 font-semibold mb-2">À venir</p>
-            <p className="text-sm text-zinc-400 max-w-xs">
+            <p className="text-xs uppercase tracking-widest text-muted font-semibold mb-2">
+              À venir
+            </p>
+            <p className="text-sm text-muted max-w-xs">
               La saisie de séance en direct sera disponible dans la prochaine version.
             </p>
           </div>
