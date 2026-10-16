@@ -55,7 +55,7 @@ export const ProgramList: React.FC = () => {
 
   return (
     <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-text flex flex-col pb-12">
-      <header className="sticky top-0 z-20 bg-bg/90 backdrop-blur-md border-b border-line px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-20 bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)] px-4 py-3 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-text tracking-tight">
             Séances types

@@ -151,7 +151,7 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   return (
     <div className="w-full max-w-md mx-auto flex flex-col min-h-svh pb-32">
       {/* En-tête de la séance en cours */}
-      <header className="sticky top-0 z-20 bg-bg/90 backdrop-blur-md border-b border-line px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-20 bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)] px-4 py-3 flex items-center justify-between">
         <div>
           <span className="text-xs uppercase tracking-widest text-gold font-semibold block mb-0.5">
             Séance en cours

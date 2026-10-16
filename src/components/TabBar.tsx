@@ -100,9 +100,9 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
               className="flex flex-col items-center justify-center min-h-[48px] py-1 px-1 transition-colors"
             >
               <div
-                className={`flex flex-col sm:flex-row items-center justify-center gap-1 px-3 py-1 rounded-full transition ${
+                className={`flex flex-col sm:flex-row items-center justify-center gap-1 px-3 py-1 transition ${
                   isSelected
-                    ? 'bg-surface-2 text-gold font-semibold'
+                    ? 'text-gold font-semibold'
                     : 'text-muted hover:text-text'
                 }`}
               >
