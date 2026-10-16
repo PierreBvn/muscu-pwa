@@ -29,6 +29,10 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 ## Vocabulaire
 - Interface : « séance type » (jamais « programme »). Code : Program / programs. Ne pas renommer le code pour suivre l'interface.
 
+## État et dates
+- L'état d'une séance vit dans Dexie (useLiveQuery), jamais uniquement en mémoire React : l'app doit survivre à une fermeture par iOS.
+- Les tests qui dépendent de la date ou de l'heure la fixent avec vi.useFakeTimers / vi.setSystemTime.
+- Jour de la semaine : toujours via toWeekday (1 = lundi … 7 = dimanche), jamais getDay() directement.
 
 
 ## Règles

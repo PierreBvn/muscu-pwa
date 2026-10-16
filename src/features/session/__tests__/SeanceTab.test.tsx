@@ -170,7 +170,7 @@ describe('SeanceTab (Task 4a)', () => {
     const progId = await createProgram({ name: 'Pectoraux V1', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId });
 
-    const sessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
 
     // On supprime le programme
     await deleteProgram(progId);

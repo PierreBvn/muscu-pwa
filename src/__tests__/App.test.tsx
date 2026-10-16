@@ -9,7 +9,7 @@ describe('App navigation & TabBar', () => {
     await db.programs.clear();
   });
 
-  it('renders bottom tab bar with 3 tabs and defaults to Séance "À venir"', () => {
+  it('renders bottom tab bar with 3 tabs and defaults to Séance', async () => {
     render(<App />);
 
     const tablist = screen.getByRole('tablist', { name: /navigation principale/i });
@@ -27,9 +27,10 @@ describe('App navigation & TabBar', () => {
     expect(programsTab).toHaveAttribute('aria-selected', 'false');
     expect(exercisesTab).toHaveAttribute('aria-selected', 'false');
 
-    // Écran provisoire « À venir »
-    expect(screen.getByRole('heading', { name: /séance/i })).toBeInTheDocument();
-    expect(screen.getByText(/à venir/i)).toBeInTheDocument();
+    // Écran Séance actif (attente résolution useLiveQuery)
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /séance/i })).toBeInTheDocument();
+    });
   });
 
   it('navigates to Exercices and back to Séance', async () => {
@@ -49,7 +50,9 @@ describe('App navigation & TabBar', () => {
     fireEvent.click(seanceTab);
 
     expect(seanceTab).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByText(/à venir/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /séance/i })).toBeInTheDocument();
+    });
   });
 
   it('navigates to Séances types tab', () => {
