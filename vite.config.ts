@@ -14,8 +14,8 @@ export default defineConfig({
         name: 'Muscu PWA',
         short_name: 'Muscu',
         description: 'Suivi de musculation hors-ligne',
-        theme_color: '#1e1e2e',
-        background_color: '#1e1e2e',
+        theme_color: '#0A0A0A',
+        background_color: '#0A0A0A',
         display: 'standalone',
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },

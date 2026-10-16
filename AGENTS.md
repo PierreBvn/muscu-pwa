@@ -49,6 +49,10 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Les actions sur une séance (ajouter, retirer, passer, réordonner) ne modifient jamais la séance type.
 - Un exercice ne peut apparaître qu'une fois par séance et par séance type (le poids de référence en dépend).
 
+## iOS
+- Champs de saisie : texte ≥ 16px, jamais d'autoFocus. Ne jamais bloquer le zoom (pas de maximum-scale / user-scalable=no).
+- Les plans signalent explicitement ce qui ne peut être vérifié que sur iPhone.
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
@@ -74,3 +78,5 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Une tâche n'est terminée que si `npm run verify` passe.
 - Chaque commit inclut les tests de ce qu'il change (anciens adaptés + nouveaux). Jamais de commit « tests » séparé à la fin.
 - Les correspondances sur un type union (ex. MuscleGroup) sont typées Record<Type, …> pour être exhaustives.
+- useLiveQuery : si la fonction peut renvoyer undefined pour « absent », emballer le résultat dans un objet pour distinguer « en chargement » de « absent ».
+- Logique répétée dans plusieurs composants (ex. blocage du défilement) : un hook partagé.
