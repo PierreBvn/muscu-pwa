@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SeanceTab } from '../SeanceTab';
 import { db } from '../../../db/schema';
-import { createProgram, addExerciseToProgram, deleteProgram } from '../../../db/programs';
+import { createProgram, addExerciseToProgram, deleteProgram, getProgramWithExercises } from '../../../db/programs';
 import { addExercise } from '../../../db/exercises';
-import { startSession, addSet, getSession, finishSession } from '../../../db/sessions';
+import { startSession, addSet, getSession, finishSession, getSessionExercises } from '../../../db/sessions';
 
-describe('SeanceTab (Tasks 4a & 4b)', () => {
+describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   beforeEach(async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     await db.sessions.clear();
@@ -634,4 +634,364 @@ describe('SeanceTab (Tasks 4a & 4b)', () => {
       expect(screen.getByText(/16 kg/)).toBeInTheDocument();
     });
   });
+
+  // --- NOUVEAUX TESTS TÂCHE 4C (ORGANISER LA SÉANCE EN COURS) ---
+
+  it('23. séance libre : ajout de 2 exercices puis saisie d’une série', async () => {
+    vi.setSystemTime(new Date(2026, 9, 21, 10, 0, 0));
+
+    const exId1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    await addExercise({ name: 'Écarté poulie', muscleGroup: 'Pectoraux' });
+
+    // Démarrer une séance libre (0 exercice)
+    const sessionId = await startSession({ now: new Date(2026, 9, 21, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    // Clic sur Ajouter un premier exercice
+    const addFirstBtn = await screen.findByRole('button', { name: /ajouter un premier exercice/i });
+    fireEvent.click(addFirstBtn);
+
+    // Modale d'ajout
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    const selectEx1 = await screen.findByRole('button', { name: /développé couché/i });
+    fireEvent.click(selectEx1);
+
+    // L'exercice 1 est ajouté, on clique maintenant sur "+ Ajouter un exercice"
+    const addMoreBtn = await screen.findByRole('button', { name: /ajouter un exercice/i });
+    fireEvent.click(addMoreBtn);
+
+    const selectEx2 = await screen.findByRole('button', { name: /écarté poulie/i });
+    fireEvent.click(selectEx2);
+
+    // Les deux exercices sont affichés
+    await waitFor(() => {
+      expect(screen.getByText('Développé couché')).toBeInTheDocument();
+      expect(screen.getByText('Écarté poulie')).toBeInTheDocument();
+    });
+
+    // Saisie d'une série sur le premier exercice
+    const otherWeightBtn = (await screen.findAllByRole('button', { name: /autre poids/i }))[0];
+    fireEvent.click(otherWeightBtn);
+
+    const weightInput = screen.getAllByLabelText(/poids personnalisé/i)[0];
+    fireEvent.change(weightInput, { target: { value: '80' } });
+
+    const rep10Btn = screen.getAllByRole('button', { name: /10 reps/i })[0];
+    fireEvent.click(rep10Btn);
+
+    const validateBtn = screen.getAllByRole('button', { name: /valider/i })[0];
+    fireEvent.click(validateBtn);
+
+    await waitFor(async () => {
+      const sets = await db.sets.where('sessionId').equals(sessionId).toArray();
+      expect(sets).toHaveLength(1);
+      expect(sets[0].exerciseId).toBe(exId1);
+      expect(sets[0].weight).toBe(80);
+    });
+  });
+
+  it('24. n’affiche pas dans le sélecteur un exercice déjà présent dans la séance', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId = await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
+    await addExercise({ name: 'Presse à cuisses', muscleGroup: 'Jambes' });
+
+    const progId = await createProgram({ name: 'Legs', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId, warmupSets: 1, workSets: 3 });
+
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    const addBtn = await screen.findByRole('button', { name: /ajouter un exercice/i });
+    fireEvent.click(addBtn);
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // "Presse à cuisses" est présent
+    expect(await screen.findByRole('button', { name: /presse à cuisses/i })).toBeInTheDocument();
+
+    // "Squat" (déjà dans la séance) ne doit PAS être proposé
+    expect(screen.queryByRole('button', { name: /^squat/i })).not.toBeInTheDocument();
+  });
+
+  it('25. n’affiche pas dans le sélecteur un exercice archivé', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    await addExercise({ name: 'Rowing haltères', muscleGroup: 'Dos' });
+    const exArchived = await addExercise({ name: 'Tirage nuque', muscleGroup: 'Dos' });
+    await db.exercises.update(exArchived, { archived: true });
+
+    await startSession({ now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    const addBtn = await screen.findByRole('button', { name: /ajouter/i });
+    fireEvent.click(addBtn);
+
+    expect(await screen.findByRole('button', { name: /rowing haltères/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /tirage nuque/i })).not.toBeInTheDocument();
+  });
+
+  it('26. retire un exercice sans série après confirmation role="alertdialog" (Annuler / Confirmer)', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId = await addExercise({ name: 'Fentes', muscleGroup: 'Jambes' });
+    const progId = await createProgram({ name: 'Legs', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId });
+
+    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    const removeBtn = await screen.findByRole('button', { name: /retirer fentes/i });
+    fireEvent.click(removeBtn);
+
+    // Dialogue alertdialog
+    const dialog = screen.getByRole('alertdialog');
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getByText(/retirer l’exercice \?/i)).toBeInTheDocument();
+
+    // Annuler
+    const cancelBtn = screen.getByRole('button', { name: /annuler/i });
+    fireEvent.click(cancelBtn);
+
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.getByText('Fentes')).toBeInTheDocument();
+
+    // Rouvrir et confirmer
+    fireEvent.click(screen.getByRole('button', { name: /retirer fentes/i }));
+    const confirmBtn = screen.getByRole('button', { name: /^retirer$/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(async () => {
+      const remainingEx = await getSessionExercises(currentSessionId);
+      expect(remainingEx).toHaveLength(0);
+    });
+
+    expect(screen.queryByText('Fentes')).not.toBeInTheDocument();
+  });
+
+  it('27. ne permet pas de retirer un exercice ayant déjà des séries enregistrées', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId = await addExercise({ name: 'Dips', muscleGroup: 'Bras' });
+    const progId = await createProgram({ name: 'Arms', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId });
+
+    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+    await addSet({
+      sessionId: currentSessionId,
+      exerciseId: exId,
+      reps: 10,
+      weight: 0,
+      type: 'work',
+      now: new Date(2026, 9, 19, 10, 10, 0),
+    });
+
+    render(<SeanceTab />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Dips')).toBeInTheDocument();
+    });
+
+    // Le bouton "Retirer Dips" ne doit pas exister
+    expect(screen.queryByRole('button', { name: /retirer dips/i })).not.toBeInTheDocument();
+  });
+
+  it('28. permet de passer un exercice (skipped) et de le rétablir', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId = await addExercise({ name: 'Crunch', muscleGroup: 'Abdominaux' });
+    const progId = await createProgram({ name: 'Core', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId });
+
+    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    const skipBtn = await screen.findByRole('button', { name: /passer crunch/i });
+    fireEvent.click(skipBtn);
+
+    // Badge "Passé" apparaît
+    await waitFor(() => {
+      expect(screen.getByText(/^passé$/i)).toBeInTheDocument();
+    });
+
+    // En base, skipped est true
+    let seList = await getSessionExercises(currentSessionId);
+    expect(seList[0].skipped).toBe(true);
+
+    // Rétablir
+    const restoreBtn = screen.getByRole('button', { name: /rétablir crunch/i });
+    fireEvent.click(restoreBtn);
+
+    await waitFor(async () => {
+      seList = await getSessionExercises(currentSessionId);
+      expect(seList[0].skipped).toBe(false);
+    });
+  });
+
+  it('29. réordonne avec ↑ ↓ et désactive les boutons aux extrémités', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId1 = await addExercise({ name: 'Exercice Un', muscleGroup: 'Bras' });
+    const exId2 = await addExercise({ name: 'Exercice Deux', muscleGroup: 'Bras' });
+    const progId = await createProgram({ name: 'Reorder Test', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId1 });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId2 });
+
+    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    const upBtn1 = await screen.findByRole('button', { name: /monter exercice un/i });
+    const downBtn2 = await screen.findByRole('button', { name: /descendre exercice deux/i });
+
+    // Le premier ne peut pas monter, le dernier ne peut pas descendre
+    expect(upBtn1).toBeDisabled();
+    expect(downBtn2).toBeDisabled();
+
+    // Descendre le premier
+    const downBtn1 = screen.getByRole('button', { name: /descendre exercice un/i });
+    fireEvent.click(downBtn1);
+
+    await waitFor(async () => {
+      const seList = await getSessionExercises(currentSessionId);
+      expect(seList[0].exerciseId).toBe(exId2);
+      expect(seList[1].exerciseId).toBe(exId1);
+    });
+  });
+
+  it('30. change le nombre de séries de travail (workSets) aux bornes [1, 6]', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId = await addExercise({ name: 'Presse inclinée', muscleGroup: 'Jambes' });
+    const progId = await createProgram({ name: 'Legs', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId, warmupSets: 1, workSets: 2 });
+
+    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    const decBtn = await screen.findByRole('button', { name: /diminuer séries de travail presse inclinée/i });
+    const incBtn = await screen.findByRole('button', { name: /augmenter séries de travail presse inclinée/i });
+
+    // Diminuer à 1
+    fireEvent.click(decBtn);
+
+    await waitFor(async () => {
+      const seList = await getSessionExercises(currentSessionId);
+      expect(seList[0].workSets).toBe(1);
+    });
+
+    // À 1, le bouton Diminuer doit être désactivé
+    await waitFor(() => {
+      expect(decBtn).toBeDisabled();
+    });
+
+    // Augmenter pas à pas jusqu'à 6
+    for (let target = 2; target <= 6; target++) {
+      fireEvent.click(incBtn);
+      await waitFor(async () => {
+        const seList = await getSessionExercises(currentSessionId);
+        expect(seList[0].workSets).toBe(target);
+      });
+    }
+
+    // À 6, le bouton Augmenter doit être désactivé
+    await waitFor(() => {
+      expect(incBtn).toBeDisabled();
+    });
+  });
+
+  it('31. garantit que la séance type reste strictement intacte après les actions de séance', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId1 = await addExercise({ name: 'Tractions', muscleGroup: 'Dos' });
+    const exId2 = await addExercise({ name: 'Soulevé de terre', muscleGroup: 'Dos' });
+    await addExercise({ name: 'Rowing barre', muscleGroup: 'Dos' });
+
+    const progId = await createProgram({ name: 'Dos Pur', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId1, warmupSets: 1, workSets: 3 });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId2, warmupSets: 1, workSets: 3 });
+
+    const initialProgram = await getProgramWithExercises(progId);
+    expect(initialProgram?.exercises).toHaveLength(2);
+
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    // 1. Ajouter un exercice
+    const addBtn = await screen.findByRole('button', { name: /ajouter un exercice/i });
+    fireEvent.click(addBtn);
+    const selectExtra = await screen.findByRole('button', { name: /rowing barre/i });
+    fireEvent.click(selectExtra);
+
+    // 2. Passer un exercice
+    const skipBtn = await screen.findByRole('button', { name: /passer tractions/i });
+    fireEvent.click(skipBtn);
+
+    // 3. Modifier les workSets
+    const incBtn = await screen.findByRole('button', { name: /augmenter séries de travail tractions/i });
+    fireEvent.click(incBtn);
+
+    // 4. Déplacer un exercice
+    const downBtn = await screen.findByRole('button', { name: /descendre tractions/i });
+    fireEvent.click(downBtn);
+
+    // Vérifier l'état de la séance type en base
+    const unchangedProgram = await getProgramWithExercises(progId);
+    expect(unchangedProgram?.exercises).toHaveLength(2);
+    expect(unchangedProgram?.exercises[0].exerciseId).toBe(exId1);
+    expect(unchangedProgram?.exercises[0].workSets).toBe(3);
+    expect(unchangedProgram?.exercises[1].exerciseId).toBe(exId2);
+    expect(unchangedProgram?.exercises[1].workSets).toBe(3);
+  });
+
+  it('32. conserve l’ordre et les exercices passés après démontage et remontage (rechargement)', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId1 = await addExercise({ name: 'Curl barre', muscleGroup: 'Bras' });
+    const exId2 = await addExercise({ name: 'Barre au front', muscleGroup: 'Bras' });
+
+    const progId = await createProgram({ name: 'Super Bras', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId1 });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId2 });
+
+    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    const { unmount } = render(<SeanceTab />);
+
+    // Inverser l'ordre (descendre Curl barre)
+    const downBtn = await screen.findByRole('button', { name: /descendre curl barre/i });
+    fireEvent.click(downBtn);
+
+    // Passer Barre au front
+    const skipBtn = await screen.findByRole('button', { name: /passer barre au front/i });
+    fireEvent.click(skipBtn);
+
+    await waitFor(async () => {
+      const seList = await getSessionExercises(currentSessionId);
+      expect(seList[0].exerciseId).toBe(exId2);
+      expect(seList[0].skipped).toBe(true);
+      expect(seList[1].exerciseId).toBe(exId1);
+    });
+
+    // Simuler le démontage et remontage
+    unmount();
+    render(<SeanceTab />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/^passé$/i)).toBeInTheDocument();
+    });
+
+    const seListAfter = await getSessionExercises(currentSessionId);
+    expect(seListAfter[0].exerciseId).toBe(exId2);
+    expect(seListAfter[0].skipped).toBe(true);
+    expect(seListAfter[1].exerciseId).toBe(exId1);
+  });
 });
+

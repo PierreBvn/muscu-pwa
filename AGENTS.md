@@ -45,6 +45,10 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Champs numériques : input type="text" inputMode="decimal", validés par parseWeight/parseReps. Jamais type="number" ni parseFloat dans un composant.
 - Aucun calcul métier (poids, pas, arrondi, choix de référence) dans les composants : uniquement via src/db/.
 
+## Séance en cours
+- Les actions sur une séance (ajouter, retirer, passer, réordonner) ne modifient jamais la séance type.
+- Un exercice ne peut apparaître qu'une fois par séance et par séance type (le poids de référence en dépend).
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
