@@ -112,4 +112,17 @@ describe('ExerciseList UI component', () => {
       expect(screen.queryByText('Développé couché')).not.toBeInTheDocument();
     });
   });
+
+  it('displays muscle group monograms for exercises', async () => {
+    render(<ExerciseList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Développé couché')).toBeInTheDocument();
+    });
+
+    // Pectoraux -> PE, Jambes -> JA, Dos -> DO
+    expect(screen.getAllByText('PE').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('JA').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('DO').length).toBeGreaterThan(0);
+  });
 });
