@@ -95,7 +95,7 @@ notifications, synchronisation.
 - Un seul exercice ouvert à la fois. Par défaut : le premier non terminé. Taper sur un exercice fermé l'ouvre et ferme l'autre ; un exercice terminé peut être rouvert.
 - Exercice fermé : monogramme du groupe musculaire + nom + « ✓ » (terminé) ou « n/N » (commencé). Rien d'autre.
 - Menu « ⋯ » par exercice : ↑, ↓, Passer, Retirer. Plus aucun réglage du nombre de séries pendant la séance.
-- Exercice ajouté pendant la séance : inséré juste avant le premier exercice non terminé (à la fin si tous sont terminés).
+- Exercice ajouté pendant la séance : si aucune série n'a encore été enregistrée dans la séance, ajouté à la fin ; sinon inséré juste avant le premier exercice non terminé (à la fin si tous sont terminés).
 - Exercice ouvert :
   - Libellé de la prochaine série : « Échauffement » ou « Série N », rien d'autre.
   - Pas de ligne récapitulative (échauffement / travail / − +).
