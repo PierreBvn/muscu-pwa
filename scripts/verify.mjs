@@ -81,7 +81,7 @@ function clearRetryCount() {
 }
 
 // 5. Exécution des vérifications déléguée à checks.mjs
-const { failure } = runChecks(projectRoot);
+const { failure } = runChecks(projectRoot, ['typecheck', 'lint', 'test']);
 
 // 6. Décision selon le résultat et le garde-fou
 if (!failure) {
