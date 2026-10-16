@@ -10,10 +10,9 @@ import {
 } from '../../db/sessions';
 import {
   getAllPrograms,
-  getProgramsForWeekday,
   getProgram,
 } from '../../db/programs';
-import { toWeekday } from './utils';
+import { getSuggestedProgramForDate } from '../../db/suggestions';
 import { StartSessionView } from './StartSessionView';
 import { ForgottenSessionPrompt } from './ForgottenSessionPrompt';
 import { ActiveSessionView } from './ActiveSessionView';
@@ -21,10 +20,9 @@ import { ActiveSessionView } from './ActiveSessionView';
 export const SeanceTab: React.FC = () => {
   const [hasResumed, setHasResumed] = useState(false);
 
-  // Date et jour de la semaine actuels
+  // Date locale actuelle pour comparer les dates de séance
   const now = new Date();
-  const todayStr = formatLocalDate(now);
-  const weekday = toWeekday(now);
+  const todayDate = formatLocalDate(now);
 
   // Données réactives Dexie
   const activeSession = useLiveQuery(
@@ -51,9 +49,9 @@ export const SeanceTab: React.FC = () => {
     null
   );
 
-  const todayPrograms = useLiveQuery(
-    async () => await getProgramsForWeekday(weekday),
-    [weekday],
+  const suggestedProgram = useLiveQuery(
+    async () => await getSuggestedProgramForDate(now),
+    [todayDate],
     undefined
   );
 
@@ -64,7 +62,7 @@ export const SeanceTab: React.FC = () => {
   );
 
   // État de chargement initial
-  if (activeSession === null && todayPrograms === undefined) {
+  if (activeSession === null && suggestedProgram === undefined) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted">
         Chargement...
@@ -74,7 +72,7 @@ export const SeanceTab: React.FC = () => {
 
   // Cas 1 : Une séance non terminée existe
   if (activeSession) {
-    const isForgotten = activeSession.date !== todayStr;
+    const isForgotten = activeSession.date !== todayDate;
 
     // Si la séance date d'un jour antérieur et n'a pas encore été reprise
     if (isForgotten && !hasResumed) {
@@ -118,7 +116,7 @@ export const SeanceTab: React.FC = () => {
   // Cas 2 : Aucune séance en cours -> Démarrage
   return (
     <StartSessionView
-      todayPrograms={todayPrograms ?? []}
+      suggestedProgram={suggestedProgram}
       allPrograms={allPrograms ?? []}
       onStartProgram={async (programId) => {
         await startSession({ programId });

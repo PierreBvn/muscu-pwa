@@ -3,14 +3,14 @@ import type { Program } from '../../db/schema';
 import { ProgramPickerModal } from './ProgramPickerModal';
 
 interface StartSessionViewProps {
-  todayPrograms: Program[];
+  suggestedProgram?: Program;
   allPrograms: Program[];
   onStartProgram: (programId: number) => Promise<void>;
   onStartFreeSession: () => Promise<void>;
 }
 
 export const StartSessionView: React.FC<StartSessionViewProps> = ({
-  todayPrograms,
+  suggestedProgram,
   allPrograms,
   onStartProgram,
   onStartFreeSession,
@@ -18,13 +18,11 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
 
-  const mainProgram = todayPrograms.length > 0 ? todayPrograms[0] : null;
-
   const handleStartMain = async () => {
-    if (!mainProgram?.id || isStarting) return;
+    if (!suggestedProgram?.id || isStarting) return;
     try {
       setIsStarting(true);
-      await onStartProgram(mainProgram.id);
+      await onStartProgram(suggestedProgram.id);
     } finally {
       setIsStarting(false);
     }
@@ -79,7 +77,7 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
         Séance
       </h1>
 
-      {mainProgram ? (
+      {suggestedProgram ? (
         <div className="w-full mt-4 space-y-4">
           <button
             type="button"
@@ -87,7 +85,7 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
             disabled={isStarting}
             className="w-full min-h-[52px] rounded-xl bg-gold px-5 py-3 text-base font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition shadow-lg shadow-gold/10 flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <span>Démarrer {mainProgram.name}</span>
+            <span>Démarrer {suggestedProgram.name}</span>
           </button>
 
           <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2.5">

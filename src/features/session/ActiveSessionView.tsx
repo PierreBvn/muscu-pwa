@@ -15,16 +15,18 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   program,
   onFinishSession,
 }) => {
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
 
   const isProgramDeleted = session.programId !== undefined && program === undefined;
   const isFreeSession = session.programId === undefined;
 
-  const handleFinish = async () => {
+  const handleConfirmFinish = async () => {
     if (isFinishing) return;
     try {
       setIsFinishing(true);
       await onFinishSession();
+      setShowConfirmDialog(false);
     } finally {
       setIsFinishing(false);
     }
@@ -51,11 +53,10 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
 
         <button
           type="button"
-          onClick={handleFinish}
-          disabled={isFinishing}
-          className="min-h-[44px] px-3.5 rounded-xl bg-surface-2 border border-line text-xs font-semibold text-text hover:border-danger/60 hover:text-danger active:opacity-90 transition disabled:opacity-50"
+          onClick={() => setShowConfirmDialog(true)}
+          className="min-h-[44px] px-3.5 rounded-xl bg-surface-2 border border-line text-xs font-semibold text-text hover:border-danger/60 hover:text-danger active:opacity-90 transition"
         >
-          {isFinishing ? 'Clôture...' : 'Terminer la séance'}
+          Terminer la séance
         </button>
       </header>
 
@@ -114,6 +115,46 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
           </div>
         )}
       </main>
+
+      {/* Dialogue de confirmation de fin de séance */}
+      {showConfirmDialog && (
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="finish-dialog-title"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
+        >
+          <div className="w-full max-w-sm rounded-xl bg-surface border border-line p-5 shadow-2xl">
+            <h3
+              id="finish-dialog-title"
+              className="text-lg font-semibold text-text tracking-tight mb-2"
+            >
+              Terminer la séance ?
+            </h3>
+            <p className="text-sm text-muted mb-5">
+              Êtes-vous sûr de vouloir terminer cette séance ?
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirmDialog(false)}
+                disabled={isFinishing}
+                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-surface-2 border border-line text-sm font-medium text-text hover:bg-surface active:opacity-90 transition disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmFinish}
+                disabled={isFinishing}
+                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-danger text-sm font-semibold text-text hover:opacity-95 active:opacity-90 transition disabled:opacity-50"
+              >
+                {isFinishing ? 'Clôture...' : 'Terminer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

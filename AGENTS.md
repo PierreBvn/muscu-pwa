@@ -35,6 +35,12 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Les tests qui dépendent de la date ou de l'heure la fixent avec vi.useFakeTimers / vi.setSystemTime.
 - Jour de la semaine : toujours via toWeekday (1 = lundi … 7 = dimanche), jamais getDay() directement.
 
+## Réutilisation
+- Avant de planifier, lister les fonctions exportées de src/db/ (Select-String -Pattern "^export") et réutiliser l'existant. Ne jamais réimplémenter une logique déjà présente.
+
+## Actions irréversibles
+- Terminer une séance, supprimer une donnée : toujours un dialogue de confirmation (role="alertdialog").
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
