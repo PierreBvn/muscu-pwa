@@ -21,29 +21,26 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
 }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Données du programme et ses exercices enrichis
-  const programData = useLiveQuery(
-    async () => await getProgramWithExercises(programId),
-    [programId],
-    undefined
+  // Données du programme et ses exercices enrichis emballées
+  const programDataQuery = useLiveQuery(
+    async () => ({ data: await getProgramWithExercises(programId) }),
+    [programId]
   );
 
   // Tous les exercices actifs de la bibliothèque pour le sélecteur
-  const availableExercises = useLiveQuery(
-    async () => await getAllExercises(),
-    [],
-    undefined
+  const availableExercisesQuery = useLiveQuery(
+    async () => ({ list: await getAllExercises() }),
+    []
   );
 
-  if (programData === undefined) {
-    return (
-      <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-muted flex items-center justify-center text-sm">
-        Chargement de la séance type...
-      </div>
-    );
+  if (programDataQuery === undefined || availableExercisesQuery === undefined) {
+    return null;
   }
 
-  if (programData === null || !programData.program) {
+  const programData = programDataQuery.data;
+  const availableExercises = availableExercisesQuery.list;
+
+  if (!programData || !programData.program) {
     return (
       <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-text flex flex-col p-4 items-center justify-center text-center">
         <p className="text-sm text-muted mb-4">Séance type introuvable.</p>

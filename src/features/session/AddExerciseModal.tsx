@@ -19,16 +19,15 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
-  const exercises = useLiveQuery(
-    async () => await getAllExercises(),
-    [],
-    undefined
+  const exercisesQuery = useLiveQuery(
+    async () => ({ list: await getAllExercises() }),
+    []
   );
 
   if (!isOpen) return null;
 
   const currentIds = new Set(existingExerciseIds);
-  const availableExercises = (exercises || []).filter(
+  const availableExercises = (exercisesQuery?.list || []).filter(
     (ex) => ex.id !== undefined && !currentIds.has(ex.id)
   );
 
@@ -85,11 +84,7 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-          {exercises === undefined ? (
-            <p className="text-sm text-muted text-center py-6">
-              Chargement des exercices...
-            </p>
-          ) : filteredExercises.length === 0 ? (
+          {exercisesQuery === undefined ? null : filteredExercises.length === 0 ? (
             <p className="text-sm text-muted text-center py-6">
               {searchQuery.trim()
                 ? 'Aucun exercice trouvé.'

@@ -26,25 +26,25 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
   setLabel,
   onAddSet,
 }) => {
-  // Suggestions réactives de Dexie
-  const weightSuggestions = useLiveQuery(
-    async () =>
-      await getWeightSuggestions(exerciseId, {
+  // Suggestions réactives de Dexie emballées
+  const weightSuggestionsQuery = useLiveQuery(
+    async () => ({
+      data: await getWeightSuggestions(exerciseId, {
         isWarmup,
         currentSessionId: sessionId,
       }),
-    [exerciseId, isWarmup, sessionId],
-    null
+    }),
+    [exerciseId, isWarmup, sessionId]
   );
 
-  const repSuggestions = useLiveQuery(
-    async () =>
-      await getRepSuggestions(exerciseId, {
+  const repSuggestionsQuery = useLiveQuery(
+    async () => ({
+      data: await getRepSuggestions(exerciseId, {
         currentSessionId: sessionId,
         isWarmup,
       }),
-    [exerciseId, isWarmup, sessionId],
-    null
+    }),
+    [exerciseId, isWarmup, sessionId]
   );
 
   // État local de personnalisation
@@ -59,13 +59,12 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!weightSuggestions || !repSuggestions) {
-    return (
-      <div className="py-3 text-center text-xs text-muted">
-        Chargement des suggestions...
-      </div>
-    );
+  if (weightSuggestionsQuery === undefined || repSuggestionsQuery === undefined) {
+    return null;
   }
+
+  const weightSuggestions = weightSuggestionsQuery.data;
+  const repSuggestions = repSuggestionsQuery.data;
 
   const hasWeightSuggestions =
     !weightSuggestions.manualOnly && weightSuggestions.buttons.length > 0;

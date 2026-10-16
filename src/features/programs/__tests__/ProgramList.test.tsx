@@ -22,7 +22,7 @@ describe('ProgramList UI', () => {
       expect(screen.getByText(/aucune séance type/i)).toBeInTheDocument();
     });
 
-    const addBtn = screen.getByRole('button', { name: /nouvelle séance type/i });
+    const addBtn = screen.getByRole('button', { name: /^nouvelle$/i });
     fireEvent.click(addBtn);
 
     expect(
@@ -33,7 +33,7 @@ describe('ProgramList UI', () => {
   it('validates program name and weekdays before creating', async () => {
     render(<ProgramList />);
 
-    const addBtn = screen.getByRole('button', { name: /nouvelle séance type/i });
+    const addBtn = screen.getByRole('button', { name: /^nouvelle$/i });
     fireEvent.click(addBtn);
 
     const saveBtn = screen.getByRole('button', { name: /enregistrer/i });
@@ -71,7 +71,7 @@ describe('ProgramList UI', () => {
   it('creates a new program with chosen weekdays', async () => {
     render(<ProgramList />);
 
-    const addBtn = screen.getByRole('button', { name: /nouvelle séance type/i });
+    const addBtn = screen.getByRole('button', { name: /^nouvelle$/i });
     fireEvent.click(addBtn);
 
     const nameInput = screen.getByLabelText(/nom de la séance type/i);

@@ -1233,5 +1233,20 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     // Mais ex2 reste FERMÉ (le bouton "Ouvrir Écarté haltères" est toujours présent)
     expect(screen.getByRole('button', { name: /ouvrir écarté haltères/i })).toBeInTheDocument();
   });
+
+  it("40. sans séance en cours, l'écran de démarrage s'affiche et aucun texte Chargement n'apparaît", async () => {
+    vi.setSystemTime(new Date(2026, 9, 21, 10, 0, 0));
+
+    render(<SeanceTab />);
+
+    // L'écran de démarrage s'affiche
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /^séance$/i })).toBeInTheDocument();
+    });
+
+    // Aucun texte "Chargement" ne doit être présent dans le DOM
+    expect(screen.queryByText(/chargement/i)).not.toBeInTheDocument();
+  });
 });
+
 

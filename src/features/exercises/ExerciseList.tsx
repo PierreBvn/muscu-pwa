@@ -23,12 +23,12 @@ export const ExerciseList: React.FC = () => {
     });
   }, []);
 
-  // Requête réactive via useLiveQuery
-  const groupedExercises = useLiveQuery(
-    async () => await getExercisesByGroup(),
-    [],
-    undefined
+  // Requête réactive via useLiveQuery emballée
+  const groupedExercisesQuery = useLiveQuery(
+    async () => ({ groups: await getExercisesByGroup() }),
+    []
   );
+  const groupedExercises = groupedExercisesQuery?.groups;
 
   const handleOpenAdd = () => {
     setEditingExercise(null);
@@ -84,11 +84,7 @@ export const ExerciseList: React.FC = () => {
 
       {/* Contenu principal */}
       <main className="flex-1 px-4 py-5 space-y-6">
-        {groupedExercises === undefined ? (
-          <div className="flex min-h-[200px] items-center justify-center text-sm text-muted">
-            Chargement des exercices...
-          </div>
-        ) : (
+        {groupedExercises === undefined ? null : (
           MUSCLE_GROUPS.map((group) => {
             const list = groupedExercises[group] || [];
             return (

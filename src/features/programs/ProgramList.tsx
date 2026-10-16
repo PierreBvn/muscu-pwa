@@ -17,7 +17,11 @@ export const ProgramList: React.FC = () => {
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const [programToDelete, setProgramToDelete] = useState<Program | null>(null);
 
-  const programs = useLiveQuery(async () => await getAllPrograms(), [], undefined);
+  const programsQuery = useLiveQuery(
+    async () => ({ list: await getAllPrograms() }),
+    []
+  );
+  const programs = programsQuery?.list;
 
   if (selectedProgramId !== null) {
     return (
@@ -69,17 +73,13 @@ export const ProgramList: React.FC = () => {
           onClick={handleOpenCreate}
           className="flex min-h-[48px] items-center gap-1.5 rounded-xl bg-gold px-4 text-sm font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition"
         >
-          <span className="text-lg leading-none">+</span>
-          <span>Nouvelle séance type</span>
+          <span className="text-lg leading-none" aria-hidden="true">+</span>
+          <span>Nouvelle</span>
         </button>
       </header>
 
       <main className="flex-1 px-4 py-5">
-        {programs === undefined ? (
-          <div className="flex min-h-[200px] items-center justify-center text-sm text-muted">
-            Chargement des séances types...
-          </div>
-        ) : programs.length === 0 ? (
+        {programsQuery === undefined || programs === undefined ? null : programs.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[260px] text-center p-6 rounded-xl bg-surface border border-dashed border-line">
             <div className="w-12 h-12 rounded-xl bg-surface-2 flex items-center justify-center text-muted mb-3">
               <svg
