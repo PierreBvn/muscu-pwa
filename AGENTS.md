@@ -64,6 +64,22 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Les tests jsdom ne voient pas la mise en page : citer la cause dans le code (fichier:ligne) avant de corriger.
 - Finir le plan par une liste de vérifications à faire sur iPhone.
 
+## Diagnostic
+- Si la cause d'un bug n'est pas trouvée, écrire "cause non trouvée". Ne jamais présenter une hypothèse comme une cause.
+- Ne pas répéter une règle CSS qui existe déjà : si elle ne marche pas, la cause est ailleurs.
+
+## Mise en page iOS
+- Aucun ancêtre d'un élément fixed ne porte transform, filter, backdrop-filter, will-change ou une animation.
+- Les hauteurs de l'en-tête et de la barre de navigation viennent uniquement de var(--header-height) et var(--tabbar-height), jamais d'une classe comme h-16.
+- Les espaces ajoutés pour le défilement sont calculés au plus juste, jamais égaux à une hauteur d'écran par défaut.
+- Tester chaque correction de mise en page avec le clavier ouvert.
+- Aucun élément fixed (dialog, menu, modale) n'est rendu à l'intérieur d'un élément qui a backdrop-blur, transform ou filter.
+- html a min-height: calc(100% + env(safe-area-inset-top)) : contournement du bug iOS en PWA installée (barre fixed qui ne touche pas le bas). Ne pas retirer.
+- Pour un défilement qui dépend d'un changement de taille, appliquer la taille sur le DOM (ref) avant d'appeler scrollTo, jamais via un state React dans la même image.
+
+## Diagnostic
+- Si la cause n'est pas dans le code, chercher un bug connu du navigateur avant de proposer une correction.
+
 
 
 ## Règles
