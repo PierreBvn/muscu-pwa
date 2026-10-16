@@ -22,6 +22,10 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 ## Conventions de tests
 - Les tests sont dans un dossier `__tests__/` à côté du code testé (ex. `src/__tests__/` pour `src/App.tsx`).
 
+## Design
+- docs/specs/design.md fait foi. Couleurs uniquement via les tokens @theme : aucune couleur codée en dur, jamais de violet/indigo ni de dégradé.
+- Une tâche de style ne modifie ni la logique, ni src/db/, ni les tests.
+
 
 
 ## Règles

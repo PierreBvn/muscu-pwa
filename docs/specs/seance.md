@@ -17,7 +17,8 @@ les mêmes exercices. À la salle, je veux enregistrer chaque série en
   exceptions de séance modifient cette table, jamais le programme.
 - Session.date (YYYY-MM-DD, date LOCALE) conservé. startedAt, endedAt,
   SetEntry.createdAt : ISO 8601.
-- warmupSets : 0 à 4. workSets : 1 à 6.
+- warmupSets : 0 ou 1 non réglable dans l'interface (champ conservé en base pour évolution future).
+- workSets : 1 à 6.
 - Index : sets [exerciseId+createdAt], [sessionId+order] ;
   sessionExercises [sessionId+order]. Pas d'index sur endedAt
   (IndexedDB n'indexe pas les champs absents).
