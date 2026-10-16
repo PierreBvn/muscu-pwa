@@ -19,6 +19,10 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Les composants n'importent jamais `db` directement : toute lecture/écriture passe par les fonctions de `src/db/`.
 - Dans la section « Ambiguïtés » d'un plan : poser la question et proposer une option, sans écrire « l'UI fera X ». La décision revient à l'utilisateur.
 
+## Conventions de tests
+- Les tests sont dans un dossier `__tests__/` à côté du code testé (ex. `src/__tests__/` pour `src/App.tsx`).
+
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
