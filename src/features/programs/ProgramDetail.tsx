@@ -1,25 +1,417 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import type { Exercise } from '../../db/schema';
+import {
+  getProgramWithExercises,
+  addExerciseToProgram,
+  updateProgramExercise,
+  removeExerciseFromProgram,
+  moveProgramExercise,
+} from '../../db/programs';
+import { getAllExercises } from '../../db/exercises';
 
 interface ProgramDetailProps {
   programId: number;
   onBack: () => void;
 }
 
-export const ProgramDetail: React.FC<ProgramDetailProps> = ({ onBack }) => {
-  return (
-    <div className="w-full max-w-md mx-auto min-h-svh bg-zinc-950 text-zinc-100 flex flex-col">
-      <header className="sticky top-0 z-20 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3 flex items-center gap-3">
+export const ProgramDetail: React.FC<ProgramDetailProps> = ({
+  programId,
+  onBack,
+}) => {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // Données du programme et ses exercices enrichis
+  const programData = useLiveQuery(
+    async () => await getProgramWithExercises(programId),
+    [programId],
+    undefined
+  );
+
+  // Tous les exercices actifs de la bibliothèque pour le sélecteur
+  const availableExercises = useLiveQuery(
+    async () => await getAllExercises(),
+    [],
+    undefined
+  );
+
+  if (programData === undefined) {
+    return (
+      <div className="w-full max-w-md mx-auto min-h-svh bg-zinc-950 text-zinc-100 flex items-center justify-center text-sm text-zinc-500">
+        Chargement du programme...
+      </div>
+    );
+  }
+
+  if (programData === null || !programData.program) {
+    return (
+      <div className="w-full max-w-md mx-auto min-h-svh bg-zinc-950 text-zinc-100 flex flex-col p-4 items-center justify-center text-center">
+        <p className="text-sm text-zinc-400 mb-4">Programme introuvable.</p>
         <button
           type="button"
           onClick={onBack}
-          className="min-h-[44px] min-w-[44px] flex items-center justify-center text-sm font-semibold text-purple-400"
+          className="min-h-[44px] px-4 rounded-xl bg-purple-600 text-sm font-semibold text-white"
         >
-          ← Programmes
+          Retour aux programmes
         </button>
-        <h1 className="text-xl font-bold text-white tracking-tight">
-          Détail du programme
-        </h1>
+      </div>
+    );
+  }
+
+  const { program, exercises } = programData;
+
+  // Filtrer les exercices déjà présents dans le programme (pas de doublons)
+  const currentExerciseIds = new Set(exercises.map((pe) => pe.exerciseId));
+  const filteredAvailableExercises = (availableExercises || []).filter(
+    (ex) => ex.id !== undefined && !currentExerciseIds.has(ex.id)
+  );
+
+  const handleAddExercise = async (exercise: Exercise) => {
+    if (!exercise.id) return;
+    await addExerciseToProgram({
+      programId,
+      exerciseId: exercise.id,
+      warmupSets: 1,
+      workSets: 3,
+    });
+    setIsAddModalOpen(false);
+  };
+
+  const handleWarmupChange = async (
+    programExerciseId: number,
+    currentWarmup: number,
+    delta: number
+  ) => {
+    const next = currentWarmup + delta;
+    if (next < 0 || next > 4) return;
+    await updateProgramExercise(programExerciseId, { warmupSets: next });
+  };
+
+  const handleWorkChange = async (
+    programExerciseId: number,
+    currentWork: number,
+    delta: number
+  ) => {
+    const next = currentWork + delta;
+    if (next < 1 || next > 6) return;
+    await updateProgramExercise(programExerciseId, { workSets: next });
+  };
+
+  return (
+    <div className="w-full max-w-md mx-auto min-h-svh bg-zinc-950 text-zinc-100 flex flex-col pb-12">
+      {/* Header */}
+      <header className="sticky top-0 z-20 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onBack}
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center -ml-2 rounded-xl text-purple-400 hover:text-purple-300 active:bg-zinc-800 transition"
+          >
+            <span className="text-sm font-semibold">← Programmes</span>
+          </button>
+          <h1 className="text-xl font-bold text-white tracking-tight truncate max-w-[200px]">
+            {program.name}
+          </h1>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex min-h-[44px] items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 text-sm font-semibold text-white shadow-md shadow-purple-600/30 hover:bg-purple-500 active:bg-purple-700 transition"
+        >
+          <span className="text-lg leading-none">+</span>
+          <span>Ajouter</span>
+        </button>
       </header>
+
+      {/* Main content */}
+      <main className="flex-1 px-4 py-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-purple-400">
+            Exercices prévus
+          </h2>
+          <span className="text-xs font-medium text-zinc-400">
+            {exercises.length} {exercises.length > 1 ? 'exercices' : 'exercice'}
+          </span>
+        </div>
+
+        {exercises.length === 0 ? (
+          <div className="flex flex-col items-center justify-center min-h-[200px] text-center p-6 rounded-2xl bg-zinc-900/40 border border-dashed border-zinc-800">
+            <p className="text-sm text-zinc-400 mb-3">
+              Aucun exercice dans ce programme.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(true)}
+              className="min-h-[44px] px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-sm font-semibold text-white shadow-md shadow-purple-600/30 transition"
+            >
+              Ajouter un exercice
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {exercises.map((pe, index) => {
+              const exName = pe.exercise?.name ?? 'Exercice inconnu';
+              const isArchived = pe.exercise?.archived === true;
+
+              return (
+                <div
+                  key={pe.id}
+                  className="rounded-2xl bg-zinc-900/90 border border-zinc-800/80 p-4 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono font-semibold text-zinc-500 w-5">
+                          #{index + 1}
+                        </span>
+                        <h3 className="text-base font-bold text-white truncate">
+                          {exName}
+                        </h3>
+                        {isArchived && (
+                          <span className="inline-flex items-center rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400 ring-1 ring-inset ring-amber-500/20">
+                            Archivé
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      {/* Bouton Monter ↑ */}
+                      <button
+                        type="button"
+                        aria-label={`Monter ${exName}`}
+                        disabled={index === 0}
+                        onClick={() => pe.id && moveProgramExercise(pe.id, 'up')}
+                        className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl transition ${
+                          index === 0
+                            ? 'text-zinc-600 opacity-40 cursor-not-allowed'
+                            : 'text-zinc-300 hover:text-white hover:bg-zinc-800 active:bg-zinc-750'
+                        }`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="w-5 h-5"
+                          aria-hidden="true"
+                        >
+                          <path d="m18 15-6-6-6 6" />
+                        </svg>
+                      </button>
+
+                      {/* Bouton Descendre ↓ */}
+                      <button
+                        type="button"
+                        aria-label={`Descendre ${exName}`}
+                        disabled={index === exercises.length - 1}
+                        onClick={() => pe.id && moveProgramExercise(pe.id, 'down')}
+                        className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl transition ${
+                          index === exercises.length - 1
+                            ? 'text-zinc-600 opacity-40 cursor-not-allowed'
+                            : 'text-zinc-300 hover:text-white hover:bg-zinc-800 active:bg-zinc-750'
+                        }`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="w-5 h-5"
+                          aria-hidden="true"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </button>
+
+                      {/* Bouton Retirer */}
+                      <button
+                        type="button"
+                        aria-label={`Retirer ${exName}`}
+                        onClick={() => pe.id && removeExerciseFromProgram(pe.id)}
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-zinc-400 hover:text-red-400 hover:bg-zinc-800 active:bg-zinc-750 transition"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="w-4 h-4"
+                          aria-hidden="true"
+                        >
+                          <path d="M3 6h18" />
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Réglage des séries */}
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-zinc-800/60">
+                    {/* Échauffement (0 - 4) */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-zinc-400 font-medium">
+                        Échauffement : {pe.warmupSets}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          aria-label={`Diminuer séries d’échauffement ${exName}`}
+                          disabled={pe.warmupSets <= 0}
+                          onClick={() =>
+                            pe.id && handleWarmupChange(pe.id, pe.warmupSets, -1)
+                          }
+                          className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-zinc-800 text-lg font-bold transition ${
+                            pe.warmupSets <= 0
+                              ? 'text-zinc-600 opacity-40 cursor-not-allowed'
+                              : 'text-zinc-200 hover:bg-zinc-700 active:bg-zinc-650'
+                          }`}
+                        >
+                          −
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Augmenter séries d’échauffement ${exName}`}
+                          disabled={pe.warmupSets >= 4}
+                          onClick={() =>
+                            pe.id && handleWarmupChange(pe.id, pe.warmupSets, 1)
+                          }
+                          className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-zinc-800 text-lg font-bold transition ${
+                            pe.warmupSets >= 4
+                              ? 'text-zinc-600 opacity-40 cursor-not-allowed'
+                              : 'text-zinc-200 hover:bg-zinc-700 active:bg-zinc-650'
+                          }`}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Travail (1 - 6) */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-zinc-400 font-medium">
+                        Travail : {pe.workSets}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          aria-label={`Diminuer séries de travail ${exName}`}
+                          disabled={pe.workSets <= 1}
+                          onClick={() =>
+                            pe.id && handleWorkChange(pe.id, pe.workSets, -1)
+                          }
+                          className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-zinc-800 text-lg font-bold transition ${
+                            pe.workSets <= 1
+                              ? 'text-zinc-600 opacity-40 cursor-not-allowed'
+                              : 'text-zinc-200 hover:bg-zinc-700 active:bg-zinc-650'
+                          }`}
+                        >
+                          −
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Augmenter séries de travail ${exName}`}
+                          disabled={pe.workSets >= 6}
+                          onClick={() =>
+                            pe.id && handleWorkChange(pe.id, pe.workSets, 1)
+                          }
+                          className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-zinc-800 text-lg font-bold transition ${
+                            pe.workSets >= 6
+                              ? 'text-zinc-600 opacity-40 cursor-not-allowed'
+                              : 'text-zinc-200 hover:bg-zinc-700 active:bg-zinc-650'
+                          }`}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </main>
+
+      {/* Modal / Sélecteur d'ajout d'exercice */}
+      {isAddModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-exercise-dialog-title"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
+        >
+          <div className="w-full max-w-md max-h-[80vh] flex flex-col rounded-2xl bg-zinc-900 border border-zinc-700/60 p-5 shadow-2xl">
+            <div className="flex items-center justify-between mb-3">
+              <h2
+                id="add-exercise-dialog-title"
+                className="text-lg font-bold text-white"
+              >
+                Ajouter un exercice
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-zinc-400 mb-3">
+              Choisissez un exercice à ajouter au programme.
+            </p>
+
+            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
+              {filteredAvailableExercises.length === 0 ? (
+                <div className="py-8 text-center text-xs text-zinc-500">
+                  Tous les exercices disponibles sont déjà dans ce programme.
+                </div>
+              ) : (
+                filteredAvailableExercises.map((exercise) => (
+                  <button
+                    key={exercise.id}
+                    type="button"
+                    onClick={() => handleAddExercise(exercise)}
+                    className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-750 text-left flex items-center justify-between transition group"
+                  >
+                    <div>
+                      <span className="text-sm font-semibold text-white group-hover:text-purple-300">
+                        {exercise.name}
+                      </span>
+                      <span className="block text-xs text-zinc-400">
+                        {exercise.muscleGroup}
+                      </span>
+                    </div>
+                    <span className="text-purple-400 text-sm font-bold">+</span>
+                  </button>
+                ))
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-zinc-800 mt-2">
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="w-full min-h-[44px] rounded-xl bg-zinc-800 text-sm font-semibold text-zinc-300 hover:bg-zinc-750"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
