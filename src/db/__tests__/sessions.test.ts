@@ -20,6 +20,8 @@ import {
   updateSet,
   deleteSet,
   getSetsForSession,
+  isExerciseCompleted,
+  getSessionProgress,
 } from '../sessions';
 
 describe('Sessions data layer (src/db/sessions.ts)', () => {
@@ -440,6 +442,243 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
       expect(details?.exercises[0].exercise?.name).toBe('Développé incliné');
       expect(details?.sets).toHaveLength(1);
       expect(details?.sets[0].weight).toBe(70);
+    });
+  });
+
+  describe('Session progress and v2 flow (isExerciseCompleted, getSessionProgress, addExerciseToSession)', () => {
+    it('determines if exercise is completed correctly (isExerciseCompleted)', () => {
+      // 2/3 séries de travail -> non terminé
+      expect(
+        isExerciseCompleted(
+          { workSets: 3, skipped: false },
+          [
+            { type: 'work' },
+            { type: 'work' },
+          ]
+        )
+      ).toBe(false);
+
+      // 3/3 séries de travail -> terminé
+      expect(
+        isExerciseCompleted(
+          { workSets: 3, skipped: false },
+          [
+            { type: 'work' },
+            { type: 'work' },
+            { type: 'work' },
+          ]
+        )
+      ).toBe(true);
+
+      // 4/3 séries de travail -> terminé
+      expect(
+        isExerciseCompleted(
+          { workSets: 3, skipped: false },
+          [
+            { type: 'work' },
+            { type: 'work' },
+            { type: 'work' },
+            { type: 'work' },
+          ]
+        )
+      ).toBe(true);
+
+      // Échauffement seul (2 warmup, 0 work sur 3 workSets) -> non terminé
+      expect(
+        isExerciseCompleted(
+          { workSets: 3, skipped: false },
+          [
+            { type: 'warmup' },
+            { type: 'warmup' },
+          ]
+        )
+      ).toBe(false);
+
+      // Passé sans série (skipped: true) -> terminé
+      expect(
+        isExerciseCompleted(
+          { workSets: 3, skipped: true },
+          []
+        )
+      ).toBe(true);
+
+      // Passé avec des séries partielles (skipped: true, 1 work) -> terminé
+      expect(
+        isExerciseCompleted(
+          { workSets: 3, skipped: true },
+          [{ type: 'work' }]
+        )
+      ).toBe(true);
+    });
+
+    it('returns session progress with accurate status, counts and first incomplete id', async () => {
+      const ex1 = await addExercise({ name: 'Ex 1', muscleGroup: 'Pectoraux' });
+      const ex2 = await addExercise({ name: 'Ex 2', muscleGroup: 'Dos' });
+      const ex3 = await addExercise({ name: 'Ex 3', muscleGroup: 'Épaules' });
+
+      const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
+      const se1 = await addExerciseToSession({ sessionId: sid, exerciseId: ex1, workSets: 3 });
+      const se2 = await addExerciseToSession({ sessionId: sid, exerciseId: ex2, workSets: 3 });
+      const se3 = await addExerciseToSession({ sessionId: sid, exerciseId: ex3, workSets: 2 });
+
+      // Compléter ex1 avec 4 séries (séries supplémentaires autorisées)
+      for (let i = 0; i < 4; i++) {
+        await addSet({ sessionId: sid, exerciseId: ex1, reps: 10, weight: 60, type: 'work' });
+      }
+
+      // Passer ex3 (sans série)
+      await skipSessionExercise(se3, true);
+
+      // À ce stade :
+      // ex1: 4/3 -> terminé
+      // ex2: 0/3 -> NON terminé (doit être firstIncomplete)
+      // ex3: 0/2 mais skipped -> terminé
+      const progress = await getSessionProgress(sid);
+      expect(progress.exercises).toHaveLength(3);
+      expect(progress.firstIncompleteSessionExerciseId).toBe(se2);
+      expect(progress.firstIncompleteExerciseId).toBe(ex2);
+
+      expect(progress.exercises[0]).toEqual({
+        sessionExerciseId: se1,
+        exerciseId: ex1,
+        order: 0,
+        completed: true,
+        workSetsDone: 4,
+        workSets: 3,
+        skipped: false,
+      });
+
+      expect(progress.exercises[1]).toEqual({
+        sessionExerciseId: se2,
+        exerciseId: ex2,
+        order: 1,
+        completed: false,
+        workSetsDone: 0,
+        workSets: 3,
+        skipped: false,
+      });
+
+      expect(progress.exercises[2]).toEqual({
+        sessionExerciseId: se3,
+        exerciseId: ex3,
+        order: 2,
+        completed: true,
+        workSetsDone: 0,
+        workSets: 2,
+        skipped: true,
+      });
+
+      // Compléter ex2
+      for (let i = 0; i < 3; i++) {
+        await addSet({ sessionId: sid, exerciseId: ex2, reps: 10, weight: 50, type: 'work' });
+      }
+
+      // Tout est désormais terminé -> firstIncompleteSessionExerciseId = null
+      const progressAllDone = await getSessionProgress(sid);
+      expect(progressAllDone.firstIncompleteSessionExerciseId).toBeNull();
+      expect(progressAllDone.firstIncompleteExerciseId).toBeNull();
+      expect(progressAllDone.exercises.every((e) => e.completed)).toBe(true);
+    });
+
+    it('returns null first incomplete on empty session', async () => {
+      const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
+      const progress = await getSessionProgress(sid);
+      expect(progress.exercises).toEqual([]);
+      expect(progress.firstIncompleteSessionExerciseId).toBeNull();
+      expect(progress.firstIncompleteExerciseId).toBeNull();
+    });
+
+    it('preserves insertion order when no sets exist in session (free session)', async () => {
+      const ex1 = await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
+      const ex2 = await addExercise({ name: 'Presse', muscleGroup: 'Jambes' });
+      const ex3 = await addExercise({ name: 'Mollets', muscleGroup: 'Jambes' });
+
+      const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
+      const se1 = await addExerciseToSession({ sessionId: sid, exerciseId: ex1 });
+      const se2 = await addExerciseToSession({ sessionId: sid, exerciseId: ex2 });
+      const se3 = await addExerciseToSession({ sessionId: sid, exerciseId: ex3 });
+
+      const list = await getSessionExercises(sid);
+      expect(list.map((e) => e.id)).toEqual([se1, se2, se3]);
+      expect(list.map((e) => e.order)).toEqual([0, 1, 2]);
+    });
+
+    it('inserts new exercise before the first incomplete exercise once a set exists', async () => {
+      const ex1 = await addExercise({ name: 'DC', muscleGroup: 'Pectoraux' });
+      const ex2 = await addExercise({ name: 'DI', muscleGroup: 'Pectoraux' });
+      const ex3 = await addExercise({ name: 'Écartés', muscleGroup: 'Pectoraux' });
+
+      const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
+      const se1 = await addExerciseToSession({ sessionId: sid, exerciseId: ex1, workSets: 3 });
+      const se2 = await addExerciseToSession({ sessionId: sid, exerciseId: ex2, workSets: 3 });
+
+      // Une série de travail sur ex1
+      await addSet({ sessionId: sid, exerciseId: ex1, reps: 10, weight: 80, type: 'work' });
+
+      // Ici, ex1 n'a que 1/3 série de travail -> ex1 est le premier non terminé !
+      // Donc l'ajout de ex3 s'insère avant ex1
+      const se3 = await addExerciseToSession({ sessionId: sid, exerciseId: ex3, workSets: 3 });
+
+      const list = await getSessionExercises(sid);
+      expect(list.map((e) => e.id)).toEqual([se3, se1, se2]);
+      expect(list.map((e) => e.order)).toEqual([0, 1, 2]);
+    });
+
+    it('inserts before exercise 2 when exercise 1 and 3 are completed and exercise 2 is not', async () => {
+      const ex1 = await addExercise({ name: 'A', muscleGroup: 'Dos' });
+      const ex2 = await addExercise({ name: 'B', muscleGroup: 'Dos' });
+      const ex3 = await addExercise({ name: 'C', muscleGroup: 'Dos' });
+      const exNew = await addExercise({ name: 'Nouveau', muscleGroup: 'Dos' });
+
+      const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
+      const se1 = await addExerciseToSession({ sessionId: sid, exerciseId: ex1, workSets: 2 });
+      const se2 = await addExerciseToSession({ sessionId: sid, exerciseId: ex2, workSets: 2 });
+      const se3 = await addExerciseToSession({ sessionId: sid, exerciseId: ex3, workSets: 2 });
+
+      // ex1: 2 séries de travail -> terminé
+      await addSet({ sessionId: sid, exerciseId: ex1, reps: 10, weight: 50, type: 'work' });
+      await addSet({ sessionId: sid, exerciseId: ex1, reps: 10, weight: 50, type: 'work' });
+
+      // ex3: passé -> terminé
+      await skipSessionExercise(se3, true);
+
+      // ex2: 0 série -> NON terminé (seul non terminé)
+      // Lors de l'ajout de exNew, il doit être inséré juste avant ex2 (donc en position 1, entre ex1 et ex2)
+      const seNew = await addExerciseToSession({ sessionId: sid, exerciseId: exNew, workSets: 2 });
+
+      const list = await getSessionExercises(sid);
+      expect(list.map((e) => e.id)).toEqual([se1, seNew, se2, se3]);
+      expect(list.map((e) => e.order)).toEqual([0, 1, 2, 3]);
+    });
+
+    it('inserts at the end when all exercises are completed', async () => {
+      const ex1 = await addExercise({ name: 'Tractions', muscleGroup: 'Dos' });
+      const ex2 = await addExercise({ name: 'Rowing', muscleGroup: 'Dos' });
+      const exNew = await addExercise({ name: 'Oiseau', muscleGroup: 'Dos' });
+
+      const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
+      const se1 = await addExerciseToSession({ sessionId: sid, exerciseId: ex1, workSets: 1 });
+      const se2 = await addExerciseToSession({ sessionId: sid, exerciseId: ex2, workSets: 1 });
+
+      await addSet({ sessionId: sid, exerciseId: ex1, reps: 10, weight: 0, type: 'work' });
+      await addSet({ sessionId: sid, exerciseId: ex2, reps: 10, weight: 40, type: 'work' });
+
+      // Tous sont terminés -> nouvel exercice inséré à la fin
+      const seNew = await addExerciseToSession({ sessionId: sid, exerciseId: exNew, workSets: 3 });
+
+      const list = await getSessionExercises(sid);
+      expect(list.map((e) => e.id)).toEqual([se1, se2, seNew]);
+      expect(list.map((e) => e.order)).toEqual([0, 1, 2]);
+    });
+
+    it('prevents adding the same exercise twice to the session', async () => {
+      const exId = await addExercise({ name: 'Curl', muscleGroup: 'Bras' });
+      const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
+      await addExerciseToSession({ sessionId: sid, exerciseId: exId });
+
+      await expect(
+        addExerciseToSession({ sessionId: sid, exerciseId: exId })
+      ).rejects.toThrow(/déjà présent dans cette séance/i);
     });
   });
 });

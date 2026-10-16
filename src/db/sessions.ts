@@ -284,8 +284,87 @@ export async function getSessionExercises(
 }
 
 /**
- * Ajoute un exercice supplémentaire à une séance en cours.
- * Attribue automatiquement order = max(order) + 1.
+ * Détermine si un exercice de séance est considéré comme terminé :
+ * au moins workSets vraies séries (type 'work') enregistrées, ou exercice passé (skipped).
+ * Les séries d'échauffement ne comptent pas.
+ */
+export function isExerciseCompleted(
+  exercise: Pick<SessionExercise, 'workSets' | 'skipped'>,
+  sets: Pick<SetEntry, 'type'>[]
+): boolean {
+  if (exercise.skipped) {
+    return true;
+  }
+  const workSetsCount = sets.filter((s) => s.type === 'work').length;
+  return workSetsCount >= exercise.workSets;
+}
+
+export interface SessionExerciseProgress {
+  sessionExerciseId: number;
+  exerciseId: number;
+  order: number;
+  completed: boolean;
+  workSetsDone: number;
+  workSets: number;
+  skipped: boolean;
+}
+
+export interface SessionProgress {
+  exercises: SessionExerciseProgress[];
+  firstIncompleteSessionExerciseId: number | null;
+  firstIncompleteExerciseId: number | null;
+}
+
+/**
+ * Donne l'état de chaque exercice d'une séance dans l'ordre croissant :
+ * terminé ou non, nombre de vraies séries faites / workSets,
+ * et l'id du premier exercice non terminé (null si tous sont terminés ou séance vide).
+ */
+export async function getSessionProgress(
+  sessionId: number
+): Promise<SessionProgress> {
+  const sessionExercises = await getSessionExercises(sessionId);
+  const sets = await getSetsForSession(sessionId);
+
+  const exercisesProgress: SessionExerciseProgress[] = [];
+  let firstIncompleteSessionExerciseId: number | null = null;
+  let firstIncompleteExerciseId: number | null = null;
+
+  for (const se of sessionExercises) {
+    const exerciseSets = sets.filter((s) => s.exerciseId === se.exerciseId);
+    const workSetsDone = exerciseSets.filter((s) => s.type === 'work').length;
+    const completed = isExerciseCompleted(se, exerciseSets);
+
+    if (!completed && firstIncompleteSessionExerciseId === null && se.id !== undefined) {
+      firstIncompleteSessionExerciseId = se.id;
+      firstIncompleteExerciseId = se.exerciseId;
+    }
+
+    exercisesProgress.push({
+      sessionExerciseId: se.id!,
+      exerciseId: se.exerciseId,
+      order: se.order,
+      completed,
+      workSetsDone,
+      workSets: se.workSets,
+      skipped: Boolean(se.skipped),
+    });
+  }
+
+  return {
+    exercises: exercisesProgress,
+    firstIncompleteSessionExerciseId,
+    firstIncompleteExerciseId,
+  };
+}
+
+/**
+ * Ajoute un exercice à une séance en cours.
+ * Règle d'insertion (v2) :
+ * - Si aucune série (ni échauffement ni travail) n'a encore été enregistrée dans la séance :
+ *   l'exercice est ajouté à la fin (order = max(order) + 1 ou 0).
+ * - Sinon : inséré juste avant le premier exercice non terminé (ou à la fin si tous sont terminés).
+ * Le réordonnancement se fait de façon atomique dans une transaction Dexie.
  */
 export async function addExerciseToSession(data: {
   sessionId: number;
@@ -298,7 +377,7 @@ export async function addExerciseToSession(data: {
 
   return await db.transaction(
     'rw',
-    [db.sessions, db.exercises, db.sessionExercises],
+    [db.sessions, db.exercises, db.sessionExercises, db.sets],
     async () => {
       const session = await db.sessions.get(data.sessionId);
       if (!session) {
@@ -319,14 +398,48 @@ export async function addExerciseToSession(data: {
         .where('sessionId')
         .equals(data.sessionId)
         .toArray();
+      current.sort((a, b) => a.order - b.order);
 
-      const order =
-        current.length > 0 ? Math.max(...current.map((e) => e.order)) + 1 : 0;
+      const alreadyPresent = current.some((e) => e.exerciseId === data.exerciseId);
+      if (alreadyPresent) {
+        throw new Error('Cet exercice est déjà présent dans cette séance.');
+      }
+
+      const existingSets = await db.sets
+        .where('sessionId')
+        .equals(data.sessionId)
+        .toArray();
+
+      let insertOrder: number;
+
+      // Si aucune série n'a encore été enregistrée dans la séance : ajouté à la fin
+      if (existingSets.length === 0) {
+        insertOrder = current.length > 0 ? Math.max(...current.map((e) => e.order)) + 1 : 0;
+      } else {
+        // Sinon, trouver le premier exercice non terminé
+        const firstIncomplete = current.find((se) => {
+          const seSets = existingSets.filter((s) => s.exerciseId === se.exerciseId);
+          return !isExerciseCompleted(se, seSets);
+        });
+
+        if (firstIncomplete) {
+          insertOrder = firstIncomplete.order;
+          // Décaler tous les exercices avec order >= insertOrder
+          for (const se of current) {
+            if (se.order >= insertOrder && se.id !== undefined) {
+              await db.sessionExercises.update(se.id, { order: se.order + 1 });
+            }
+          }
+        } else {
+          // Tous les exercices sont terminés : ajouter à la fin
+          insertOrder = current.length > 0 ? Math.max(...current.map((e) => e.order)) + 1 : 0;
+        }
+      }
 
       return (await db.sessionExercises.add({
         sessionId: data.sessionId,
         exerciseId: data.exerciseId,
-        order,
+        order: insertOrder,
         warmupSets,
         workSets,
         skipped: false,
