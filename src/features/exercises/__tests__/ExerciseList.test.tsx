@@ -25,10 +25,15 @@ describe('ExerciseList UI component (grille & navigation)', () => {
       }
     });
 
-    // Les monogrammes sont affichés dans les tuiles
-    expect(screen.getAllByText('PE').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('QU').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('DO').length).toBeGreaterThan(0);
+    // Les tuiles contiennent des icônes SVG (MuscleIcon) au lieu des monogrammes
+    const pecBtn = screen.getByRole('button', { name: /pectoraux/i });
+    expect(pecBtn.querySelector('svg')).not.toBeNull();
+    const quadBtn = screen.getByRole('button', { name: /quadriceps/i });
+    expect(quadBtn.querySelector('svg')).not.toBeNull();
+    const dosBtn = screen.getByRole('button', { name: /^dos/i });
+    expect(dosBtn.querySelector('svg')).not.toBeNull();
+    // Les monogrammes texte ne sont plus dans la grille
+    expect(screen.queryByText('PE')).toBeNull();
   });
 
   it('navigates to group details on tile click and returns to grid on Back button click', async () => {
