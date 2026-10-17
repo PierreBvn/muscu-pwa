@@ -44,7 +44,10 @@ describe('ProgramDetail UI', () => {
     // Modal/dialogue d'ajout ouvert
     expect(screen.getByRole('heading', { name: /ajouter un exercice/i })).toBeInTheDocument();
 
-    const benchOption = screen.getByRole('button', { name: /développé couché/i });
+    const pecGroup = await screen.findByRole('button', { name: /^pectoraux/i });
+    fireEvent.click(pecGroup);
+
+    const benchOption = await screen.findByRole('button', { name: /développé couché/i });
     fireEvent.click(benchOption);
 
     // Exercice ajouté dans la liste avec 3 séries de travail par défaut
@@ -72,12 +75,27 @@ describe('ProgramDetail UI', () => {
     const addBtn = screen.getByRole('button', { name: /ajouter/i });
     fireEvent.click(addBtn);
 
-    const dialog = screen.getByRole('dialog');
-    // Développé couché ne doit PAS être disponible dans le sélecteur
-    expect(within(dialog).queryByText('Développé couché')).not.toBeInTheDocument();
-    // Squat et Soulevé de terre doivent l'être
-    expect(within(dialog).getByText('Squat')).toBeInTheDocument();
-    expect(within(dialog).getByText('Soulevé de terre')).toBeInTheDocument();
+    const dialog = await screen.findByRole('dialog');
+    // Développé couché ne doit PAS être disponible dans Pectoraux
+    const pecGroup = await within(dialog).findByRole('button', { name: /^pectoraux/i });
+    expect(pecGroup).toHaveTextContent(/0 exercice/i);
+    fireEvent.click(pecGroup);
+    expect(within(dialog).queryByRole('button', { name: /développé couché/i })).not.toBeInTheDocument();
+
+    // Retour sur la grille
+    fireEvent.click(within(dialog).getByRole('button', { name: /retour/i }));
+
+    // Squat (dans Quadriceps) et Soulevé de terre (dans Dos) doivent l'être
+    const quadGroup = await within(dialog).findByRole('button', { name: /^quadriceps/i });
+    expect(quadGroup).toHaveTextContent(/1 exercice/i);
+    fireEvent.click(quadGroup);
+    expect(await within(dialog).findByRole('button', { name: /squat/i })).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: /retour/i }));
+    const dosGroup = await within(dialog).findByRole('button', { name: /\bDos\b/i });
+    expect(dosGroup).toHaveTextContent(/1 exercice/i);
+    fireEvent.click(dosGroup);
+    expect(await within(dialog).findByRole('button', { name: /soulevé de terre/i })).toBeInTheDocument();
   });
 
   it('enforces workSets bounds (1 to 6, default 3)', async () => {

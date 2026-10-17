@@ -8,9 +8,7 @@ import {
   removeExerciseFromProgram,
   moveProgramExercise,
 } from '../../db/programs';
-import { getAllExercises } from '../../db/exercises';
-import { useModalScrollLock } from '../../hooks/useModalScrollLock';
-import { Portal } from '../../components/Portal';
+import { ExercisePicker } from '../../components/ExercisePicker';
 
 interface ProgramDetailProps {
   programId: number;
@@ -22,7 +20,6 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
   onBack,
 }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  useModalScrollLock(isAddModalOpen);
 
   // Données du programme et ses exercices enrichis emballées
   const programDataQuery = useLiveQuery(
@@ -30,18 +27,11 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
     [programId]
   );
 
-  // Tous les exercices actifs de la bibliothèque pour le sélecteur
-  const availableExercisesQuery = useLiveQuery(
-    async () => ({ list: await getAllExercises() }),
-    []
-  );
-
-  if (programDataQuery === undefined || availableExercisesQuery === undefined) {
+  if (programDataQuery === undefined) {
     return null;
   }
 
   const programData = programDataQuery.data;
-  const availableExercises = availableExercisesQuery.list;
 
   if (!programData || !programData.program) {
     return (
@@ -59,12 +49,6 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
   }
 
   const { program, exercises } = programData;
-
-  // Filtrer les exercices déjà présents dans le programme (pas de doublons)
-  const currentExerciseIds = new Set(exercises.map((pe) => pe.exerciseId));
-  const filteredAvailableExercises = (availableExercises || []).filter(
-    (ex) => ex.id !== undefined && !currentExerciseIds.has(ex.id)
-  );
 
   const handleAddExercise = async (exercise: Exercise) => {
     if (!exercise.id) return;
@@ -295,76 +279,13 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
       </main>
 
       {/* Modal / Sélecteur d'ajout d'exercice */}
-      {isAddModalOpen && (
-        <Portal>
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="add-exercise-dialog-title"
-            className="fixed inset-0 z-modal flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
-          >
-          <div className="w-full max-w-md mx-auto flex-1 flex flex-col p-4 overflow-hidden">
-            <div className="flex items-center justify-between mb-3 shrink-0">
-              <h2
-                id="add-exercise-dialog-title"
-                className="text-lg font-semibold text-text tracking-tight"
-              >
-                Ajouter un exercice
-              </h2>
-              <button
-                type="button"
-                onClick={() => setIsAddModalOpen(false)}
-                aria-label="Fermer"
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted hover:text-text active:bg-surface-2 rounded-xl"
-              >
-                ✕
-              </button>
-            </div>
-
-            <p className="text-xs text-muted mb-3 shrink-0">
-              Choisissez un exercice à ajouter à la séance type.
-            </p>
-
-            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
-              {filteredAvailableExercises.length === 0 ? (
-                <div className="py-8 text-center text-xs text-muted">
-                  Tous les exercices disponibles sont déjà dans cette séance type.
-                </div>
-              ) : (
-                filteredAvailableExercises.map((exercise) => (
-                  <button
-                    key={exercise.id}
-                    type="button"
-                    onClick={() => handleAddExercise(exercise)}
-                    className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-surface-2 border border-line hover:border-gold/50 text-left flex items-center justify-between transition group"
-                  >
-                    <div>
-                      <span className="text-sm font-semibold text-text">
-                        {exercise.name}
-                      </span>
-                      <span className="block text-xs uppercase tracking-widest text-muted">
-                        {exercise.muscleGroup}
-                      </span>
-                    </div>
-                    <span className="text-gold text-sm font-bold">+</span>
-                  </button>
-                ))
-              )}
-            </div>
-
-            <div className="pt-3 border-t border-line mt-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => setIsAddModalOpen(false)}
-                className="w-full min-h-[48px] rounded-xl bg-surface-2 border border-line text-sm font-medium text-text hover:bg-surface active:opacity-90"
-              >
-                Fermer
-              </button>
-            </div>
-          </div>
-        </div>
-      </Portal>
-    )}
+      <ExercisePicker
+        isOpen={isAddModalOpen}
+        title="Ajouter un exercice"
+        existingExerciseIds={exercises.map((pe) => pe.exerciseId)}
+        onClose={() => setIsAddModalOpen(false)}
+        onSelectExercise={handleAddExercise}
+      />
     </div>
   );
 };

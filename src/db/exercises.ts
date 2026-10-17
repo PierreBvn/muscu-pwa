@@ -102,6 +102,88 @@ export async function getExercisesByGroup(): Promise<Record<MuscleGroup, Exercis
 }
 
 /**
+ * Normalise un texte pour la recherche : minuscules, suppression des accents, suppression des espaces superflus.
+ */
+export function normalizeSearchText(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+export interface FilterExercisesOptions {
+  query?: string;
+  muscleGroup?: MuscleGroup;
+  excludeIds?: number[];
+}
+
+/**
+ * Recherche et filtre les exercices :
+ * - Exclut les exercices archivés
+ * - Exclut les IDs spécifiés dans excludeIds (exercices déjà présents)
+ * - Filtre par groupe musculaire si spécifié
+ * - Filtre par recherche textuelle insensible à la casse et aux accents si spécifiée
+ * - Trie alphabétiquement par nom
+ */
+export async function filterExercises(
+  options?: FilterExercisesOptions
+): Promise<Exercise[]> {
+  const all = await db.exercises.toArray();
+  const excludeSet =
+    options?.excludeIds && options.excludeIds.length > 0
+      ? new Set(options.excludeIds)
+      : null;
+  const normalizedQuery = options?.query
+    ? normalizeSearchText(options.query)
+    : '';
+
+  return all
+    .filter((ex) => {
+      if (ex.archived) return false;
+      if (ex.id !== undefined && excludeSet?.has(ex.id)) return false;
+      if (options?.muscleGroup && ex.muscleGroup !== options.muscleGroup) return false;
+      if (normalizedQuery && !normalizeSearchText(ex.name).includes(normalizedQuery)) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
+}
+
+/**
+ * Calcule le nombre d'exercices disponibles par groupe musculaire :
+ * - Exclut les exercices archivés
+ * - Exclut les IDs spécifiés dans excludeIds
+ */
+export async function getExerciseCountsByGroup(options?: {
+  excludeIds?: number[];
+}): Promise<Record<MuscleGroup, number>> {
+  const available = await filterExercises({ excludeIds: options?.excludeIds });
+  const counts: Record<MuscleGroup, number> = {
+    Pectoraux: 0,
+    Dos: 0,
+    Épaules: 0,
+    Biceps: 0,
+    Triceps: 0,
+    'Avant-bras': 0,
+    Abdos: 0,
+    Quadriceps: 0,
+    Ischios: 0,
+    Fessiers: 0,
+    Mollets: 0,
+  };
+
+  for (const ex of available) {
+    if (counts[ex.muscleGroup] !== undefined) {
+      counts[ex.muscleGroup]++;
+    }
+  }
+
+  return counts;
+}
+
+/**
  * Ajoute un nouvel exercice.
  * Rejette si le nom est vide ou si un exercice du même nom (insensible à la casse) existe déjà.
  */

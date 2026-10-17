@@ -690,6 +690,8 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     // Modale d'ajout
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+    const pecGroup1 = await screen.findByRole('button', { name: /pectoraux/i });
+    fireEvent.click(pecGroup1);
     const selectEx1 = await screen.findByRole('button', { name: /développé couché/i });
     fireEvent.click(selectEx1);
 
@@ -697,6 +699,8 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     const addMoreBtn = await screen.findByRole('button', { name: /ajouter un exercice/i });
     fireEvent.click(addMoreBtn);
 
+    const pecGroup2 = await screen.findByRole('button', { name: /pectoraux/i });
+    fireEvent.click(pecGroup2);
     const selectEx2 = await screen.findByRole('button', { name: /écarté poulie/i });
     fireEvent.click(selectEx2);
 
@@ -742,6 +746,9 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
 
+    const quadGroup = await screen.findByRole('button', { name: /^quadriceps/i });
+    fireEvent.click(quadGroup);
+
     // "Presse à cuisses" est présent
     expect(await screen.findByRole('button', { name: /presse à cuisses/i })).toBeInTheDocument();
 
@@ -762,6 +769,9 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     const addBtn = await screen.findByRole('button', { name: /ajouter/i });
     fireEvent.click(addBtn);
+
+    const dosGroup = await screen.findByRole('button', { name: /\bDos\b/i });
+    fireEvent.click(dosGroup);
 
     expect(await screen.findByRole('button', { name: /rowing haltères/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /tirage nuque/i })).not.toBeInTheDocument();
@@ -965,6 +975,8 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     // 1. Ajouter un exercice via bouton flottant
     const addBtn = await screen.findByRole('button', { name: /ajouter un exercice/i });
     fireEvent.click(addBtn);
+    const dosGroup = await screen.findByRole('button', { name: /\bDos\b/i });
+    fireEvent.click(dosGroup);
     const selectExtra = await screen.findByRole('button', { name: /rowing barre/i });
     fireEvent.click(selectExtra);
 

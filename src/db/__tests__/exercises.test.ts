@@ -8,6 +8,9 @@ import {
   addExercise,
   updateExercise,
   deleteExercise,
+  normalizeSearchText,
+  filterExercises,
+  getExerciseCountsByGroup,
 } from '../exercises';
 
 describe('Exercise database operations', () => {
@@ -162,6 +165,89 @@ describe('Exercise database operations', () => {
 
       const activeList = await getAllExercises();
       expect(activeList.find((e) => e.id === id)).toBeUndefined();
+    });
+  });
+
+  describe('normalizeSearchText', () => {
+    it('normalizes accents, converts to lowercase and trims whitespace', () => {
+      expect(normalizeSearchText('  ÉLÉVATIONS LATÉRALES  ')).toBe('elevations laterales');
+      expect(normalizeSearchText('Développé Couché')).toBe('developpe couche');
+      expect(normalizeSearchText('Tirage à la poulie')).toBe('tirage a la poulie');
+    });
+  });
+
+  describe('filterExercises', () => {
+    it('filters exercises by query case and accent insensitively', async () => {
+      await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+      await addExercise({ name: 'Développé incliné', muscleGroup: 'Pectoraux' });
+      await addExercise({ name: 'Écarté poulie', muscleGroup: 'Pectoraux' });
+      await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
+
+      // Recherche sans accent en minuscules
+      const res1 = await filterExercises({ query: 'developpe' });
+      expect(res1.map((e) => e.name)).toEqual(['Développé couché', 'Développé incliné']);
+
+      // Recherche avec accent et majuscules
+      const res2 = await filterExercises({ query: 'ÉCARTÉ' });
+      expect(res2.map((e) => e.name)).toEqual(['Écarté poulie']);
+    });
+
+    it('filters exercises by muscleGroup', async () => {
+      await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+      await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
+
+      const res = await filterExercises({ muscleGroup: 'Quadriceps' });
+      expect(res.map((e) => e.name)).toEqual(['Squat']);
+    });
+
+    it('excludes specified excludeIds', async () => {
+      const id1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+      await addExercise({ name: 'Écarté poulie', muscleGroup: 'Pectoraux' });
+
+      const res = await filterExercises({ excludeIds: [id1] });
+      expect(res.map((e) => e.name)).toEqual(['Écarté poulie']);
+    });
+
+    it('excludes archived exercises', async () => {
+      const id = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+      await addExercise({ name: 'Écarté poulie', muscleGroup: 'Pectoraux' });
+      await deleteExercise(id);
+
+      const res = await filterExercises();
+      expect(res.map((e) => e.name)).toEqual(['Écarté poulie']);
+    });
+
+    it('combines query, muscleGroup and excludeIds', async () => {
+      const id1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+      await addExercise({ name: 'Développé incliné', muscleGroup: 'Pectoraux' });
+      await addExercise({ name: 'Développé militaire', muscleGroup: 'Épaules' });
+
+      const res = await filterExercises({
+        query: 'developpe',
+        muscleGroup: 'Pectoraux',
+        excludeIds: [id1],
+      });
+      expect(res.map((e) => e.name)).toEqual(['Développé incliné']);
+    });
+  });
+
+  describe('getExerciseCountsByGroup', () => {
+    it('returns counts of available exercises per muscle group', async () => {
+      const idBench = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+      await addExercise({ name: 'Écarté poulie', muscleGroup: 'Pectoraux' });
+      const idSquat = await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
+      await deleteExercise(idSquat); // archivé
+
+      // Sans exclusion
+      const countsAll = await getExerciseCountsByGroup();
+      expect(countsAll.Pectoraux).toBe(2);
+      expect(countsAll.Quadriceps).toBe(0); // archivé exclu
+      expect(countsAll.Dos).toBe(0);
+
+      // Avec exclusion de l'idBench
+      const countsExcluded = await getExerciseCountsByGroup({ excludeIds: [idBench] });
+      expect(countsExcluded.Pectoraux).toBe(1);
+      expect(countsExcluded.Quadriceps).toBe(0);
     });
   });
 });

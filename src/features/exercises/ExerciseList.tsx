@@ -9,6 +9,7 @@ import {
   deleteExercise,
 } from '../../db/exercises';
 import { MuscleGroupBadge } from '../../components/MuscleGroupBadge';
+import { MuscleGroupGrid } from '../../components/MuscleGroupGrid';
 import { ExerciseCard } from './ExerciseCard';
 import { ExerciseModal } from './ExerciseModal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
@@ -142,30 +143,12 @@ export const ExerciseList: React.FC = () => {
       <main className="flex-1 px-4 py-5">
         {groupedExercises === undefined ? null : selectedGroup === null ? (
           /* Vue grille 2 colonnes */
-          <div className="grid grid-cols-2 gap-3">
-            {MUSCLE_GROUPS.map((group) => {
-              const list = groupedExercises[group] || [];
-              const count = list.length;
-              return (
-                <button
-                  key={group}
-                  type="button"
-                  onClick={() => handleSelectGroup(group)}
-                  className="min-h-[88px] p-3.5 rounded-xl bg-surface border border-line flex flex-col justify-between items-start text-left hover:border-gold/50 active:bg-surface-2 transition-colors focus:outline-none focus:ring-1 focus:ring-gold"
-                >
-                  <MuscleGroupBadge muscleGroup={group} />
-                  <div className="mt-3 w-full">
-                    <span className="block font-bold text-text text-sm leading-tight truncate">
-                      {group}
-                    </span>
-                    <span className="block text-xs text-muted tabular-nums mt-0.5">
-                      {count} {count > 1 ? 'exercices' : 'exercice'}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+          <MuscleGroupGrid
+            counts={Object.fromEntries(
+              MUSCLE_GROUPS.map((g) => [g, groupedExercises[g]?.length ?? 0])
+            ) as Record<MuscleGroup, number>}
+            onSelectGroup={handleSelectGroup}
+          />
         ) : (
           /* Vue détaillée d'un groupe musculaire */
           <div>
