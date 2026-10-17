@@ -140,6 +140,11 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Aucun commentaire « gestion d'erreur éventuelle » : chaque erreur est soit ignorée avec sa raison écrite (ex. AbortError), soit affichée à l'utilisateur.
 - Toute future clé localStorage est ajoutée à la sauvegarde ou listée comme exclue avec sa raison.
 
+## Validation des tâches
+- Une tâche n'est terminée qu'avec : verify -> 0, commits attendus visibles dans git log, test iPhone fait.
+- Ne jamais enchaîner une nouvelle tâche si la précédente n'a pas été validée sur l'iPhone.
+- Sauvegarde : validée seulement après un import réussi dans un autre navigateur, avec des données identiques à celles de l'iPhone.
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
