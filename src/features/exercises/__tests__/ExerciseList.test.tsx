@@ -1,61 +1,118 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { db } from '../../../db/schema';
+import { db, MUSCLE_GROUPS } from '../../../db/schema';
+import { addExercise } from '../../../db/exercises';
 import { ExerciseList } from '../ExerciseList';
 
-describe('ExerciseList UI component', () => {
+describe('ExerciseList UI component (grille & navigation)', () => {
   beforeEach(async () => {
     await db.exercises.clear();
   });
 
-  it('renders the header and seeds default exercises', async () => {
+  it('renders the header and displays the 2-column grid of 11 muscle groups with exercise counts', async () => {
     render(<ExerciseList />);
 
     expect(
       screen.getByRole('heading', { name: /bibliothèque d’exercices/i })
     ).toBeInTheDocument();
 
+    // Vérifie la présence des 11 boutons correspondant aux 11 groupes musculaires
+    await waitFor(() => {
+      for (const group of MUSCLE_GROUPS) {
+        expect(
+          screen.getByRole('button', { name: new RegExp(`^${group}`, 'i') })
+        ).toBeInTheDocument();
+      }
+    });
+
+    // Les monogrammes sont affichés dans les tuiles
+    expect(screen.getAllByText('PE').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('QU').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('DO').length).toBeGreaterThan(0);
+  });
+
+  it('navigates to group details on tile click and returns to grid on Back button click', async () => {
+    render(<ExerciseList />);
+
+    // Attendre le seed
+    const pectorauxTile = await screen.findByRole('button', { name: /pectoraux/i });
+    fireEvent.click(pectorauxTile);
+
+    // Vue détaillée Pectoraux : les exercices sont affichés
     await waitFor(() => {
       expect(screen.getByText('Développé couché')).toBeInTheDocument();
-      expect(screen.getByText('Squat')).toBeInTheDocument();
-      expect(screen.getByText('Tractions')).toBeInTheDocument();
+      expect(screen.getByText('Développé incliné haltères')).toBeInTheDocument();
+      expect(screen.getByText('Écarté à la poulie')).toBeInTheDocument();
+    });
+
+    // Bouton Retour
+    const backBtn = screen.getByRole('button', { name: /retour/i });
+    expect(backBtn).toBeInTheDocument();
+    fireEvent.click(backBtn);
+
+    // Retour sur la grille : Développé couché n'est plus dans le DOM, la tuile Pectoraux réapparaît
+    await waitFor(() => {
+      expect(screen.queryByText('Développé couché')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /pectoraux/i })).toBeInTheDocument();
     });
   });
 
-  it('opens modal, adds a new exercise, and renders it in the list', async () => {
+  it('pre-selects the group when clicking "+ Ajouter" from within a group detail view', async () => {
     render(<ExerciseList />);
 
+    const bicepsTile = await screen.findByRole('button', { name: /biceps/i });
+    fireEvent.click(bicepsTile);
+
     await waitFor(() => {
-      expect(screen.getByText('Développé couché')).toBeInTheDocument();
+      expect(screen.getByText('Curl biceps barre')).toBeInTheDocument();
     });
 
-    // Click "+ Ajouter"
-    const addButton = screen.getByRole('button', { name: /ajouter/i });
-    fireEvent.click(addButton);
+    // Clic sur "+ Ajouter" dans la vue détaillée de Biceps
+    const addBtn = screen.getByRole('button', { name: /ajouter/i });
+    fireEvent.click(addBtn);
 
-    // Modal is open
-    expect(
-      screen.getByRole('heading', { name: /nouvel exercice/i })
-    ).toBeInTheDocument();
+    // La modale s'ouvre avec le chip "Biceps" pré-sélectionné (aria-pressed=true)
+    expect(screen.getByRole('heading', { name: /nouvel exercice/i })).toBeInTheDocument();
+    const bicepsChip = screen.getByRole('button', { name: 'Biceps' });
+    expect(bicepsChip).toHaveAttribute('aria-pressed', 'true');
 
-    // Fill name
+    // Annuler ferme la modale
+    fireEvent.click(screen.getByRole('button', { name: /annuler/i }));
+  });
+
+  it('opens modal from global header, adds a new exercise and shows it in its group', async () => {
+    render(<ExerciseList />);
+
+    await screen.findByRole('button', { name: /pectoraux/i });
+
+    // Clic sur "+ Ajouter" global
+    const globalAddBtn = screen.getByRole('button', { name: /ajouter/i });
+    fireEvent.click(globalAddBtn);
+
+    expect(screen.getByRole('heading', { name: /nouvel exercice/i })).toBeInTheDocument();
+
     const input = screen.getByLabelText(/nom de l’exercice/i);
     expect(input.hasAttribute('autofocus')).toBe(false);
     fireEvent.change(input, { target: { value: 'Hack Squat' } });
 
-    // Select "Quadriceps"
-    const quadricepsChip = screen.getByRole('button', { name: 'Quadriceps' });
-    fireEvent.click(quadricepsChip);
+    // Sélectionner Quadriceps
+    const quadChip = screen.getByRole('button', { name: 'Quadriceps' });
+    fireEvent.click(quadChip);
+    expect(quadChip).toHaveAttribute('aria-pressed', 'true');
 
-    // Save
-    const saveButton = screen.getByRole('button', { name: /enregistrer/i });
-    fireEvent.click(saveButton);
+    // Enregistrer
+    fireEvent.click(screen.getByRole('button', { name: /enregistrer/i }));
 
-    // Modal closes and "Hack Squat" appears in UI
+    // La modale se ferme
     await waitFor(() => {
-      expect(
-        screen.queryByRole('heading', { name: /nouvel exercice/i })
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: /nouvel exercice/i })).not.toBeInTheDocument();
+    });
+
+    // Naviguer dans Quadriceps pour vérifier la présence du nouvel exercice
+    const quadTile = screen.getByRole('button', { name: /quadriceps/i });
+    fireEvent.click(quadTile);
+
+    await waitFor(() => {
       expect(screen.getByText('Hack Squat')).toBeInTheDocument();
     });
   });
@@ -63,9 +120,7 @@ describe('ExerciseList UI component', () => {
   it('displays an error message when attempting to add a duplicate exercise', async () => {
     render(<ExerciseList />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Développé couché')).toBeInTheDocument();
-    });
+    await screen.findByRole('button', { name: /pectoraux/i });
 
     const addButton = screen.getByRole('button', { name: /ajouter/i });
     fireEvent.click(addButton);
@@ -76,7 +131,6 @@ describe('ExerciseList UI component', () => {
     const saveButton = screen.getByRole('button', { name: /enregistrer/i });
     fireEvent.click(saveButton);
 
-    // Error is displayed
     await waitFor(() => {
       expect(
         screen.getByText(/un exercice nommé "développé couché" existe déjà/i)
@@ -84,46 +138,57 @@ describe('ExerciseList UI component', () => {
     });
   });
 
-  it('deletes an exercise after user confirmation', async () => {
+  it('deletes an exercise after user confirmation via ConfirmDialog', async () => {
     render(<ExerciseList />);
+
+    // Aller dans Pectoraux
+    const pecTile = await screen.findByRole('button', { name: /pectoraux/i });
+    fireEvent.click(pecTile);
 
     await waitFor(() => {
       expect(screen.getByText('Développé couché')).toBeInTheDocument();
     });
 
-    // Click delete icon on "Développé couché"
+    // Clic sur l'icône de suppression
     const deleteBtn = screen.getByRole('button', {
       name: /supprimer développé couché/i,
     });
     fireEvent.click(deleteBtn);
 
-    // Confirm dialog appears
+    // Dialogue alertdialog ConfirmDialog
+    expect(
+      screen.getByRole('alertdialog')
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: /supprimer l’exercice \?/i })
     ).toBeInTheDocument();
 
-    // Click confirm "Supprimer"
+    // Confirmer
     const confirmDeleteBtn = screen.getByRole('button', {
       name: /^supprimer$/i,
     });
     fireEvent.click(confirmDeleteBtn);
 
-    // Exercise is removed from active list
+    // L'exercice est retiré de la liste active
     await waitFor(() => {
       expect(screen.queryByText('Développé couché')).not.toBeInTheDocument();
     });
   });
 
-  it('displays muscle group monograms for exercises', async () => {
+  it('displays "Aucun exercice" empty state when a group has 0 exercises', async () => {
+    // Insérer un seul exercice dans Dos
+    await addExercise({ name: 'Tractions', muscleGroup: 'Dos' });
+
     render(<ExerciseList />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Développé couché')).toBeInTheDocument();
-    });
+    // Biceps n'a aucun exercice inséré
+    const bicepsTile = await screen.findByRole('button', { name: /biceps/i });
+    expect(bicepsTile).toHaveTextContent(/0 exercice/i);
+    fireEvent.click(bicepsTile);
 
-    // Pectoraux -> PE, Quadriceps -> QU, Dos -> DO
-    expect(screen.getAllByText('PE').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('QU').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('DO').length).toBeGreaterThan(0);
+    // État vide selon correction 8 : uniquement "Aucun exercice" sans deuxième bouton
+    await waitFor(() => {
+      expect(screen.getByText('Aucun exercice')).toBeInTheDocument();
+    });
   });
 });

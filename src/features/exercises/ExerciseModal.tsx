@@ -6,20 +6,27 @@ import { Portal } from '../../components/Portal';
 interface ExerciseModalProps {
   isOpen: boolean;
   exercise?: Exercise | null;
+  defaultMuscleGroup?: MuscleGroup;
   onClose: () => void;
   onSave: (data: { name: string; muscleGroup: MuscleGroup }) => Promise<void>;
 }
 
 interface FormProps {
   exercise?: Exercise | null;
+  defaultMuscleGroup?: MuscleGroup;
   onClose: () => void;
   onSave: (data: { name: string; muscleGroup: MuscleGroup }) => Promise<void>;
 }
 
-const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
+const ExerciseForm: React.FC<FormProps> = ({
+  exercise,
+  defaultMuscleGroup,
+  onClose,
+  onSave,
+}) => {
   const [name, setName] = useState(exercise?.name ?? '');
   const [muscleGroup, setMuscleGroup] = useState<MuscleGroup>(
-    exercise?.muscleGroup ?? 'Pectoraux'
+    exercise?.muscleGroup ?? defaultMuscleGroup ?? 'Pectoraux'
   );
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -106,6 +113,7 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
                   <button
                     key={group}
                     type="button"
+                    aria-pressed={isSelected}
                     onClick={() => setMuscleGroup(group)}
                     className={`flex min-h-[44px] items-center justify-center rounded-full px-3 py-2 text-sm font-medium transition-all ${
                       isSelected
@@ -147,6 +155,7 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
 export const ExerciseModal: React.FC<ExerciseModalProps> = ({
   isOpen,
   exercise,
+  defaultMuscleGroup,
   onClose,
   onSave,
 }) => {
@@ -155,8 +164,9 @@ export const ExerciseModal: React.FC<ExerciseModalProps> = ({
 
   return (
     <ExerciseForm
-      key={exercise ? `edit-${exercise.id}` : 'new'}
+      key={exercise ? `edit-${exercise.id}` : `new-${defaultMuscleGroup ?? 'default'}`}
       exercise={exercise}
+      defaultMuscleGroup={defaultMuscleGroup}
       onClose={onClose}
       onSave={onSave}
     />
