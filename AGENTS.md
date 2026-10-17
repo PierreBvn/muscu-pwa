@@ -121,6 +121,25 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 ## Logique
 - Toute recherche ou tout filtrage de données est une fonction de src/db/, testée. La normalisation de texte (casse, accents) est une seule fonction partagée, sauf dans les migrations, qui gardent leur propre copie.
 
+## Installation iOS et sauvegarde
+- iOS ne met jamais à jour le manifeste (nom, icônes, start_url) après l'installation : tout changement exige de réinstaller la PWA.
+- Supprimer la PWA efface IndexedDB et localStorage : toute tâche qui exige une réinstallation commence par un export, vérifié par un import dans un autre navigateur.
+- Logique de sauvegarde uniquement dans src/db/backup.ts.
+- L'export couvre tout db.tables, jamais une liste écrite à la main ; un test échoue si une table manque.
+- Toute modification du schéma Dexie met à jour la sauvegarde et son test aller-retour.
+- Import : validation complète avant toute écriture, une seule transaction, remplacement total, ids conservés.
+- Export de fichier : navigator.share({ files }) si canShare, sinon <a download> avec une URL de Blob ; jamais de data: URI.
+
+## Tests
+- Un test d'aller-retour passe par le même chemin que l'utilisateur (sérialisation comprise).
+- Un test garde-fou compare à une valeur écrite dans le test, jamais au code testé lui-même.
+- Un test avec un espion vérifie que l'espion a été appelé.
+- Toute affirmation d'un plan (« ne peut pas arriver », « contient nécessairement ») est prouvée par un test.
+
+## Erreurs
+- Aucun commentaire « gestion d'erreur éventuelle » : chaque erreur est soit ignorée avec sa raison écrite (ex. AbortError), soit affichée à l'utilisateur.
+- Toute future clé localStorage est ajoutée à la sauvegarde ou listée comme exclue avec sa raison.
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
