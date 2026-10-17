@@ -5,7 +5,7 @@ import { MuscleIcon } from '../MuscleIcon';
 
 const EXPECTED_FILES: Record<MuscleGroup, string> = {
   Pectoraux: 'pectoraux.png',
-  Dos: 'grand-dorsal.png',
+  Dos: 'dos.png',
   Épaules: 'epaules.png',
   Biceps: 'biceps.png',
   Triceps: 'triceps.png',
@@ -19,16 +19,17 @@ const EXPECTED_FILES: Record<MuscleGroup, string> = {
 
 describe('MuscleIcon', () => {
   it.each(MUSCLE_GROUPS)(
-    'renders a <span aria-hidden> with mask-image containing the file for "%s"',
+    'renders an <img alt="" aria-hidden> with src containing the file for "%s"',
     (group) => {
       const { container } = render(<MuscleIcon group={group} className="test-icon" />);
-      const span = container.querySelector('span[aria-hidden="true"]');
-      expect(span).not.toBeNull();
-      expect(span).toHaveClass('test-icon');
+      const img = container.querySelector('img[aria-hidden="true"]');
+      expect(img).not.toBeNull();
+      expect(img).toHaveAttribute('alt', '');
+      expect(img).toHaveClass('test-icon');
 
       const expectedFilename = EXPECTED_FILES[group];
-      const styleAttr = span!.getAttribute('style') ?? '';
-      expect(styleAttr).toContain(expectedFilename);
+      const srcAttr = img!.getAttribute('src') ?? '';
+      expect(srcAttr).toContain(expectedFilename);
     },
   );
 });

@@ -25,21 +25,21 @@ describe('ExerciseList UI component (grille & navigation)', () => {
       }
     });
 
-    // Les tuiles contiennent des icônes masquées PNG (MuscleIcon) au lieu des monogrammes
+    // Les tuiles contiennent des icônes recolorées 48px (MuscleIcon) au lieu des monogrammes
     const pecBtn = screen.getByRole('button', { name: /pectoraux/i });
-    const pecIcon = pecBtn.querySelector('span[aria-hidden="true"]');
+    const pecIcon = pecBtn.querySelector('img[aria-hidden="true"]');
     expect(pecIcon).not.toBeNull();
-    expect(pecIcon?.getAttribute('style')).toContain('pectoraux.png');
+    expect(pecIcon?.getAttribute('src')).toContain('pectoraux.png');
 
     const quadBtn = screen.getByRole('button', { name: /quadriceps/i });
-    const quadIcon = quadBtn.querySelector('span[aria-hidden="true"]');
+    const quadIcon = quadBtn.querySelector('img[aria-hidden="true"]');
     expect(quadIcon).not.toBeNull();
-    expect(quadIcon?.getAttribute('style')).toContain('quadriceps.png');
+    expect(quadIcon?.getAttribute('src')).toContain('quadriceps.png');
 
     const dosBtn = screen.getByRole('button', { name: /^dos/i });
-    const dosIcon = dosBtn.querySelector('span[aria-hidden="true"]');
+    const dosIcon = dosBtn.querySelector('img[aria-hidden="true"]');
     expect(dosIcon).not.toBeNull();
-    expect(dosIcon?.getAttribute('style')).toContain('grand-dorsal.png');
+    expect(dosIcon?.getAttribute('src')).toContain('dos.png');
 
     // Les monogrammes texte ne sont plus dans la grille
     expect(screen.queryByText('PE')).toBeNull();
