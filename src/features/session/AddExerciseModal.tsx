@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import type { Exercise } from '../../db/schema';
 import { getAllExercises } from '../../db/exercises';
 import { useModalScrollLock } from '../../hooks/useModalScrollLock';
+import { Portal } from '../../components/Portal';
 
 interface AddExerciseModalProps {
   isOpen: boolean;
@@ -49,12 +50,13 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="add-exercise-modal-title"
-      className="fixed inset-0 z-50 flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
-    >
+    <Portal>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-exercise-modal-title"
+        className="fixed inset-0 z-modal flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+      >
       <div className="w-full max-w-md mx-auto flex-1 flex flex-col p-4 overflow-hidden">
         <div className="flex items-center justify-between mb-4 shrink-0">
           <h2
@@ -127,5 +129,6 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
         </div>
       </div>
     </div>
-  );
+  </Portal>
+);
 };

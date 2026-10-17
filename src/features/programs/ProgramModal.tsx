@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Program } from '../../db/schema';
 import { useModalScrollLock } from '../../hooks/useModalScrollLock';
+import { Portal } from '../../components/Portal';
 
 const WEEKDAYS = [
   { value: 1, label: 'Lundi', short: 'Lun' },
@@ -66,12 +67,13 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="program-modal-title"
-      className="fixed inset-0 z-50 flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
-    >
+    <Portal>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="program-modal-title"
+        className="fixed inset-0 z-modal flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+      >
       <div className="w-full max-w-md mx-auto flex-1 flex flex-col p-4 overflow-hidden">
         <div className="flex items-center justify-between mb-4 shrink-0">
           <h2
@@ -162,5 +164,6 @@ export const ProgramModal: React.FC<ProgramModalProps> = ({
         </form>
       </div>
     </div>
+    </Portal>
   );
 };

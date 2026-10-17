@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MUSCLE_GROUPS, type Exercise, type MuscleGroup } from '../../db/schema';
 import { useModalScrollLock } from '../../hooks/useModalScrollLock';
+import { Portal } from '../../components/Portal';
 
 interface ExerciseModalProps {
   isOpen: boolean;
@@ -45,12 +46,13 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-      className="fixed inset-0 z-50 flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
-    >
+    <Portal>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        className="fixed inset-0 z-modal flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+      >
       <div className="w-full max-w-md mx-auto flex-1 flex flex-col p-4 overflow-hidden">
         <div className="flex items-center justify-between pb-4 border-b border-line shrink-0">
           <h2 id="modal-title" className="text-xl font-semibold text-text tracking-tight">
@@ -138,6 +140,7 @@ const ExerciseForm: React.FC<FormProps> = ({ exercise, onClose, onSave }) => {
         </form>
       </div>
     </div>
+    </Portal>
   );
 };
 

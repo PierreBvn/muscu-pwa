@@ -80,6 +80,14 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 ## Diagnostic
 - Si la cause n'est pas dans le code, chercher un bug connu du navigateur avant de proposer une correction.
 
+## Fenêtres superposées
+- Toute confirmation passe par le composant partagé ConfirmDialog (Portal + overlay centré). Jamais de markup d'alertdialog recopié.
+- Toute modale est rendue via Portal.
+- Les z-index viennent uniquement de l'échelle définie dans index.css : header < nav < bouton + < modale < confirmation.
+- Pas de variante sm: pour la mise en page mobile : l'app vise l'iPhone, la classe de base est celle qui s'applique.
+
+## Prompts
+- Un élément cité en exemple n'est pas une demande de modification : ne changer que ce qui est explicitement demandé.
 
 
 ## Règles

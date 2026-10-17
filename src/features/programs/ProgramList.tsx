@@ -10,6 +10,7 @@ import {
 import { ProgramCard } from './ProgramCard';
 import { ProgramModal } from './ProgramModal';
 import { ProgramDetail } from './ProgramDetail';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 export const ProgramList: React.FC = () => {
   const [selectedProgramId, setSelectedProgramId] = useState<number | null>(null);
@@ -59,7 +60,7 @@ export const ProgramList: React.FC = () => {
 
   return (
     <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-text flex flex-col pt-header">
-      <header className="fixed top-0 left-0 right-0 z-20 bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)]">
+      <header className="fixed top-0 left-0 right-0 z-header bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)]">
         <div className="max-w-md mx-auto px-4 flex items-center justify-between h-[var(--header-height)]">
           <div>
             <h1 className="text-xl font-semibold text-text tracking-tight">
@@ -139,49 +140,31 @@ export const ProgramList: React.FC = () => {
         />
       )}
 
-      {programToDelete && (
-        <div
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="delete-program-dialog-title"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
-        >
-          <div className="w-full max-w-sm rounded-xl bg-surface border border-line p-5 shadow-2xl">
-            <h3
-              id="delete-program-dialog-title"
-              className="text-lg font-semibold text-text tracking-tight mb-2"
-            >
-              Supprimer la séance type ?
-            </h3>
-            <p className="text-sm text-muted mb-2">
-              Êtes-vous sûr de vouloir supprimer{' '}
-              <strong className="text-text font-semibold">
-                « {programToDelete.name} »
-              </strong>{' '}
-              ?
-            </p>
-            <p className="text-xs text-muted font-medium mb-5 bg-surface-2 border border-line p-2.5 rounded-xl">
-              ✓ Les séances passées sont conservées.
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setProgramToDelete(null)}
-                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-surface-2 border border-line text-sm font-medium text-text hover:bg-surface active:opacity-90 transition"
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-danger text-sm font-semibold text-text hover:opacity-95 active:opacity-90 transition"
-              >
-                Supprimer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={programToDelete !== null}
+        title="Supprimer la séance type ?"
+        titleId="delete-program-dialog-title"
+        message={
+          programToDelete ? (
+            <>
+              <p className="mb-2">
+                Êtes-vous sûr de vouloir supprimer{' '}
+                <strong className="text-text font-semibold">
+                  « {programToDelete.name} »
+                </strong>{' '}
+                ?
+              </p>
+              <p className="text-xs text-muted font-medium bg-surface-2 border border-line p-2.5 rounded-xl">
+                ✓ Les séances passées sont conservées.
+              </p>
+            </>
+          ) : null
+        }
+        confirmLabel="Supprimer"
+        confirmVariant="danger"
+        onCancel={() => setProgramToDelete(null)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };

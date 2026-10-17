@@ -15,6 +15,7 @@ import {
 import { ExerciseCard } from './ExerciseCard';
 import { SetEditModal } from './SetEditModal';
 import { AddExerciseModal } from './AddExerciseModal';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 interface ActiveSessionViewProps {
   session: Session;
@@ -211,7 +212,7 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
       {/* En-tête de la séance en cours */}
       <header
         ref={headerRef}
-        className="fixed top-0 left-0 right-0 z-20 bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)]"
+        className="fixed top-0 left-0 right-0 z-header bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)]"
       >
         <div className="max-w-md mx-auto px-4 flex items-center justify-between h-[var(--header-height)]">
           <div>
@@ -333,7 +334,7 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
           type="button"
           aria-label="Ajouter un exercice"
           onClick={() => setIsAddExerciseModalOpen(true)}
-          className="fixed right-4 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom)+16px)] w-14 h-14 min-w-[56px] min-h-[56px] rounded-xl bg-gold text-gold-ink font-bold text-2xl flex items-center justify-center shadow-lg active:opacity-90 transition z-30"
+          className="fixed right-4 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom)+16px)] w-14 h-14 min-w-[56px] min-h-[56px] rounded-xl bg-gold text-gold-ink font-bold text-2xl flex items-center justify-center shadow-lg active:opacity-90 transition z-fab"
         >
           +
         </button>
@@ -361,132 +362,63 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
       )}
 
       {/* Dialogue de suppression de série */}
-      {setToDelete && (
-        <div
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="delete-set-dialog-title"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
-        >
-          <div className="w-full max-w-sm rounded-xl bg-surface border border-line p-5 shadow-2xl">
-            <h3
-              id="delete-set-dialog-title"
-              className="text-lg font-semibold text-text tracking-tight mb-2"
-            >
-              Supprimer la série ?
-            </h3>
-            <p className="text-sm text-muted mb-5">
+      <ConfirmDialog
+        isOpen={setToDelete !== null}
+        title="Supprimer la série ?"
+        titleId="delete-set-dialog-title"
+        message={
+          setToDelete ? (
+            <p>
               Êtes-vous sûr de vouloir supprimer cette série de{' '}
               <strong className="text-text font-semibold">
                 {setToDelete.set.weight} kg × {setToDelete.set.reps} reps
               </strong>{' '}
               ?
             </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setSetToDelete(null)}
-                disabled={isDeletingSet}
-                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-surface-2 border border-line text-sm font-medium text-text hover:bg-surface active:opacity-90 transition disabled:opacity-50"
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDeleteSet}
-                disabled={isDeletingSet}
-                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-danger text-sm font-semibold text-text hover:opacity-95 active:opacity-90 transition disabled:opacity-50"
-              >
-                {isDeletingSet ? 'Suppression...' : 'Supprimer'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          ) : null
+        }
+        confirmLabel={isDeletingSet ? 'Suppression...' : 'Supprimer'}
+        confirmVariant="danger"
+        isLoading={isDeletingSet}
+        onCancel={() => setSetToDelete(null)}
+        onConfirm={handleConfirmDeleteSet}
+      />
 
       {/* Dialogue de confirmation de retrait d'un exercice */}
-      {exerciseToRemove && (
-        <div
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="remove-exercise-dialog-title"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
-        >
-          <div className="w-full max-w-sm rounded-xl bg-surface border border-line p-5 shadow-2xl">
-            <h3
-              id="remove-exercise-dialog-title"
-              className="text-lg font-semibold text-text tracking-tight mb-2"
-            >
-              Retirer l’exercice ?
-            </h3>
-            <p className="text-sm text-muted mb-5">
+      <ConfirmDialog
+        isOpen={exerciseToRemove !== null}
+        title="Retirer l’exercice ?"
+        titleId="remove-exercise-dialog-title"
+        message={
+          exerciseToRemove ? (
+            <p>
               Êtes-vous sûr de vouloir retirer{' '}
               <strong className="text-text font-semibold">
                 « {exerciseToRemove.name} »
               </strong>{' '}
               de cette séance ?
             </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setExerciseToRemove(null)}
-                disabled={isRemovingExercise}
-                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-surface-2 border border-line text-sm font-medium text-text hover:bg-surface active:opacity-90 transition disabled:opacity-50"
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmRemoveExercise}
-                disabled={isRemovingExercise}
-                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-danger text-sm font-semibold text-text hover:opacity-95 active:opacity-90 transition disabled:opacity-50"
-              >
-                {isRemovingExercise ? 'Retrait...' : 'Retirer'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          ) : null
+        }
+        confirmLabel={isRemovingExercise ? 'Retrait...' : 'Retirer'}
+        confirmVariant="danger"
+        isLoading={isRemovingExercise}
+        onCancel={() => setExerciseToRemove(null)}
+        onConfirm={handleConfirmRemoveExercise}
+      />
 
       {/* Dialogue de confirmation de fin de séance */}
-      {showFinishConfirm && (
-        <div
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="finish-dialog-title"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-4"
-        >
-          <div className="w-full max-w-sm rounded-xl bg-surface border border-line p-5 shadow-2xl">
-            <h3
-              id="finish-dialog-title"
-              className="text-lg font-semibold text-text tracking-tight mb-2"
-            >
-              Terminer la séance ?
-            </h3>
-            <p className="text-sm text-muted mb-5">
-              Êtes-vous sûr de vouloir terminer cette séance ?
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowFinishConfirm(false)}
-                disabled={isFinishing}
-                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-surface-2 border border-line text-sm font-medium text-text hover:bg-surface active:opacity-90 transition disabled:opacity-50"
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmFinish}
-                disabled={isFinishing}
-                className="flex-1 min-h-[48px] items-center justify-center rounded-xl bg-danger text-sm font-semibold text-text hover:opacity-95 active:opacity-90 transition disabled:opacity-50"
-              >
-                {isFinishing ? 'Clôture...' : 'Terminer'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={showFinishConfirm}
+        title="Terminer la séance ?"
+        titleId="finish-dialog-title"
+        message={<p>Êtes-vous sûr de vouloir terminer cette séance ?</p>}
+        confirmLabel={isFinishing ? 'Clôture...' : 'Terminer'}
+        confirmVariant="danger"
+        isLoading={isFinishing}
+        onCancel={() => setShowFinishConfirm(false)}
+        onConfirm={handleConfirmFinish}
+      />
     </div>
   );
 };

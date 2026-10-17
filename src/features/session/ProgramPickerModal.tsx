@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Program } from '../../db/schema';
 import { useModalScrollLock } from '../../hooks/useModalScrollLock';
+import { Portal } from '../../components/Portal';
 
 interface ProgramPickerModalProps {
   isOpen: boolean;
@@ -22,12 +23,13 @@ export const ProgramPickerModal: React.FC<ProgramPickerModalProps> = ({
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="program-picker-title"
-      className="fixed inset-0 z-50 flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
-    >
+    <Portal>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="program-picker-title"
+        className="fixed inset-0 z-modal flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+      >
       <div className="w-full max-w-md mx-auto flex-1 flex flex-col p-4 overflow-hidden">
         <div className="flex items-center justify-between mb-4 shrink-0">
           <h2
@@ -83,5 +85,6 @@ export const ProgramPickerModal: React.FC<ProgramPickerModalProps> = ({
         </div>
       </div>
     </div>
-  );
+  </Portal>
+);
 };

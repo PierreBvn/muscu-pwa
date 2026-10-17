@@ -10,6 +10,7 @@ import {
 } from '../../db/programs';
 import { getAllExercises } from '../../db/exercises';
 import { useModalScrollLock } from '../../hooks/useModalScrollLock';
+import { Portal } from '../../components/Portal';
 
 interface ProgramDetailProps {
   programId: number;
@@ -89,7 +90,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
   return (
     <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-text flex flex-col pt-header">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-20 bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)]">
+      <header className="fixed top-0 left-0 right-0 z-header bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)]">
         <div className="max-w-md mx-auto px-4 flex items-center justify-between h-[var(--header-height)]">
           <div className="flex items-center gap-2">
             <button
@@ -295,12 +296,13 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
 
       {/* Modal / Sélecteur d'ajout d'exercice */}
       {isAddModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="add-exercise-dialog-title"
-          className="fixed inset-0 z-50 flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
-        >
+        <Portal>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-exercise-dialog-title"
+            className="fixed inset-0 z-modal flex flex-col bg-surface overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+          >
           <div className="w-full max-w-md mx-auto flex-1 flex flex-col p-4 overflow-hidden">
             <div className="flex items-center justify-between mb-3 shrink-0">
               <h2
@@ -361,7 +363,8 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
             </div>
           </div>
         </div>
-      )}
+      </Portal>
+    )}
     </div>
   );
 };

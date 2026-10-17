@@ -15,6 +15,31 @@
 :root {
   --header-height: 4rem;
   --tabbar-height: 4rem;
+  --z-header: 20;
+  --z-nav: 30;
+  --z-fab: 40;
+  --z-modal: 50;
+  --z-confirm: 60;
+}
+
+.z-header {
+  z-index: var(--z-header);
+}
+
+.z-nav {
+  z-index: var(--z-nav);
+}
+
+.z-fab {
+  z-index: var(--z-fab);
+}
+
+.z-modal {
+  z-index: var(--z-modal);
+}
+
+.z-confirm {
+  z-index: var(--z-confirm);
 }
 
 html {
