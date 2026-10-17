@@ -168,6 +168,13 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Un test supprimé est remplacé par un test équivalent sur le nouveau comportement.
 - Quand un skill est utilisé, le plan vérifie chacune de ses contraintes, une par une.
 
+## Images
+- Originaux dans design/, versions optimisées dans src/assets/ ; jamais d'original dans le build.
+- Taille d'une image = taille affichée × 3 (écran iPhone), arrondie au-dessus.
+- Icônes monochromes : PNG transparent appliqué en mask-image (+ -webkit-), couleur via currentColor et les tokens.
+- Noms de fichiers en minuscules, sans accent ni espace.
+- Toute ressource externe : licence vérifiée et attribution ajoutée si elle est exigée.
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.

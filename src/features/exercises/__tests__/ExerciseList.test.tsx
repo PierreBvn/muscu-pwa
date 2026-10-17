@@ -25,13 +25,22 @@ describe('ExerciseList UI component (grille & navigation)', () => {
       }
     });
 
-    // Les tuiles contiennent des icônes SVG (MuscleIcon) au lieu des monogrammes
+    // Les tuiles contiennent des icônes masquées PNG (MuscleIcon) au lieu des monogrammes
     const pecBtn = screen.getByRole('button', { name: /pectoraux/i });
-    expect(pecBtn.querySelector('svg')).not.toBeNull();
+    const pecIcon = pecBtn.querySelector('span[aria-hidden="true"]');
+    expect(pecIcon).not.toBeNull();
+    expect(pecIcon?.getAttribute('style')).toContain('pectoraux.png');
+
     const quadBtn = screen.getByRole('button', { name: /quadriceps/i });
-    expect(quadBtn.querySelector('svg')).not.toBeNull();
+    const quadIcon = quadBtn.querySelector('span[aria-hidden="true"]');
+    expect(quadIcon).not.toBeNull();
+    expect(quadIcon?.getAttribute('style')).toContain('quadriceps.png');
+
     const dosBtn = screen.getByRole('button', { name: /^dos/i });
-    expect(dosBtn.querySelector('svg')).not.toBeNull();
+    const dosIcon = dosBtn.querySelector('span[aria-hidden="true"]');
+    expect(dosIcon).not.toBeNull();
+    expect(dosIcon?.getAttribute('style')).toContain('grand-dorsal.png');
+
     // Les monogrammes texte ne sont plus dans la grille
     expect(screen.queryByText('PE')).toBeNull();
   });
