@@ -169,11 +169,11 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Quand un skill est utilisé, le plan vérifie chacune de ses contraintes, une par une.
 
 ## Images
-- Originaux dans design/, versions optimisées dans src/assets/ ; jamais d'original dans le build.
-- Taille d'une image = taille affichée × 3 (écran iPhone), arrondie au-dessus.
-- Icônes monochromes : PNG transparent appliqué en mask-image (+ -webkit-), couleur via currentColor et les tokens.
-- Noms de fichiers en minuscules, sans accent ni espace.
-- Toute ressource externe : licence vérifiée et attribution ajoutée si elle est exigée.
+- Originaux dans design/, versions générées dans src/assets/ par un script commité dans scripts/.
+- Icônes multicolores : recolorées aux couleurs des tokens par script, jamais à la main.
+- Taille du fichier = taille affichée × 3.
+- Toute transformation d'image commence par mesurer les couleurs et les poids réels.
+- Tout rendu visuel nouveau : capture d'aperçu et validation de l'utilisateur avant l'intégration.
 
 
 ## Règles
