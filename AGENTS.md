@@ -145,6 +145,29 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Ne jamais enchaîner une nouvelle tâche si la précédente n'a pas été validée sur l'iPhone.
 - Sauvegarde : validée seulement après un import réussi dans un autre navigateur, avec des données identiques à celles de l'iPhone.
 
+## État du projet
+- Statut : PRÉPRODUCTION. Aucune donnée réelle, réinstaller la PWA est sans risque.
+- Les migrations et la sauvegarde restent rigoureuses : elles serviront en production.
+- À la mise en production, remplacer ce bloc par : « PRODUCTION, données réelles : export obligatoire avant toute réinstallation ».
+
+## Icônes
+- Navigation : lucide-react uniquement, imports nommés, aria-hidden, couleurs via les tokens.
+- Groupes musculaires : uniquement src/components/MuscleIcon.tsx, Record<MuscleGroup, ...>.
+- Toute icône dessinée par l'IA est validée visuellement sur l'iPhone avant d'être considérée comme terminée.
+
+## Dépendances
+- Toute nouvelle dépendance est nommée dans le prompt. Le plan cite sa version et l'impact sur la taille du bundle.
+
+## Skills et modèles
+- Skills du projet dans .agents/skills/. Tout skill externe est lu (SKILL.md et scripts) avant d'être installé.
+- Toute production visuelle (SVG, icône, graphique) passe par une capture dans le navigateur de l'agent, analysée et jointe au walkthrough.
+- Le modèle est choisi avant d'envoyer le prompt : Opus pour le visuel et les plans complexes, Flash pour les petites tâches.
+
+## Plans
+- Toute taille, durée ou performance citée est mesurée, jamais estimée.
+- Un test supprimé est remplacé par un test équivalent sur le nouveau comportement.
+- Quand un skill est utilisé, le plan vérifie chacune de ses contraintes, une par une.
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
