@@ -104,9 +104,22 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 
 ## Interface
 - Pas de texte d'aide ni de sous-titre sans demande explicite. Pas de bouton en double pour la même action sur un écran.
+- Un élément cliquable contient au plus un bouton : jamais de bouton dans un bouton. Une ligne de liste sélectionnable est un seul <button>.
+- Une liste vide affiche "Aucun exercice" (ou équivalent), sans texte d'aide.
 
 ## Commits
 - Une tâche qui touche la base et l'interface fait au moins deux commits : d'abord la base et sa migration, puis l'interface.
+
+## Périmètre
+- Une demande nouvelle pendant une tâche n'est pas ajoutée au plan en cours : elle fait l'objet d'une tâche suivante, avec mise à jour de la spec.
+- Une nouvelle fonction n'est utilisée que là où la tâche le demande. Remplacer un comportement existant (ex. détection des doublons) est une tâche à part.
+
+## Composants
+- Une même interface utilisée à deux endroits (ex. choix d'un exercice en séance libre et en séance type) est un seul composant partagé, jamais deux copies.
+- Avant de fusionner deux copies d'une interface, citer leurs différences de comportement et demander lesquelles garder.
+
+## Logique
+- Toute recherche ou tout filtrage de données est une fonction de src/db/, testée. La normalisation de texte (casse, accents) est une seule fonction partagée, sauf dans les migrations, qui gardent leur propre copie.
 
 
 ## Règles

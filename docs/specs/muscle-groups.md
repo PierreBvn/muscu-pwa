@@ -225,8 +225,18 @@ L'exécution de cet algorithme générique sur les 19 exercices du seed v2 produ
 - Si le groupe est vide : affichage d'un état vide explicite (« Aucun exercice dans ce groupe ») avec un bouton pour en ajouter un.
 
 ### Modales d'ajout et d'édition d'exercices
-- **`AddExerciseModal`** (ajout à une séance en cours) : **inchangée**, conserve la sélection rapide via le champ de recherche textuelle sur la liste alphabétique.
-- **`ProgramDetail`** (ajout à une séance type) : **inchangée**, conserve la sélection rapide via recherche textuelle.
+- **Modales d'ajout (`AddExerciseModal` et `ProgramDetail`)** :
+  - Unification via le composant partagé unique `ExercisePicker` (aucune logique de choix dupliquée).
+  - La modale s'ouvre sur la grille des 11 groupes musculaires (composant partagé `MuscleGroupGrid`, identique à la bibliothèque), avec un champ de recherche au-dessus.
+  - Les compteurs d'exercices par groupe excluent les exercices archivés et les exercices déjà présents dans la séance ou la séance type, et proviennent d'une fonction dédiée de `src/db/` (`getExerciseCountsByGroup`).
+  - Dès qu'un texte est saisi dans le champ de recherche, la grille laisse place aux résultats de recherche portant sur tous les groupes, insensibles à la casse et aux accents (fonction `filterExercises` de `src/db/`).
+  - Lorsque le champ de recherche est vidé, retour immédiat à la grille des groupes.
+  - Toucher un groupe sur la grille affiche la liste de ses exercices avec un bouton « Retour » vers la grille.
+  - À chaque réouverture de la modale : vue réinitialisée sur la grille, recherche vide, conteneur défilant remis en haut.
+  - Aucun résultat de recherche ou groupe vide : affichage de la mention « Aucun exercice ».
+  - Un seul bouton de fermeture (`aria-label="Fermer"`), aucun bouton en double.
+  - Chaque ligne d'exercice est un bouton unique dont le nom accessible est le nom de l'exercice (aucun bouton imbriqué).
+  - iOS : champ de saisie ≥ 16px, pas d'autoFocus, pas de texte d'aide.
 - **`ExerciseModal`** (création / modification d'un exercice) : utilise le même composant de sélection qu'actuellement (grille de boutons/chips), adapté pour présenter les **11 groupes musculaires**.
 
 ---
@@ -299,3 +309,6 @@ Ces vérifications manuelles sur iPhone (safari / PWA installée, viewport 390×
 - [ ] **Mise en page et défilement** : Hauteur de l'en-tête compensée par `var(--header-height)` et barre d'onglets par `var(--tabbar-height)`.
 - [ ] **Bouton retour** : Accessible d'une main, avec retour fluide sans saut de défilement.
 - [ ] **Sélection dans `ExerciseModal`** : Les 11 boutons de sélection de groupe s'affichent correctement sans dépasser de l'écran, utilisables facilement avec le clavier virtuel ouvert ou fermé.
+- [ ] **Séance libre (ajout d'exercice)** : L'exercice ajouté se place comme avant (fin de liste si aucune série, sinon avant le premier exercice non terminé).
+- [ ] **Séance type (ajout d'exercice)** : L'exercice ajouté a 1 série d'échauffement et 3 de travail.
+- [ ] **Exercice déjà présent** : N'apparaît ni dans la liste ni dans le compteur de son groupe.
