@@ -41,22 +41,22 @@ describe('ExerciseList UI component', () => {
     // Fill name
     const input = screen.getByLabelText(/nom de l’exercice/i);
     expect(input.hasAttribute('autofocus')).toBe(false);
-    fireEvent.change(input, { target: { value: 'Hip Thrust' } });
+    fireEvent.change(input, { target: { value: 'Hack Squat' } });
 
-    // Select "Jambes"
-    const jambesChip = screen.getByRole('button', { name: 'Jambes' });
-    fireEvent.click(jambesChip);
+    // Select "Quadriceps"
+    const quadricepsChip = screen.getByRole('button', { name: 'Quadriceps' });
+    fireEvent.click(quadricepsChip);
 
     // Save
     const saveButton = screen.getByRole('button', { name: /enregistrer/i });
     fireEvent.click(saveButton);
 
-    // Modal closes and "Hip Thrust" appears in UI
+    // Modal closes and "Hack Squat" appears in UI
     await waitFor(() => {
       expect(
         screen.queryByRole('heading', { name: /nouvel exercice/i })
       ).not.toBeInTheDocument();
-      expect(screen.getByText('Hip Thrust')).toBeInTheDocument();
+      expect(screen.getByText('Hack Squat')).toBeInTheDocument();
     });
   });
 
@@ -121,9 +121,9 @@ describe('ExerciseList UI component', () => {
       expect(screen.getByText('Développé couché')).toBeInTheDocument();
     });
 
-    // Pectoraux -> PE, Jambes -> JA, Dos -> DO
+    // Pectoraux -> PE, Quadriceps -> QU, Dos -> DO
     expect(screen.getAllByText('PE').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('JA').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('QU').length).toBeGreaterThan(0);
     expect(screen.getAllByText('DO').length).toBeGreaterThan(0);
   });
 });

@@ -107,7 +107,7 @@ describe('Suggestions engine (src/db/suggestions.ts)', () => {
 
     it('picks highest work weight of most recent completed session (82.5kg over more frequent 80kg)', async () => {
       // Cas spec : 4×80 puis 3×82,5 sur les 2 dernières séances → réf 82,5
-      const exId = await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
+      const exId = await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
 
       // Séance passée 1 (il y a 4 jours) : 4 séries à 80 kg
       const s1 = await startSession({ now: new Date(2026, 9, 10, 8, 0) });
@@ -194,7 +194,7 @@ describe('Suggestions engine (src/db/suggestions.ts)', () => {
     });
 
     it('never includes warmup sets in reference weight calculation', async () => {
-      const exId = await addExercise({ name: 'Presse', muscleGroup: 'Jambes' });
+      const exId = await addExercise({ name: 'Presse', muscleGroup: 'Quadriceps' });
 
       // Séance passée avec échauffement à 120 kg et work à 100 kg
       const s1 = await startSession({ now: new Date(2026, 9, 10, 8, 0) });
@@ -215,7 +215,7 @@ describe('Suggestions engine (src/db/suggestions.ts)', () => {
 
     it('generates rounded buttons to 2 decimals with custom step 1.25 and masks weights < 0', async () => {
       // Exercice avec weightStep = 1.25 et référence basse (1 kg)
-      const exId = await addExercise({ name: 'Haltères petits', muscleGroup: 'Bras' });
+      const exId = await addExercise({ name: 'Haltères petits', muscleGroup: 'Biceps' });
       await db.exercises.update(exId, { weightStep: 1.25 });
 
       const s1 = await startSession({ now: new Date(2026, 9, 10, 8, 0) });
@@ -273,14 +273,14 @@ describe('Suggestions engine (src/db/suggestions.ts)', () => {
     });
 
     it('returns null preselected reps when no history exists', async () => {
-      const exId = await addExercise({ name: 'Inconnu', muscleGroup: 'Bras' });
+      const exId = await addExercise({ name: 'Inconnu', muscleGroup: 'Biceps' });
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
       const suggestions = await getRepSuggestions(exId, { currentSessionId: sid });
       expect(suggestions.preselectedReps).toBeNull();
     });
 
     it('preselects reps from previous set of same exercise in current session', async () => {
-      const exId = await addExercise({ name: 'Curl', muscleGroup: 'Bras' });
+      const exId = await addExercise({ name: 'Curl', muscleGroup: 'Biceps' });
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
 
       await addSet({ sessionId: sid, exerciseId: exId, reps: 10, weight: 15, type: 'warmup' });
@@ -292,7 +292,7 @@ describe('Suggestions engine (src/db/suggestions.ts)', () => {
     });
 
     it('preselects reps from last work set of previous session on first set of exercise', async () => {
-      const exId = await addExercise({ name: 'Curl', muscleGroup: 'Bras' });
+      const exId = await addExercise({ name: 'Curl', muscleGroup: 'Biceps' });
 
       // Séance passée avec une série à 12 reps
       const sPast = await startSession({ now: new Date(2026, 9, 12, 8, 0) });
@@ -340,7 +340,7 @@ describe('Suggestions engine (src/db/suggestions.ts)', () => {
 
   describe('getExerciseSuggestions', () => {
     it('combines weight and rep suggestions into one payload', async () => {
-      const exId = await addExercise({ name: 'Barre au front', muscleGroup: 'Bras' });
+      const exId = await addExercise({ name: 'Barre au front', muscleGroup: 'Biceps' });
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
 
       const suggestions = await getExerciseSuggestions(exId, {

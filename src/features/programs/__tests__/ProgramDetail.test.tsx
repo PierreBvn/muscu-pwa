@@ -18,7 +18,7 @@ describe('ProgramDetail UI', () => {
 
     programId = await createProgram({ name: 'Full Body A', weekdays: [1, 3, 5] });
     exBenchId = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
-    exSquatId = await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
+    exSquatId = await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
     exDeadliftId = await addExercise({ name: 'Soulevé de terre', muscleGroup: 'Dos' });
   });
 

@@ -178,7 +178,7 @@ describe('Programs CRUD operations', () => {
       })) as number;
       ex3Id = (await db.exercises.add({
         name: 'Dips',
-        muscleGroup: 'Bras',
+        muscleGroup: 'Biceps',
       })) as number;
     });
 

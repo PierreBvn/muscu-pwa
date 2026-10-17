@@ -49,9 +49,9 @@ describe('Exercise database operations', () => {
 
   describe('getAllExercises & getExercisesByGroup', () => {
     it('returns active exercises sorted alphabetically by name', async () => {
-      await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
+      await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
       await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
-      await addExercise({ name: 'Curl biceps', muscleGroup: 'Bras' });
+      await addExercise({ name: 'Curl biceps', muscleGroup: 'Biceps' });
 
       const exercises = await getAllExercises();
       expect(exercises.map((e) => e.name)).toEqual([
@@ -62,8 +62,8 @@ describe('Exercise database operations', () => {
     });
 
     it('excludes archived exercises', async () => {
-      const id = await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
-      await addExercise({ name: 'Fentes', muscleGroup: 'Jambes' });
+      const id = await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
+      await addExercise({ name: 'Fentes', muscleGroup: 'Quadriceps' });
 
       await deleteExercise(id);
 
@@ -72,12 +72,12 @@ describe('Exercise database operations', () => {
     });
 
     it('groups active exercises by muscle group', async () => {
-      await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
+      await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
       await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
 
       const grouped = await getExercisesByGroup();
-      expect(grouped.Jambes).toHaveLength(1);
-      expect(grouped.Jambes[0].name).toBe('Squat');
+      expect(grouped.Quadriceps).toHaveLength(1);
+      expect(grouped.Quadriceps[0].name).toBe('Squat');
       expect(grouped.Pectoraux).toHaveLength(1);
       expect(grouped.Pectoraux[0].name).toBe('Développé couché');
       expect(grouped.Dos).toHaveLength(0);
@@ -120,23 +120,23 @@ describe('Exercise database operations', () => {
 
   describe('updateExercise', () => {
     it('updates name and muscleGroup successfully', async () => {
-      const id = await addExercise({ name: 'Curl', muscleGroup: 'Bras' });
-      await updateExercise(id, { name: 'Curl barre EZ', muscleGroup: 'Bras' });
+      const id = await addExercise({ name: 'Curl', muscleGroup: 'Biceps' });
+      await updateExercise(id, { name: 'Curl barre EZ', muscleGroup: 'Biceps' });
 
       const updated = await db.exercises.get(id);
       expect(updated?.name).toBe('Curl barre EZ');
     });
 
     it('rejects empty or whitespace-only name update', async () => {
-      const id = await addExercise({ name: 'Curl', muscleGroup: 'Bras' });
+      const id = await addExercise({ name: 'Curl', muscleGroup: 'Biceps' });
       await expect(updateExercise(id, { name: '   ' })).rejects.toThrow(
         /ne peut pas être vide/i
       );
     });
 
     it('rejects renaming to an existing exercise name', async () => {
-      const id1 = await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
-      await addExercise({ name: 'Presse', muscleGroup: 'Jambes' });
+      const id1 = await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
+      await addExercise({ name: 'Presse', muscleGroup: 'Quadriceps' });
 
       await expect(updateExercise(id1, { name: '  presse  ' })).rejects.toThrow(
         /existe déjà/i
@@ -144,16 +144,16 @@ describe('Exercise database operations', () => {
     });
 
     it('allows updating without changing name to itself', async () => {
-      const id = await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
+      const id = await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
       await expect(
-        updateExercise(id, { name: 'Squat', muscleGroup: 'Jambes' })
+        updateExercise(id, { name: 'Squat', muscleGroup: 'Quadriceps' })
       ).resolves.not.toThrow();
     });
   });
 
   describe('deleteExercise (soft delete)', () => {
     it('marks exercise as archived instead of removing it from table', async () => {
-      const id = await addExercise({ name: 'Dips', muscleGroup: 'Bras' });
+      const id = await addExercise({ name: 'Dips', muscleGroup: 'Triceps' });
       await deleteExercise(id);
 
       const record = await db.exercises.get(id);

@@ -104,7 +104,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('6. reprend automatiquement la séance après un nouveau rendu (simule un rechargement)', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId = await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
+    const exId = await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
     const progId = await createProgram({ name: 'Legs', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId });
 
@@ -223,7 +223,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('10. affiche la mention « Séance type supprimée » si le programme n’existe plus', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId = await addExercise({ name: 'Dips', muscleGroup: 'Bras' });
+    const exId = await addExercise({ name: 'Dips', muscleGroup: 'Triceps' });
     const progId = await createProgram({ name: 'Pectoraux V1', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId });
 
@@ -241,7 +241,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('11. affiche le badge « Archivé » pour un exercice archivé présent dans la séance', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId = await addExercise({ name: 'Crunch Poulie', muscleGroup: 'Abdominaux' });
+    const exId = await addExercise({ name: 'Crunch Poulie', muscleGroup: 'Abdos' });
     const progId = await createProgram({ name: 'Core', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId });
 
@@ -348,7 +348,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('14. prend le poids de référence dans la dernière séance terminée si aucune vraie série dans la séance', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId = await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
+    const exId = await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
     const progId = await createProgram({ name: 'Legs', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId, warmupSets: 0, workSets: 3 });
 
@@ -435,7 +435,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('17. arrondit correctement au centième avec un pas de 1,25 kg', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId = await addExercise({ name: 'Curl biceps', muscleGroup: 'Bras' });
+    const exId = await addExercise({ name: 'Curl biceps', muscleGroup: 'Biceps' });
     await db.exercises.update(exId, { weightStep: 1.25 });
 
     const progId = await createProgram({ name: 'Arms', weekdays: [1] });
@@ -642,7 +642,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('22. conserve les séries enregistrées après démontage puis remontage (rechargement)', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId = await addExercise({ name: 'Fentes haltères', muscleGroup: 'Jambes' });
+    const exId = await addExercise({ name: 'Fentes haltères', muscleGroup: 'Quadriceps' });
     const progId = await createProgram({ name: 'Legs', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId, warmupSets: 0, workSets: 3 });
 
@@ -727,8 +727,8 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('24. n’affiche pas dans le sélecteur un exercice déjà présent dans la séance', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId = await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
-    await addExercise({ name: 'Presse à cuisses', muscleGroup: 'Jambes' });
+    const exId = await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
+    await addExercise({ name: 'Presse à cuisses', muscleGroup: 'Quadriceps' });
 
     const progId = await createProgram({ name: 'Legs', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId, warmupSets: 1, workSets: 3 });
@@ -770,7 +770,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('26. retire un exercice sans série après confirmation role="alertdialog" (Annuler / Confirmer)', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId = await addExercise({ name: 'Fentes', muscleGroup: 'Jambes' });
+    const exId = await addExercise({ name: 'Fentes', muscleGroup: 'Quadriceps' });
     const progId = await createProgram({ name: 'Legs', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId });
 
@@ -816,7 +816,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('27. ne permet pas de retirer un exercice ayant déjà des séries enregistrées', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId = await addExercise({ name: 'Dips', muscleGroup: 'Bras' });
+    const exId = await addExercise({ name: 'Dips', muscleGroup: 'Triceps' });
     const progId = await createProgram({ name: 'Arms', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId });
 
@@ -848,7 +848,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('28. permet de passer un exercice (skipped) et de le rétablir via le menu ⋯', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId = await addExercise({ name: 'Crunch', muscleGroup: 'Abdominaux' });
+    const exId = await addExercise({ name: 'Crunch', muscleGroup: 'Abdos' });
     const progId = await createProgram({ name: 'Core', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId });
 
@@ -883,8 +883,8 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('29. réordonne avec ↑ ↓ via le menu ⋯ et désactive les boutons aux extrémités', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId1 = await addExercise({ name: 'Exercice Un', muscleGroup: 'Bras' });
-    const exId2 = await addExercise({ name: 'Exercice Deux', muscleGroup: 'Bras' });
+    const exId1 = await addExercise({ name: 'Exercice Un', muscleGroup: 'Biceps' });
+    const exId2 = await addExercise({ name: 'Exercice Deux', muscleGroup: 'Triceps' });
     const progId = await createProgram({ name: 'Reorder Test', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId1 });
     await addExerciseToProgram({ programId: progId, exerciseId: exId2 });
@@ -926,7 +926,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('30. plus aucun réglage du nombre de séries dans la séance', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId = await addExercise({ name: 'Presse inclinée', muscleGroup: 'Jambes' });
+    const exId = await addExercise({ name: 'Presse inclinée', muscleGroup: 'Quadriceps' });
     const progId = await createProgram({ name: 'Legs', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId, warmupSets: 1, workSets: 2 });
 
@@ -992,8 +992,8 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   it('32. conserve l’ordre et les exercices passés après démontage et remontage (rechargement)', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
-    const exId1 = await addExercise({ name: 'Curl barre', muscleGroup: 'Bras' });
-    const exId2 = await addExercise({ name: 'Barre au front', muscleGroup: 'Bras' });
+    const exId1 = await addExercise({ name: 'Curl barre', muscleGroup: 'Biceps' });
+    const exId2 = await addExercise({ name: 'Barre au front', muscleGroup: 'Triceps' });
 
     const progId = await createProgram({ name: 'Super Bras', weekdays: [1] });
     await addExerciseToProgram({ programId: progId, exerciseId: exId1 });

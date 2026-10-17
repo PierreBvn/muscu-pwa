@@ -17,20 +17,33 @@ export const DEFAULT_EXERCISES: Omit<Exercise, 'id'>[] = [
   { name: 'Élévations latérales', muscleGroup: 'Épaules' },
   { name: 'Oiseau banc incliné', muscleGroup: 'Épaules' },
 
-  // Jambes (4)
-  { name: 'Squat', muscleGroup: 'Jambes' },
-  { name: 'Presse à cuisses', muscleGroup: 'Jambes' },
-  { name: 'Fentes', muscleGroup: 'Jambes' },
-  { name: 'Leg curl', muscleGroup: 'Jambes' },
+  // Quadriceps (3)
+  { name: 'Squat', muscleGroup: 'Quadriceps' },
+  { name: 'Presse à cuisses', muscleGroup: 'Quadriceps' },
+  { name: 'Fentes', muscleGroup: 'Quadriceps' },
 
-  // Bras (3)
-  { name: 'Curl biceps barre', muscleGroup: 'Bras' },
-  { name: 'Dips', muscleGroup: 'Bras' },
-  { name: 'Barre au front', muscleGroup: 'Bras' },
+  // Ischios (1)
+  { name: 'Leg curl', muscleGroup: 'Ischios' },
 
-  // Abdominaux (2)
-  { name: 'Crunch', muscleGroup: 'Abdominaux' },
-  { name: 'Gainage planche', muscleGroup: 'Abdominaux' },
+  // Biceps (1)
+  { name: 'Curl biceps barre', muscleGroup: 'Biceps' },
+
+  // Triceps (2)
+  { name: 'Dips', muscleGroup: 'Triceps' },
+  { name: 'Barre au front', muscleGroup: 'Triceps' },
+
+  // Avant-bras (1)
+  { name: 'Tirage poulie avant-bras', muscleGroup: 'Avant-bras' },
+
+  // Abdos (2)
+  { name: 'Crunch', muscleGroup: 'Abdos' },
+  { name: 'Gainage planche', muscleGroup: 'Abdos' },
+
+  // Fessiers (1)
+  { name: 'Hip thrust', muscleGroup: 'Fessiers' },
+
+  // Mollets (1)
+  { name: 'Extension mollets', muscleGroup: 'Mollets' },
 ];
 
 /**
@@ -69,9 +82,14 @@ export async function getExercisesByGroup(): Promise<Record<MuscleGroup, Exercis
     Pectoraux: [],
     Dos: [],
     Épaules: [],
-    Bras: [],
-    Jambes: [],
-    Abdominaux: [],
+    Biceps: [],
+    Triceps: [],
+    'Avant-bras': [],
+    Abdos: [],
+    Quadriceps: [],
+    Ischios: [],
+    Fessiers: [],
+    Mollets: [],
   };
 
   for (const ex of active) {

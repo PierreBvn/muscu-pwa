@@ -89,6 +89,25 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 ## Prompts
 - Un élément cité en exemple n'est pas une demande de modification : ne changer que ce qui est explicitement demandé.
 
+## Migrations
+- Les correspondances par mots-clés ont un ordre de priorité écrit ; les mots-clés et les noms sont normalisés (minuscules, sans accents).
+- Un seul algorithme de migration pour toutes les données, seed compris : pas de cas spécial par nom.
+- Les anciennes valeurs ont leur propre type (Legacy…) dans la migration ; jamais de as any.
+- Une migration n'ajoute jamais de données (pas de seed injecté chez un utilisateur existant).
+- Le code d'une migration est autonome et figé : il contient ses propres copies des valeurs et des tables de correspondance, et n'importe aucune constante de l'app.
+- Tout le code de migration s'exécute dans l'upgrade Dexie : une erreur annule tout et laisse la base dans sa version précédente.
+- Une valeur inconnue n'est jamais modifiée par une migration.
+- La mise à jour des tests existants pour une migration change seulement les valeurs de données, jamais ce que le test vérifie.
+- Chaque migration vit dans son propre fichier src/db/migrations/vN-*.ts.
+- Une migration traite aussi les données archivées.
+- Le test de migration vérifie que le nombre d'enregistrements de chaque table est le même avant et après.
+
+## Interface
+- Pas de texte d'aide ni de sous-titre sans demande explicite. Pas de bouton en double pour la même action sur un écran.
+
+## Commits
+- Une tâche qui touche la base et l'interface fait au moins deux commits : d'abord la base et sa migration, puis l'interface.
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.

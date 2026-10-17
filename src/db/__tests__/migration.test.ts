@@ -55,7 +55,7 @@ describe('Dexie v1 to v2 migration', () => {
     // 2. Ouvrir la base avec db (v1 + v2 upgrade)
     await db.open();
     expect(db.isOpen()).toBe(true);
-    expect(db.verno).toBe(2);
+    expect(db.verno).toBe(3);
 
     // 3. Vérifier les données migrées
     const exercises = await db.exercises.toArray();

@@ -5,9 +5,14 @@ export const MUSCLE_GROUP_MONOGRAMS: Record<MuscleGroup, string> = {
   Pectoraux: 'PE',
   Dos: 'DO',
   Épaules: 'ÉP',
-  Bras: 'BR',
-  Jambes: 'JA',
-  Abdominaux: 'AB',
+  Biceps: 'BI',
+  Triceps: 'TR',
+  'Avant-bras': 'AV',
+  Abdos: 'AB',
+  Quadriceps: 'QU',
+  Ischios: 'IS',
+  Fessiers: 'FE',
+  Mollets: 'MO',
 };
 
 interface MuscleGroupBadgeProps {

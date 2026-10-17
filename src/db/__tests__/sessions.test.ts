@@ -131,7 +131,7 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
       expect((await getActiveSession())?.id).toBe(sid);
 
       // Ajouter une série pour permettre la clôture sans suppression
-      const exId = await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
+      const exId = await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
       await addSet({ sessionId: sid, exerciseId: exId, reps: 10, weight: 100, type: 'work' });
 
       await finishSession(sid, { now: new Date(2026, 9, 15, 10, 0) });
@@ -182,9 +182,9 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
     });
 
     it('removes sessionExercise when no sets exist and reindexes remaining orders', async () => {
-      const ex1 = await addExercise({ name: 'Ex 1', muscleGroup: 'Bras' });
-      const ex2 = await addExercise({ name: 'Ex 2', muscleGroup: 'Bras' });
-      const ex3 = await addExercise({ name: 'Ex 3', muscleGroup: 'Bras' });
+      const ex1 = await addExercise({ name: 'Ex 1', muscleGroup: 'Biceps' });
+      const ex2 = await addExercise({ name: 'Ex 2', muscleGroup: 'Biceps' });
+      const ex3 = await addExercise({ name: 'Ex 3', muscleGroup: 'Biceps' });
 
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
       await addExerciseToSession({ sessionId: sid, exerciseId: ex1 });
@@ -202,7 +202,7 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
     });
 
     it('toggles skipped flag on session exercise', async () => {
-      const exId = await addExercise({ name: 'Curl biceps', muscleGroup: 'Bras' });
+      const exId = await addExercise({ name: 'Curl biceps', muscleGroup: 'Biceps' });
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
       const seId = await addExerciseToSession({ sessionId: sid, exerciseId: exId });
 
@@ -267,7 +267,7 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
 
   describe('Sets management (addSet, updateSet, deleteSet)', () => {
     it('adds set with sequential order calculated in transaction and createdAt from now', async () => {
-      const exId = await addExercise({ name: 'Presse à cuisses', muscleGroup: 'Jambes' });
+      const exId = await addExercise({ name: 'Presse à cuisses', muscleGroup: 'Quadriceps' });
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
 
       const t1 = new Date(2026, 9, 15, 8, 5);
@@ -315,7 +315,7 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
     });
 
     it('rejects adding set if the session is already finished', async () => {
-      const exId = await addExercise({ name: 'Presse', muscleGroup: 'Jambes' });
+      const exId = await addExercise({ name: 'Presse', muscleGroup: 'Quadriceps' });
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
       await addSet({ sessionId: sid, exerciseId: exId, reps: 10, weight: 100, type: 'work' });
 
@@ -327,7 +327,7 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
     });
 
     it('rejects invalid reps (< 1 or decimal) and negative weights (< 0)', async () => {
-      const exId = await addExercise({ name: 'Presse', muscleGroup: 'Jambes' });
+      const exId = await addExercise({ name: 'Presse', muscleGroup: 'Quadriceps' });
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
 
       await expect(
@@ -380,7 +380,7 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
 
   describe('Session completion and forgotten sessions', () => {
     it('deletes session and its sessionExercises if finished without any set', async () => {
-      const exId = await addExercise({ name: 'Fentes', muscleGroup: 'Jambes' });
+      const exId = await addExercise({ name: 'Fentes', muscleGroup: 'Quadriceps' });
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
       await addExerciseToSession({ sessionId: sid, exerciseId: exId });
 
@@ -392,7 +392,7 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
     });
 
     it('marks session completed with endedAt ISO timestamp when sets exist', async () => {
-      const exId = await addExercise({ name: 'Fentes', muscleGroup: 'Jambes' });
+      const exId = await addExercise({ name: 'Fentes', muscleGroup: 'Quadriceps' });
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
       await addSet({ sessionId: sid, exerciseId: exId, reps: 10, weight: 20, type: 'work' });
 
@@ -405,7 +405,7 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
     });
 
     it('closes forgotten session setting endedAt to the last set createdAt', async () => {
-      const exId = await addExercise({ name: 'Fentes', muscleGroup: 'Jambes' });
+      const exId = await addExercise({ name: 'Fentes', muscleGroup: 'Quadriceps' });
       const sid = await startSession({ now: new Date(2026, 9, 14, 18, 0) });
 
       const t1 = new Date(2026, 9, 14, 18, 10);
@@ -589,9 +589,9 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
     });
 
     it('preserves insertion order when no sets exist in session (free session)', async () => {
-      const ex1 = await addExercise({ name: 'Squat', muscleGroup: 'Jambes' });
-      const ex2 = await addExercise({ name: 'Presse', muscleGroup: 'Jambes' });
-      const ex3 = await addExercise({ name: 'Mollets', muscleGroup: 'Jambes' });
+      const ex1 = await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
+      const ex2 = await addExercise({ name: 'Presse', muscleGroup: 'Quadriceps' });
+      const ex3 = await addExercise({ name: 'Mollets', muscleGroup: 'Mollets' });
 
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
       const se1 = await addExerciseToSession({ sessionId: sid, exerciseId: ex1 });
@@ -672,7 +672,7 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
     });
 
     it('prevents adding the same exercise twice to the session', async () => {
-      const exId = await addExercise({ name: 'Curl', muscleGroup: 'Bras' });
+      const exId = await addExercise({ name: 'Curl', muscleGroup: 'Biceps' });
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
       await addExerciseToSession({ sessionId: sid, exerciseId: exId });
 

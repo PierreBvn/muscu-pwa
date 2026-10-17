@@ -1,12 +1,18 @@
 import Dexie, { type EntityTable } from 'dexie';
+import { migrateV3MuscleGroups } from './migrations/v3-muscle-groups';
 
 export const MUSCLE_GROUPS = [
   'Pectoraux',
   'Dos',
   'Épaules',
-  'Bras',
-  'Jambes',
-  'Abdominaux',
+  'Biceps',
+  'Triceps',
+  'Avant-bras',
+  'Abdos',
+  'Quadriceps',
+  'Ischios',
+  'Fessiers',
+  'Mollets',
 ] as const;
 
 export type MuscleGroup = (typeof MUSCLE_GROUPS)[number];
@@ -127,3 +133,10 @@ db.version(2)
         set.createdAt = setDate.toISOString();
       });
   });
+
+// Version 3 : Nouveaux groupes musculaires
+db.version(3)
+  .stores({
+    exercises: '++id, name',
+  })
+  .upgrade(migrateV3MuscleGroups);
