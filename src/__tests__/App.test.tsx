@@ -9,7 +9,7 @@ describe('App navigation & TabBar', () => {
     await db.programs.clear();
   });
 
-  it('renders bottom tab bar with 3 tabs and defaults to Séance', async () => {
+  it('renders bottom tab bar with 4 tabs and defaults to Séance', async () => {
     render(<App />);
 
     const tablist = screen.getByRole('tablist', { name: /navigation principale/i });
@@ -18,14 +18,17 @@ describe('App navigation & TabBar', () => {
     const seanceTab = screen.getByRole('tab', { name: /^séance$/i });
     const programsTab = screen.getByRole('tab', { name: /séances types/i });
     const exercisesTab = screen.getByRole('tab', { name: /exercices/i });
+    const progressTab = screen.getByRole('tab', { name: /progrès/i });
 
     expect(seanceTab).toBeInTheDocument();
     expect(programsTab).toBeInTheDocument();
     expect(exercisesTab).toBeInTheDocument();
+    expect(progressTab).toBeInTheDocument();
 
     expect(seanceTab).toHaveAttribute('aria-selected', 'true');
     expect(programsTab).toHaveAttribute('aria-selected', 'false');
     expect(exercisesTab).toHaveAttribute('aria-selected', 'false');
+    expect(progressTab).toHaveAttribute('aria-selected', 'false');
 
     // Écran Séance actif (attente résolution useLiveQuery)
     await waitFor(() => {
@@ -65,5 +68,17 @@ describe('App navigation & TabBar', () => {
     expect(
       screen.getByRole('heading', { name: /séances types/i })
     ).toBeInTheDocument();
+  });
+
+  it('navigates to Progrès tab', async () => {
+    render(<App />);
+
+    const progressTab = screen.getByRole('tab', { name: /progrès/i });
+    fireEvent.click(progressTab);
+
+    expect(progressTab).toHaveAttribute('aria-selected', 'true');
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /progrès/i })).toBeInTheDocument();
+    });
   });
 });

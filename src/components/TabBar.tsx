@@ -1,7 +1,7 @@
 import React from 'react';
-import { Dumbbell, ClipboardList, LayoutGrid } from 'lucide-react';
+import { Dumbbell, ClipboardList, LayoutGrid, TrendingUp } from 'lucide-react';
 
-export type TabId = 'seance' | 'programs' | 'exercises';
+export type TabId = 'seance' | 'programs' | 'exercises' | 'progress';
 
 interface TabBarProps {
   activeTab: TabId;
@@ -25,6 +25,11 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
       label: 'Exercices',
       icon: <LayoutGrid size={24} strokeWidth={2} aria-hidden="true" />,
     },
+    {
+      id: 'progress',
+      label: 'Progrès',
+      icon: <TrendingUp size={24} strokeWidth={2} aria-hidden="true" />,
+    },
   ];
 
   return (
@@ -33,7 +38,7 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
       aria-label="Navigation principale"
       className="fixed bottom-0 left-0 right-0 z-nav bg-bg/95 backdrop-blur-md border-t border-line pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="max-w-md mx-auto grid grid-cols-3 px-2 h-[var(--tabbar-height)] items-center">
+      <div className="max-w-md mx-auto grid grid-cols-4 px-2 h-[var(--tabbar-height)] items-center">
         {tabs.map((tab) => {
           const isSelected = activeTab === tab.id;
           return (
@@ -45,10 +50,10 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
               aria-selected={isSelected}
               aria-controls={`panel-${tab.id}`}
               onClick={() => onTabChange(tab.id)}
-              className="flex flex-col items-center justify-center min-h-[48px] py-1 px-1 transition-colors"
+              className="flex flex-col items-center justify-center min-h-[48px] py-1 px-0.5 transition-colors"
             >
               <div
-                className={`flex flex-col items-center justify-center gap-1 px-3 py-1 transition ${
+                className={`flex flex-col items-center justify-center gap-1 px-0.5 py-1 transition ${
                   isSelected
                     ? 'text-gold font-semibold'
                     : 'text-muted hover:text-text'
@@ -57,7 +62,7 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
                 <span className="flex items-center justify-center">
                   {tab.icon}
                 </span>
-                <span className="text-xs leading-tight">{tab.label}</span>
+                <span className="text-xs leading-tight whitespace-nowrap">{tab.label}</span>
               </div>
             </button>
           );

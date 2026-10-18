@@ -4,6 +4,7 @@ import { ExerciseList } from './features/exercises/ExerciseList';
 import { ProgramList } from './features/programs/ProgramList';
 
 import { SeanceTab } from './features/session/SeanceTab';
+import { StatsTab } from './features/stats/StatsTab';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabId>('seance');
@@ -41,6 +42,17 @@ function App() {
             className="flex-1 flex flex-col"
           >
             <ExerciseList />
+          </div>
+        )}
+
+        {activeTab === 'progress' && (
+          <div
+            role="tabpanel"
+            id="panel-progress"
+            aria-labelledby="tab-progress"
+            className="flex-1 flex flex-col"
+          >
+            <StatsTab />
           </div>
         )}
       </div>
