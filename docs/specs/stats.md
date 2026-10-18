@@ -327,6 +327,9 @@ export function formatStatVolume(volume: number): string;
 // Formatage du record personnel : ex. "Record\u00A0:\u00A085\u00A0kg\u00A0\u00D7\u00A08"
 export function formatPersonalRecord(record: SetEntry): string;
 
+// Formatage des répétitions (mode reps) : ex. "25\u00A0reps", "1\u00A0rep", "0\u00A0rep"
+export function formatStatReps(reps: number): string;
+
 // Calcul de l'intervalle hebdomadaire (lundi au dimanche) en UTC à partir de 'YYYY-MM-DD'
 export function getWeekRangeUtc(referenceDate: string): {
   startOfWeek: string;
