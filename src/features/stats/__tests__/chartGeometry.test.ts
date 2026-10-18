@@ -14,7 +14,6 @@ describe('computeChartGeometry', () => {
         date: '2026-10-10',
         averageWeight: 60,
         totalReps: 10,
-        volume: 600,
         isRecord: true,
       },
     ];
@@ -59,7 +58,6 @@ describe('computeChartGeometry', () => {
         date: '2026-10-10',
         averageWeight: 80,
         totalReps: 10,
-        volume: 800,
         isRecord: false,
       },
       {
@@ -67,7 +65,6 @@ describe('computeChartGeometry', () => {
         date: '2026-10-12',
         averageWeight: 80,
         totalReps: 10,
-        volume: 800,
         isRecord: false,
       },
     ];
@@ -101,7 +98,6 @@ describe('computeChartGeometry', () => {
         date: '2026-10-10',
         averageWeight: 80,
         totalReps: 10,
-        volume: 800,
         isRecord: false,
       },
       {
@@ -109,7 +105,6 @@ describe('computeChartGeometry', () => {
         date: '2026-10-15',
         averageWeight: 90,
         totalReps: 8,
-        volume: 720,
         isRecord: true,
       },
     ];

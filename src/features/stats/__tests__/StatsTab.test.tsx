@@ -52,7 +52,6 @@ describe('StatsTab component', () => {
   it('affiche le résumé exact de l’exemple b de la spec et le graphique', async () => {
     // Exemple b : Développé couché
     // 80 kg × 10 reps, 85 kg × 8 reps, 85 kg × 7 reps
-    // Volume = 2075 kg -> '2\u00A0075\u00A0kg'
     // Poids moyen = 83 kg -> '83\u00A0kg'
     // Record = 85 kg × 8 -> 'Record\u00A0:\u00A085\u00A0kg\u00A0\u00D7\u00A08'
     await db.exercises.add({
@@ -118,9 +117,6 @@ describe('StatsTab component', () => {
     await waitFor(() => {
       expect(
         screen.getByText('83\u00A0kg', { normalizer: (s) => s })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('2\u00A0075\u00A0kg', { normalizer: (s) => s })
       ).toBeInTheDocument();
       expect(
         screen.getByText('Record\u00A0:\u00A085\u00A0kg\u00A0\u00D7\u00A08', {

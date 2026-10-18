@@ -17,28 +17,16 @@ export function calculateAverageWeight(sets: SetEntry[]): number | null {
   const workSets = sets.filter((s) => s.type === 'work');
   if (workSets.length === 0) return null;
 
-  let totalVolume = 0;
+  let totalWeightReps = 0;
   let totalReps = 0;
 
   for (const s of workSets) {
-    totalVolume += s.weight * s.reps;
+    totalWeightReps += s.weight * s.reps;
     totalReps += s.reps;
   }
 
   if (totalReps === 0) return null;
-  return totalVolume / totalReps;
-}
-
-/**
- * Volume total (somme de poids × reps) des séries de travail 'work'.
- */
-export function calculateSessionVolume(sets: SetEntry[]): number {
-  const workSets = sets.filter((s) => s.type === 'work');
-  let volume = 0;
-  for (const s of workSets) {
-    volume += s.weight * s.reps;
-  }
-  return volume;
+  return totalWeightReps / totalReps;
 }
 
 /**
@@ -100,17 +88,6 @@ export function formatStatWeight(weight: number): string {
 }
 
 /**
- * Formatage du volume (séparateur des milliers avec \u00A0) :
- * ex. "2\u00A0075\u00A0kg", "340\u00A0kg", "0\u00A0kg".
- * Formatage manuel sans toLocaleString ni Intl.NumberFormat.
- */
-export function formatStatVolume(volume: number): string {
-  const intStr = Math.round(volume).toString();
-  const formatted = intStr.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0');
-  return `${formatted}\u00A0kg`;
-}
-
-/**
  * Formatage du record personnel :
  * ex. "Record\u00A0:\u00A085\u00A0kg\u00A0\u00D7\u00A08", "Record\u00A0:\u00A00\u00A0kg\u00A0\u00D7\u00A010".
  */
@@ -164,7 +141,6 @@ export interface ExerciseStatPoint {
   date: string;
   averageWeight: number | null;
   totalReps: number;
-  volume: number;
   isRecord: boolean;
 }
 
@@ -237,7 +213,6 @@ export function buildExerciseProgression(params: {
     }
 
     const averageWeight = calculateAverageWeight(sessionWorkSets);
-    const volume = calculateSessionVolume(sessionWorkSets);
     const isRecord =
       personalRecord !== null && session.id === personalRecord.sessionId;
 
@@ -246,7 +221,6 @@ export function buildExerciseProgression(params: {
       date: session.date,
       averageWeight,
       totalReps,
-      volume,
       isRecord,
     });
   }
@@ -591,11 +565,10 @@ export function calculateGeneralProgression(params: {
 
 export interface MuscleGroupWeeklyStat {
   workSets: number;
-  volume: number;
 }
 
 /**
- * Séries de travail et volume par groupe musculaire pour la semaine de referenceDate (exactement 11 clés).
+ * Séries de travail par groupe musculaire pour la semaine de referenceDate (exactement 11 clés).
  */
 export function calculateWeeklyMuscleStats(params: {
   sessions: Session[];
@@ -608,7 +581,7 @@ export function calculateWeeklyMuscleStats(params: {
   const validGroups = new Set<string>(MUSCLE_GROUPS);
   const result = {} as Record<MuscleGroup, MuscleGroupWeeklyStat>;
   for (const group of MUSCLE_GROUPS) {
-    result[group] = { workSets: 0, volume: 0 };
+    result[group] = { workSets: 0 };
   }
 
   const { startOfWeek, endOfWeek } = getWeekRangeUtc(referenceDate);
@@ -638,7 +611,6 @@ export function calculateWeeklyMuscleStats(params: {
     if (!validGroups.has(exercise.muscleGroup)) continue;
 
     result[exercise.muscleGroup].workSets++;
-    result[exercise.muscleGroup].volume += set.weight * set.reps;
   }
 
   return result;
@@ -648,11 +620,10 @@ export interface WeeklyMuscleGroupHistoryPoint {
   weekStart: string;
   weekEnd: string;
   workSets: number;
-  volume: number;
 }
 
 /**
- * Historique des séries de travail et du volume sur 8 semaines pour un groupe musculaire.
+ * Historique des séries de travail sur 8 semaines pour un groupe musculaire.
  */
 export function calculateMuscleGroupHistory(params: {
   sessions: Session[];
@@ -688,7 +659,6 @@ export function calculateMuscleGroupHistory(params: {
     );
 
     let workSets = 0;
-    let volume = 0;
 
     for (const set of sets) {
       if (set.type !== 'work') continue;
@@ -698,14 +668,12 @@ export function calculateMuscleGroupHistory(params: {
       if (!exercise || exercise.muscleGroup !== muscleGroup) continue;
 
       workSets++;
-      volume += set.weight * set.reps;
     }
 
     history.push({
       weekStart: startOfWeek,
       weekEnd: endOfWeek,
       workSets,
-      volume,
     });
   }
 

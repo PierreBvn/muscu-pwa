@@ -2,11 +2,9 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { db, MUSCLE_GROUPS, type Exercise, type MuscleGroup, type Session, type SetEntry } from '../schema';
 import {
   calculateAverageWeight,
-  calculateSessionVolume,
   calculateSessionReps,
   findPersonalRecord,
   formatStatWeight,
-  formatStatVolume,
   formatPersonalRecord,
   formatStatReps,
   getWeekRangeUtc,
@@ -60,9 +58,6 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       // Seules les séries de 80 kg et 85 kg sont prises en compte ; la série à 40 kg est ignorée.
       const avg = calculateAverageWeight(sets);
       expect(avg).toBeCloseTo((80 * 10 + 85 * 8) / (10 + 8));
-
-      const volume = calculateSessionVolume(sets);
-      expect(volume).toBe(80 * 10 + 85 * 8); // 800 + 680 = 1480
 
       const reps = calculateSessionReps(sets);
       expect(reps).toBe(18); // 10 + 8 (pas le 10 de warmup)
@@ -228,13 +223,6 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       expect(formatStatWeight(avg!)).toBe('18,5\u00A0kg');
     });
 
-    it('2.4 exemple chiffré : formatage des volumes et séparateur des milliers', () => {
-      expect(formatStatVolume(340)).toBe('340\u00A0kg');
-      expect(formatStatVolume(412)).toBe('412\u00A0kg');
-      expect(formatStatVolume(2075)).toBe('2\u00A0075\u00A0kg');
-      expect(formatStatVolume(0)).toBe('0\u00A0kg');
-    });
-
     it('formatage des répétitions (formatStatReps)', () => {
       expect(formatStatReps(25)).toBe('25\u00A0reps');
       expect(formatStatReps(1)).toBe('1\u00A0rep');
@@ -290,10 +278,6 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       expect(avg).not.toBeNull();
       expect(avg!).toBeCloseTo(2340 / 27, 4); // 86.666...
       expect(formatStatWeight(avg!)).toBe('86,5\u00A0kg');
-
-      const volume = calculateSessionVolume(sets);
-      expect(volume).toBe(2340);
-      expect(formatStatVolume(volume)).toBe('2\u00A0340\u00A0kg');
     });
 
     it('2.6 exemple départage record (égalité) : chronologiquement antérieur retenu', () => {
@@ -561,7 +545,7 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       expect(prog.currentChange).toBe('—');
     });
 
-    it('2.9 exemple chiffré : séries work et volume pour les 11 groupes sur la semaine de référence', () => {
+    it('2.9 exemple chiffré : séries work pour les 11 groupes sur la semaine de référence', () => {
       const sessions: Session[] = [
         { id: 1, date: '2026-10-14', startedAt: '2026-10-14T10:00:00Z', endedAt: '2026-10-14T11:00:00Z' },
         { id: 2, date: '2026-10-21', startedAt: '2026-10-21T10:00:00Z', endedAt: '2026-10-21T11:00:00Z' }, // hors semaine
@@ -573,11 +557,11 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       ];
 
       const sets: SetEntry[] = [
-        // Pectoraux : 3 séries de 80 kg x 10 reps = 2400 kg
+        // Pectoraux : 3 séries
         { id: 1, sessionId: 1, exerciseId: 1, order: 1, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-14T10:05:00Z' },
         { id: 2, sessionId: 1, exerciseId: 1, order: 2, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-14T10:10:00Z' },
         { id: 3, sessionId: 1, exerciseId: 1, order: 3, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-14T10:15:00Z' },
-        // Triceps : 3 séries de 30 kg x 10 reps = 900 kg
+        // Triceps : 3 séries
         { id: 4, sessionId: 1, exerciseId: 2, order: 4, weight: 30, reps: 10, type: 'work', createdAt: '2026-10-14T10:20:00Z' },
         { id: 5, sessionId: 1, exerciseId: 2, order: 5, weight: 30, reps: 10, type: 'work', createdAt: '2026-10-14T10:25:00Z' },
         { id: 6, sessionId: 1, exerciseId: 2, order: 6, weight: 30, reps: 10, type: 'work', createdAt: '2026-10-14T10:30:00Z' },
@@ -593,20 +577,20 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       });
 
       expect(Object.keys(stats)).toHaveLength(11);
-      expect(stats.Pectoraux).toEqual({ workSets: 3, volume: 2400 });
-      expect(stats.Triceps).toEqual({ workSets: 3, volume: 900 });
-      expect(stats.Dos).toEqual({ workSets: 0, volume: 0 });
-      expect(stats.Épaules).toEqual({ workSets: 0, volume: 0 });
-      expect(stats.Biceps).toEqual({ workSets: 0, volume: 0 });
-      expect(stats['Avant-bras']).toEqual({ workSets: 0, volume: 0 });
-      expect(stats.Abdos).toEqual({ workSets: 0, volume: 0 });
-      expect(stats.Quadriceps).toEqual({ workSets: 0, volume: 0 });
-      expect(stats.Ischios).toEqual({ workSets: 0, volume: 0 });
-      expect(stats.Fessiers).toEqual({ workSets: 0, volume: 0 });
-      expect(stats.Mollets).toEqual({ workSets: 0, volume: 0 });
+      expect(stats.Pectoraux).toEqual({ workSets: 3 });
+      expect(stats.Triceps).toEqual({ workSets: 3 });
+      expect(stats.Dos).toEqual({ workSets: 0 });
+      expect(stats.Épaules).toEqual({ workSets: 0 });
+      expect(stats.Biceps).toEqual({ workSets: 0 });
+      expect(stats['Avant-bras']).toEqual({ workSets: 0 });
+      expect(stats.Abdos).toEqual({ workSets: 0 });
+      expect(stats.Quadriceps).toEqual({ workSets: 0 });
+      expect(stats.Ischios).toEqual({ workSets: 0 });
+      expect(stats.Fessiers).toEqual({ workSets: 0 });
+      expect(stats.Mollets).toEqual({ workSets: 0 });
     });
 
-    it('2.10 exemple chiffré : historique 8 semaines séries et volume pour un groupe musculaire', () => {
+    it('2.10 exemple chiffré : historique 8 semaines séries pour un groupe musculaire', () => {
       const sessions: Session[] = [
         { id: 1, date: '2026-10-13', startedAt: '2026-10-13T10:00:00Z', endedAt: '2026-10-13T11:00:00Z' },
         { id: 2, date: '2026-10-16', startedAt: '2026-10-16T10:00:00Z', endedAt: '2026-10-16T11:00:00Z' },
@@ -618,12 +602,12 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       ];
 
       const sets: SetEntry[] = [
-        // Séance 1 : 3 séries couché (80 kg x 10 x 3) = 2400 kg
+        // Séance 1 : 3 séries couché
         { id: 1, sessionId: 1, exerciseId: 1, order: 1, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-13T10:05:00Z' },
         { id: 2, sessionId: 1, exerciseId: 1, order: 2, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-13T10:10:00Z' },
         { id: 3, sessionId: 1, exerciseId: 1, order: 3, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-13T10:15:00Z' },
-        // Séance 2 : 4 séries écarté (50x10 + 50x10 + 50x10 + 57.5x10 = 2075 kg)
-        // Total Pectoraux semaine 8 = 2400 + 2075 = 4475 kg
+        // Séance 2 : 4 séries écarté
+        // Total Pectoraux semaine 8 = 7 séries
         { id: 4, sessionId: 2, exerciseId: 2, order: 1, weight: 50, reps: 10, type: 'work', createdAt: '2026-10-16T10:05:00Z' },
         { id: 5, sessionId: 2, exerciseId: 2, order: 2, weight: 50, reps: 10, type: 'work', createdAt: '2026-10-16T10:10:00Z' },
         { id: 6, sessionId: 2, exerciseId: 2, order: 3, weight: 50, reps: 10, type: 'work', createdAt: '2026-10-16T10:15:00Z' },
@@ -641,10 +625,8 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       expect(history).toHaveLength(8);
       for (let i = 0; i < 7; i++) {
         expect(history[i].workSets).toBe(0);
-        expect(history[i].volume).toBe(0);
       }
       expect(history[7].workSets).toBe(7);
-      expect(history[7].volume).toBe(4475);
     });
 
     it('2.11 exemple formatage : formatIndexChange avec +5,8 %, −2,0 % et 0,0 %', () => {
@@ -671,7 +653,6 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       ];
       expect(calculateAverageWeight(setsWithZeroReps)).toBeNull();
       expect(calculateAverageWeight([])).toBeNull();
-      expect(calculateSessionVolume(setsWithZeroReps)).toBe(0);
       expect(calculateSessionReps(setsWithZeroReps)).toBe(0);
     });
 

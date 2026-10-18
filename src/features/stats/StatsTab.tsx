@@ -3,7 +3,6 @@ import type { Exercise } from '../../db/schema';
 import {
   useExerciseProgression,
   formatStatWeight,
-  formatStatVolume,
   formatStatReps,
   formatPersonalRecord,
 } from '../../db/stats';
@@ -66,30 +65,18 @@ export const StatsTab: React.FC = () => {
         ) : (
           /* Exercice avec séances terminées */
           <div className="space-y-4">
-            {/* Résumé au-dessus de la courbe */}
+            {/* Résumé au-dessus de la courbe : poids moyen de la dernière séance terminée, puis le record */}
             <div className="rounded-2xl bg-surface border border-line p-4 space-y-3">
-              <div className="flex items-center justify-between gap-4">
-                {/* Métrique principale : Poids moyen ou Total reps de la dernière séance */}
-                <div className="min-w-0">
-                  <span className="text-xs uppercase tracking-wider text-muted font-medium block">
-                    {progression?.mode === 'weight' ? 'Poids moyen' : 'Répétitions'}
-                  </span>
-                  <span className="text-2xl font-bold text-text tabular-nums tracking-tight">
-                    {progression?.mode === 'weight'
-                      ? formatStatWeight(lastPoint?.averageWeight ?? 0)
-                      : formatStatReps(lastPoint?.totalReps ?? 0)}
-                  </span>
-                </div>
-
-                {/* Volume de la dernière séance */}
-                <div className="text-right min-w-0">
-                  <span className="text-xs uppercase tracking-wider text-muted font-medium block">
-                    Volume
-                  </span>
-                  <span className="text-2xl font-bold text-text tabular-nums tracking-tight">
-                    {formatStatVolume(lastPoint?.volume ?? 0)}
-                  </span>
-                </div>
+              {/* Métrique principale : Poids moyen ou Répétitions de la dernière séance */}
+              <div>
+                <span className="text-xs uppercase tracking-wider text-muted font-medium block">
+                  {progression?.mode === 'weight' ? 'Poids moyen' : 'Répétitions'}
+                </span>
+                <span className="text-2xl font-bold text-text tabular-nums tracking-tight">
+                  {progression?.mode === 'weight'
+                    ? formatStatWeight(lastPoint?.averageWeight ?? 0)
+                    : formatStatReps(lastPoint?.totalReps ?? 0)}
+                </span>
               </div>
 
               {/* Record personnel */}

@@ -192,6 +192,10 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Record = série au poids max (égalité : plus de reps, puis la plus ancienne).
 - Arrondi à 0,5 kg uniquement à l'affichage. Échauffement jamais compté. Aucune division par zéro.
 - Chaque exemple chiffré de la spec est repris tel quel dans un test.
+- Pas de volume (poids × reps) : supprimé à la demande de l'utilisateur, ne pas le réintroduire.
+- Onglet Progrès : 3 vues, Général (par défaut), Muscles et Exercices.
+- Indice de progression (Général et Muscles) : moyenne des progressions en % de chaque exercice par rapport à sa première semaine, jamais une moyenne des poids bruts.
+
 
 ## Fonctions pures
 - Une fonction pure reçoit toutes ses données en paramètres (tableaux, date explicite) : pas de Dexie, pas de new Date(), pas de Promise.
