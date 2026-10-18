@@ -9,6 +9,7 @@ import {
   moveProgramExercise,
 } from '../../db/programs';
 import { ExercisePicker } from '../../components/ExercisePicker';
+import { MuscleIcon } from '../../components/MuscleIcon';
 
 interface ProgramDetailProps {
   programId: number;
@@ -136,19 +137,28 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                   className="rounded-xl bg-surface border border-line p-4 shadow-none"
                 >
                   <div className="flex items-start justify-between gap-2 mb-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-semibold text-muted w-5 tabular-nums">
-                          #{index + 1}
-                        </span>
-                        <h3 className="text-base font-semibold text-text truncate">
-                          {exName}
-                        </h3>
-                        {isArchived && (
-                          <span className="inline-flex items-center rounded-full bg-surface-2 border border-line px-2 py-0.5 text-xs font-medium text-muted">
-                            Archivé
+                    <div className="flex items-center gap-3 min-w-0">
+                      {pe.exercise?.muscleGroup && (
+                        <MuscleIcon
+                          group={pe.exercise.muscleGroup}
+                          alt={pe.exercise.muscleGroup}
+                          className="w-10 h-10 shrink-0 object-contain"
+                        />
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono font-semibold text-muted tabular-nums">
+                            #{index + 1}
                           </span>
-                        )}
+                          <h3 className="text-base font-semibold text-text truncate">
+                            {exName}
+                          </h3>
+                          {isArchived && (
+                            <span className="inline-flex items-center rounded-full bg-surface-2 border border-line px-2 py-0.5 text-xs font-medium text-muted">
+                              Archivé
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Exercise } from '../../db/schema';
-import { MuscleIcon } from '../../components/MuscleIcon';
 
 interface ExerciseCardProps {
   exercise: Exercise;
@@ -15,13 +14,10 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
 }) => {
   return (
     <div className="flex items-center justify-between rounded-xl bg-surface px-4 py-3 border border-line">
-      <div className="flex items-center gap-3 min-w-0">
-        <MuscleIcon group={exercise.muscleGroup} alt={exercise.muscleGroup} className="w-10 h-10 shrink-0 object-contain" />
-        <span className="text-base font-medium text-text truncate">
-          {exercise.name}
-        </span>
-      </div>
-      <div className="flex items-center gap-1">
+      <span className="text-base font-medium text-text truncate min-w-0">
+        {exercise.name}
+      </span>
+      <div className="flex items-center gap-1 shrink-0">
         <button
           type="button"
           onClick={() => onEdit(exercise)}

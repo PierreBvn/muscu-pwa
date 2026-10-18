@@ -179,6 +179,12 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Partout dans l'interface, un groupe est représenté par MuscleIcon (PNG recolorés), jamais par une abréviation.
 - Taille minimale : 40 px, et 48 px au maximum (fichiers en 144 px).
 
+## Sauvegarde
+- Logique dans src/db/backup.ts, testée, sans interface pour l'instant.
+- Ne pas supprimer backup.ts ni ses tests.
+
+## Groupes musculaires
+- Une ligne d'exercice affiche MuscleIcon seulement si la liste mélange plusieurs groupes.
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.

@@ -101,7 +101,10 @@ describe('ExercisePicker', () => {
     fireEvent.click(dosBtn);
 
     // Liste du groupe Dos
-    expect(screen.getByRole('button', { name: 'Rowing barre' })).toBeInTheDocument();
+    const rowingBtn = screen.getByRole('button', { name: 'Rowing barre' });
+    expect(rowingBtn).toBeInTheDocument();
+    // Les lignes d'exercices d'une catégorie n'ont pas d'icône
+    expect(rowingBtn.querySelector('img')).toBeNull();
 
     // L'en-tête du groupe Dos affiche l'icône associée dos.png
     const headerIcon = screen.getByText('Dos').closest('div')?.querySelector('img[aria-hidden="true"]');

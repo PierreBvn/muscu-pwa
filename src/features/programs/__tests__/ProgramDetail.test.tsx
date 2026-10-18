@@ -201,4 +201,24 @@ describe('ProgramDetail UI', () => {
       expect(screen.getByText(/archivé/i)).toBeInTheDocument();
     });
   });
+
+  it('displays muscle group icons with accessible alt for scheduled exercises in program detail', async () => {
+    await addExerciseToProgram({ programId, exerciseId: exBenchId });
+    await addExerciseToProgram({ programId, exerciseId: exSquatId });
+
+    render(<ProgramDetail programId={programId} onBack={() => {}} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Développé couché')).toBeInTheDocument();
+      expect(screen.getByText('Squat')).toBeInTheDocument();
+    });
+
+    const benchIcon = screen.getByRole('img', { name: 'Pectoraux' });
+    expect(benchIcon).toBeInTheDocument();
+    expect(benchIcon.getAttribute('src')).toContain('pectoraux.png');
+
+    const squatIcon = screen.getByRole('img', { name: 'Quadriceps' });
+    expect(squatIcon).toBeInTheDocument();
+    expect(squatIcon.getAttribute('src')).toContain('quadriceps.png');
+  });
 });

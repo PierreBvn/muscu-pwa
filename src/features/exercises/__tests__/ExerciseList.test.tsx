@@ -67,12 +67,9 @@ describe('ExerciseList UI component (grille & navigation)', () => {
     expect(headerIcon).not.toBeNull();
     expect(headerIcon?.getAttribute('src')).toContain('pectoraux.png');
 
-    // Les cartes d'exercices affichent l'icône MuscleIcon accessible avec alt="Pectoraux"
-    const exerciseIcons = screen.getAllByRole('img', { name: 'Pectoraux' });
-    expect(exerciseIcons.length).toBeGreaterThanOrEqual(3);
-    for (const icon of exerciseIcons) {
-      expect(icon.getAttribute('src')).toContain('pectoraux.png');
-    }
+    // Les cartes d'exercices d'une catégorie n'affichent pas d'icône de groupe (réservée aux listes mélangées)
+    expect(screen.queryAllByRole('img', { name: 'Pectoraux' })).toHaveLength(0);
+    expect(screen.getByText('Développé couché').closest('div')?.querySelector('img')).toBeNull();
 
     // Bouton Retour
     const backBtn = screen.getByRole('button', { name: /retour/i });
