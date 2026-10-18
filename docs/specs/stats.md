@@ -18,7 +18,7 @@ Les calculs s'appuient exclusivement sur les champs suivants du schéma Dexie d�
 | `SetEntry` | `sessionId` | `src/db/schema.ts:50` | Identifiant de la séance rattachée |
 | `Session` | `date` | `src/db/schema.ts:40` | Date locale de la séance (`YYYY-MM-DD`) pour le regroupement hebdomadaire |
 | `Session` | `endedAt` | `src/db/schema.ts:43` | Date de fin ISO ; sa présence valide la séance |
-| `Exercise` | `muscleGroup` | `src/db/schema.ts:33` | Groupe musculaire parmi les 11 groupes pour le volume hebdomadaire |
+| `Exercise` | `muscleGroup` | `src/db/schema.ts:33` | Groupe musculaire parmi les 11 groupes pour les séries hebdomadaires |
 
 ---
 
@@ -26,7 +26,7 @@ Les calculs s'appuient exclusivement sur les champs suivants du schéma Dexie d�
 
 ### 2.1 Séries de travail uniquement
 Les fonctions de calcul qui reçoivent des séries filtrent elles-mêmes `type === 'work'`. L'appelant n'a aucun préfiltrage à effectuer.
-Les séries d'échauffement (`type === 'warmup'`) sont strictement ignorées dans l'ensemble des statistiques (poids moyen, volume, record personnel, séries hebdomadaires).
+Les séries d'échauffement (`type === 'warmup'`) sont strictement ignorées dans l'ensemble des statistiques (poids moyen, record personnel, séries hebdomadaires).
 
 *Exemple chiffré :*
 - 1 série d'échauffement : 40 kg × 10 reps (`type: 'warmup'`)
@@ -34,7 +34,7 @@ Les séries d'échauffement (`type === 'warmup'`) sont strictement ignorées dan
 - Seules les séries de 80 kg et 85 kg sont prises en compte ; la série à 40 kg est ignorée.
 
 ### 2.2 Séances terminées uniquement
-Toute séance sans date de fin (`endedAt === undefined` ou non renseigné) est une séance en cours ou abandonnée. Elle est strictement exclue de tous les calculs (courbe de progression, record personnel, volume et décompte des séries hebdomadaires).
+Toute séance sans date de fin (`endedAt === undefined` ou non renseigné) est une séance en cours ou abandonnée. Elle est strictement exclue de tous les calculs (courbe de progression, record personnel et décompte des séries hebdomadaires).
 Le filtrage de `endedAt` est opéré au niveau des fonctions qui traitent les sessions (`buildExerciseProgression` et `calculateWeeklyWorkSetsByGroup`).
 
 *Exemple chiffré :*
@@ -59,49 +59,28 @@ Aucune formule d'Epley ni estimation 1RM n'est utilisée.
 
 #### Exemples obligatoires exacts (chaînes de test Vitest) :
 - **Exemple a** : 20 kg × 8 reps, 18 kg × 10 reps
-  - Volume : $(20 \times 8) + (18 \times 10) = 160 + 180 = 340\text{ kg}$
   - Répétitions : $8 + 10 = 18\text{ reps}$
-  - Calcul exact : $340 / 18 \approx 18{,}8888\dots\text{ kg}$
+  - Calcul exact : $(20 \times 8 + 18 \times 10) / 18 = 340 / 18 \approx 18{,}8888\dots\text{ kg}$
   - **Chaîne attendue : `'19\u00A0kg'`**
 - **Exemple b** : 80 kg × 10 reps, 85 kg × 8 reps, 85 kg × 7 reps
-  - Volume : $(80 \times 10) + (85 \times 8) + (85 \times 7) = 800 + 680 + 595 = 2075\text{ kg}$
   - Répétitions : $10 + 8 + 7 = 25\text{ reps}$
-  - Calcul exact : $2075 / 25 = 83{,}00\text{ kg}$
+  - Calcul exact : $(80 \times 10 + 85 \times 8 + 85 \times 7) / 25 = 2075 / 25 = 83{,}00\text{ kg}$
   - **Chaîne attendue : `'83\u00A0kg'`**
 - **Exemple c** : 20 kg × 8 reps, 18 kg × 14 reps
-  - Volume : $(20 \times 8) + (18 \times 14) = 160 + 252 = 412\text{ kg}$
   - Répétitions : $8 + 14 = 22\text{ reps}$
-  - Calcul exact : $412 / 22 \approx 18{,}7272\dots\text{ kg}$
+  - Calcul exact : $(20 \times 8 + 18 \times 14) / 22 = 412 / 22 \approx 18{,}7272\dots\text{ kg}$
   - **Chaîne attendue : `'18,5\u00A0kg'`**
 
-### 2.4 Volume par séance et impact des répétitions sur séries légères
-Le volume d'un exercice pour une séance terminée est la somme :
-
-$$\text{Volume} = \sum (\text{poids} \times \text{reps})$$
-
-sur les séries `'work'` de cet exercice dans la séance.
-
-- **Séparateur des milliers et unité** : encodé avec le caractère espace insécable `\u00A0` (Unicode NO-BREAK SPACE, U+00A0).
-  - Chaîne attendue en test : `'2\u00A0075\u00A0kg'`.
-- **Comportement documenté (Exemple c comparé à l'exemple a)** :
-  - Ajouter des répétitions sur une série plus légère augmente le volume total mais abaisse mathématiquement le poids moyen par rep (le dénominateur des répétitions augmente proportionnellement plus que le numérateur).
-  - *Exemple chiffré :*
-    - Séance 1 (Exemple a) : 20×8 et 18×10 $\rightarrow$ Poids moyen = `'19\u00A0kg'`, Volume = `'340\u00A0kg'`.
-    - Séance 2 (Exemple c) : 20×8 et 18×14 $\rightarrow$ Poids moyen = `'18,5\u00A0kg'`, Volume = `'412\u00A0kg'`.
-    - Le volume affiché à côté de la courbe passe de 340 kg à 412 kg (+72 kg), attestant du progrès accompli malgré la baisse apparente de la moyenne.
-
-### 2.5 Séries allégées en fin de séance (« back-off »)
-Une série allégée en fin d'exercice (back-off) pour accumuler du volume reste une série de travail normale (`type: 'work'`). Aucun nouveau type de série n'est introduit dans le schéma. Elle est incluse dans le calcul du poids moyen et du volume de la séance.
+### 2.4 Séries allégées en fin de séance (« back-off »)
+Une série allégée en fin d'exercice (back-off) reste une série de travail normale (`type: 'work'`). Aucun nouveau type de série n'est introduit dans le schéma. Elle est incluse dans le calcul du poids moyen de la séance.
 
 *Exemple chiffré :*
 - 3 séries lourdes : 100 kg × 5 reps, 100 kg × 5 reps, 100 kg × 5 reps
 - 1 série back-off : 70 kg × 12 reps
-- Somme volume : $(100 \times 5 \times 3) + (70 \times 12) = 1500 + 840 = 2340\text{ kg}$
 - Somme répétitions : $15 + 12 = 27\text{ reps}$
-- Poids moyen exact : $2340 / 27 \approx 86{,}666\dots\text{ kg}$ $\rightarrow$ **Chaîne attendue : `'86,5\u00A0kg'`**
-- Volume : **Chaîne attendue : `'2\u00A0340\u00A0kg'`**
+- Poids moyen exact : $(100 \times 5 \times 3 + 70 \times 12) / 27 = 2340 / 27 \approx 86{,}666\dots\text{ kg}$ $\rightarrow$ **Chaîne attendue : `'86,5\u00A0kg'`**
 
-### 2.6 Record personnel de l'exercice
+### 2.5 Record personnel de l'exercice
 Le record est la série la plus performante jamais réalisée sur l'exercice à travers toutes les séances terminées, parmi les séries de type `'work'`.
 
 **Ordre strict de départage :**
@@ -119,7 +98,7 @@ Le record est la série la plus performante jamais réalisée sur l'exercice à 
 - Séance du 15/10/2026 (`createdAt: '2026-10-15T10:05:00.000Z'`) : 85 kg × 8 reps
 - Record retenu : celle du 10/10/2026 car chronologiquement antérieure.
 
-### 2.7 Séries de travail par groupe et par semaine
+### 2.6 Séries de travail par groupe et par semaine
 Nombre de séries de travail (`type === 'work'`) des séances terminées par semaine calendaire du lundi au dimanche, selon la date locale de la séance (`sessions.date`).
 - La fonction reçoit une date de référence sous forme de chaîne `'YYYY-MM-DD'` (jamais d'objet `Date`).
 - Les comparaisons de dates sont effectuées directement sous forme de chaînes de caractères `'YYYY-MM-DD'` (`date >= startOfWeek && date <= endOfWeek`).
@@ -135,7 +114,7 @@ Nombre de séries de travail (`type === 'work'`) des séances terminées par sem
   - `Triceps` : $3$ séries
   - `Dos`, `Épaules`, `Biceps`, `Avant-bras`, `Abdos`, `Quadriceps`, `Ischios`, `Fessiers`, `Mollets` : $0$ série chacun.
 
-### 2.8 Indice général de progression en poids (8 semaines)
+### 2.7 Indice général de progression en poids (8 semaines)
 L'indice général mesure l'évolution globale de la force sur les **8 semaines calendaires consécutives (du lundi au dimanche)** se terminant par celle de `referenceDate` ('YYYY-MM-DD').
 Il neutralise les effets de composition d'exercices en moyennant les progressions individuelles de chaque exercice par rapport à lui-même.
 
@@ -167,35 +146,34 @@ e) **Nombre de séances terminées** : Décompte du nombre de séances terminée
     - S2 : $(84 + 16) / 2 = 50{,}00\text{ kg}$.
   - La moyenne brute chuterait de 98,3 kg à 50 kg par la seule absence de la presse, alors même que l'athlète a progressé sur tous les exercices exécutés (+5 % et +6,7 %). Le calcul par indice en % de chaque exercice par rapport à lui-même reflète fidèlement la progression réelle.
 
-### 2.9 Statistiques musculaires de la semaine de référence
+### 2.8 Statistiques musculaires de la semaine de référence
 Pour la semaine calendaire de `referenceDate` ('YYYY-MM-DD'), calcul pour chacun des 11 groupes musculaires de `MUSCLE_GROUPS` :
-- `workSets` : nombre de séries de travail (`type === 'work'`) des séances terminées de la semaine ;
-- `volume` : volume total soulevé ($\sum \text{poids} \times \text{reps}$) des séries de travail des séances terminées de la semaine.
-- Renvoie **exactement 11 clés**. Tout groupe sans série vaut `{ workSets: 0, volume: 0 }`. Les exercices introuvables ou dont le groupe n'est pas dans `MUSCLE_GROUPS` sont ignorés.
+- `workSets` : nombre de séries de travail (`type === 'work'`) des séances terminées de la semaine.
+- Renvoie **exactement 11 clés**. Tout groupe sans série vaut `{ workSets: 0 }`. Les exercices introuvables ou dont le groupe n'est pas dans `MUSCLE_GROUPS` sont ignorés.
 
 *Exemple chiffré :*
 - Semaine du 12/10/2026 au 18/10/2026 (`referenceDate: '2026-10-15'`) :
-  - Développé couché (Pectoraux) : 3 séries de 80 kg × 10 reps = 2400 kg.
-  - Barre au front (Triceps) : 3 séries de 30 kg × 10 reps = 900 kg.
+  - Développé couché (Pectoraux) : 3 séries de 80 kg × 10 reps.
+  - Barre au front (Triceps) : 3 séries de 30 kg × 10 reps.
 - Résultat :
-  - `Pectoraux` : `{ workSets: 3, volume: 2400 }`
-  - `Triceps` : `{ workSets: 3, volume: 900 }`
-  - Les 9 autres groupes : `{ workSets: 0, volume: 0 }` chacun.
+  - `Pectoraux` : `{ workSets: 3 }`
+  - `Triceps` : `{ workSets: 3 }`
+  - Les 9 autres groupes : `{ workSets: 0 }` chacun.
 
-### 2.10 Historique musculaire sur 8 semaines pour un groupe
-Pour un groupe musculaire donné (`muscleGroup: MuscleGroup`), fournit les séries de travail et le volume pour chacune des 8 semaines consécutives se terminant par celle de `referenceDate`.
+### 2.9 Historique musculaire sur 8 semaines pour un groupe
+Pour un groupe musculaire donné (`muscleGroup: MuscleGroup`), fournit les séries de travail pour chacune des 8 semaines consécutives se terminant par celle de `referenceDate`.
 - Renvoie un tableau de 8 éléments ordonnés chronologiquement du plus ancien au plus récent.
-- Chaque élément contient : `weekStart` ('YYYY-MM-DD', lundi), `weekEnd` ('YYYY-MM-DD', dimanche), `workSets` (nombre de séries de travail des séances terminées), `volume` (somme poids × reps).
-- Les semaines sans entraînement pour ce groupe ont `workSets: 0` et `volume: 0`.
+- Chaque élément contient : `weekStart` ('YYYY-MM-DD', lundi), `weekEnd` ('YYYY-MM-DD', dimanche), `workSets` (nombre de séries de travail des séances terminées).
+- Les semaines sans entraînement pour ce groupe ont `workSets: 0`.
 
 *Exemple chiffré :*
 - Groupe ciblé : `Pectoraux`.
 - Sur les 8 semaines se terminant le 18/10/2026 :
-  - Semaine du 12/10/2026 au 18/10/2026 (semaine 8) : 7 séries de travail, volume 4475 kg.
-  - Semaines 1 à 7 : 0 série, volume 0 kg si aucune séance pectoraux.
+  - Semaine du 12/10/2026 au 18/10/2026 (semaine 8) : 7 séries de travail.
+  - Semaines 1 à 7 : 0 série si aucune séance pectoraux.
 - Le tableau renvoyé compte exactement 8 points hebdomadaires.
 
-### 2.11 Formatage de la variation d'indice (`formatIndexChange`)
+### 2.10 Formatage de la variation d'indice (`formatIndexChange`)
 L'affichage de la variation de l'indice général compare la valeur de l'indice à 100 :
 $$\text{Écart} = \text{Indice} - 100$$
 - **Règles strictes** :
@@ -226,7 +204,7 @@ Le mode du graphique est déterminé en analysant l'ensemble des séances termin
 
 | Cas limite | Règle & résultat attendu | Exemple chiffré |
 |---|---|---|
-| **Exercice à 0 kg uniquement (poids du corps strict)** | Toutes les séries de toutes les séances sont à 0 kg. La courbe bascule en mode `'reps'`. | Séries : 0 kg × 10, 0 kg × 8, 0 kg × 7 $\rightarrow$ Courbe affiche **25 reps**, Record : `'Record\u00A0:\u00A00\u00A0kg\u00A0\u00D7\u00A010'`, Volume : `'0\u00A0kg'`. |
+| **Exercice à 0 kg uniquement (poids du corps strict)** | Toutes les séries de toutes les séances sont à 0 kg. La courbe bascule en mode `'reps'`. | Séries : 0 kg × 10, 0 kg × 8, 0 kg × 7 $\rightarrow$ Courbe affiche **25 reps**, Record : `'Record\u00A0:\u00A00\u00A0kg\u00A0\u00D7\u00A010'`. |
 | **Total de répétitions = 0** | **Aucune division par zéro**. Si $\sum reps = 0$ ou aucune série `'work'`, la fonction renvoie `null`. | Séance sans répétition valide $\rightarrow$ renvoie `null`, tiret `« — »` affiché, aucun point sur la courbe. |
 | **Séance en cours** | Exclue car `endedAt` est absent ou indéfini. | Voir section 2.2. |
 | **Exercice archivé** | Dans `src/db/exercises.ts:143`, `filterExercises` exclut par défaut les archivés (`if (ex.archived) return false;`). `ExercisePicker` (`src/components/ExercisePicker.tsx:39`) les masque donc actuellement. La spec ajoute une prop optionnelle `includeArchived?: boolean` (défaut `false`, comportement actuel inchangé) à `ExercisePicker` et `filterExercises` pour permettre de consulter les statistiques d'un exercice archivé. | L'exercice archivé sélectionné affiche ses statistiques complètes sans section « Archivés » dédiée. |
@@ -267,7 +245,6 @@ Le mode du graphique est déterminé en analysant l'ensemble des séances termin
   - Sélecteur d'exercice : réutilise le composant existant `ExercisePicker` avec la prop `includeArchived={true}`.
   - Cartouche de métriques :
     - Poids moyen de la dernière séance terminée (ex. `'83\u00A0kg'`).
-    - Volume total de la dernière séance (ex. `'2\u00A0075\u00A0kg'`).
     - Record personnel de l'exercice (ex. `'Record\u00A0:\u00A085\u00A0kg\u00A0\u00D7\u00A08'`).
   - Graphique : courbe temporelle du poids moyen (ou des reps si 0 kg) avec point gold marquant le record personnel.
 - **Vue 2 : Séries par groupe et par semaine**
@@ -301,16 +278,13 @@ Le mode du graphique est déterminé en analysant l'ensemble des séances termin
 ### 6.1 Lot 4b : Fonctions pures et lecture Dexie (`src/db/stats.ts`)
 
 #### Fonctions pures de calcul (aucun appel Dexie)
-Les fonctions qui ne reçoivent que des séries (`calculateAverageWeight`, `calculateSessionVolume`, `calculateSessionReps`, `findPersonalRecord`) filtrent uniquement `type === 'work'`.
+Les fonctions qui ne reçoivent que des séries (`calculateAverageWeight`, `calculateSessionReps`, `findPersonalRecord`) filtrent uniquement `type === 'work'`.
 Le filtrage des séances terminées (`endedAt !== undefined`) est opéré uniquement dans les fonctions qui reçoivent le tableau `sessions` (`buildExerciseProgression` et `calculateWeeklyWorkSetsByGroup`).
 Toutes les dates manipulées sont des chaînes au format `'YYYY-MM-DD'` (aucun objet `Date`) :
 
 ```typescript
 // Poids moyen par rep pour une séance (renvoie null si sum(reps) === 0 ou pas de série work)
 export function calculateAverageWeight(sets: SetEntry[]): number | null;
-
-// Volume total (somme de poids × reps) des séries work
-export function calculateSessionVolume(sets: SetEntry[]): number;
 
 // Total de répétitions des séries work (pour le mode 0 kg poids du corps)
 export function calculateSessionReps(sets: SetEntry[]): number;
@@ -320,9 +294,6 @@ export function findPersonalRecord(sets: SetEntry[]): SetEntry | null;
 
 // Formatage du poids (arrondi 0,5 kg le plus proche) : ex. "19\u00A0kg", "18,5\u00A0kg"
 export function formatStatWeight(weight: number): string;
-
-// Formatage du volume (séparateur des milliers \u00A0) : ex. "2\u00A0075\u00A0kg"
-export function formatStatVolume(volume: number): string;
 
 // Formatage du record personnel : ex. "Record\u00A0:\u00A085\u00A0kg\u00A0\u00D7\u00A08"
 export function formatPersonalRecord(record: SetEntry): string;
@@ -342,7 +313,6 @@ export interface ExerciseStatPoint {
   date: string;
   averageWeight: number | null;
   totalReps: number;
-  volume: number;
   isRecord: boolean;
 }
 
@@ -401,7 +371,6 @@ export function calculateGeneralProgression(params: {
 // Statistiques musculaires pour la semaine de référence (11 groupes)
 export interface MuscleGroupWeeklyStat {
   workSets: number;
-  volume: number;
 }
 
 export function calculateWeeklyMuscleStats(params: {
@@ -416,7 +385,6 @@ export interface WeeklyMuscleGroupHistoryPoint {
   weekStart: string; // 'YYYY-MM-DD'
   weekEnd: string;   // 'YYYY-MM-DD'
   workSets: number;
-  volume: number;
 }
 
 export function calculateMuscleGroupHistory(params: {
