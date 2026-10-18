@@ -9,10 +9,15 @@ import {
   formatStatVolume,
   formatPersonalRecord,
   getWeekRangeUtc,
+  formatIndexChange,
   buildExerciseProgression,
   calculateWeeklyWorkSetsByGroup,
+  calculateGeneralProgression,
+  calculateWeeklyMuscleStats,
+  calculateMuscleGroupHistory,
   loadExerciseStatsData,
   loadWeeklyStatsData,
+  loadGeneralStatsData,
 } from '../stats';
 
 describe('src/db/stats.ts - Calculs des statistiques', () => {
@@ -424,6 +429,222 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       expect(Object.keys(counts)).toHaveLength(11);
       expect(counts.Quadriceps).toBe(1);
     });
+
+    it('2.8 exemple obligatoire : indice de progression en poids S1 et S2 (couché, curl, presse)', () => {
+      // S1 : couché 80, curl 15, presse 200
+      // S2 : couché 84, curl 16, presse absente
+      const sessions: Session[] = [
+        { id: 1, date: '2026-10-07', startedAt: '2026-10-07T10:00:00Z', endedAt: '2026-10-07T11:00:00Z' }, // S1
+        { id: 2, date: '2026-10-14', startedAt: '2026-10-14T10:00:00Z', endedAt: '2026-10-14T11:00:00Z' }, // S2
+      ];
+
+      const exercises: Exercise[] = [
+        { id: 1, name: 'Développé couché', muscleGroup: 'Pectoraux', archived: false },
+        { id: 2, name: 'Curl biceps', muscleGroup: 'Biceps', archived: false },
+        { id: 3, name: 'Presse à cuisses', muscleGroup: 'Quadriceps', archived: false },
+      ];
+
+      const sets: SetEntry[] = [
+        // S1
+        { id: 1, sessionId: 1, exerciseId: 1, order: 1, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-07T10:05:00Z' },
+        { id: 2, sessionId: 1, exerciseId: 2, order: 2, weight: 15, reps: 10, type: 'work', createdAt: '2026-10-07T10:10:00Z' },
+        { id: 3, sessionId: 1, exerciseId: 3, order: 3, weight: 200, reps: 10, type: 'work', createdAt: '2026-10-07T10:15:00Z' },
+        // S2
+        { id: 4, sessionId: 2, exerciseId: 1, order: 1, weight: 84, reps: 10, type: 'work', createdAt: '2026-10-14T10:05:00Z' },
+        { id: 5, sessionId: 2, exerciseId: 2, order: 2, weight: 16, reps: 10, type: 'work', createdAt: '2026-10-14T10:10:00Z' },
+      ];
+
+      const prog = calculateGeneralProgression({
+        sessions,
+        sets,
+        exercises,
+        referenceDate: '2026-10-15',
+      });
+
+      // S1 (index 6) : couché (100), curl (100), presse (100) -> indice = 100
+      expect(prog.weeks[6].index).toBe(100);
+      expect(formatIndexChange(prog.weeks[6].index)).toBe('0,0\u00A0%');
+
+      // S2 (index 7) : couché (84/80*100 = 105), curl (16/15*100 = 106.666...), presse absente
+      // Indice S2 = (105 + 106.666...) / 2 = 105.833...
+      expect(prog.weeks[7].index).not.toBeNull();
+      expect(prog.weeks[7].index!).toBeCloseTo(105.8333, 3);
+      expect(prog.currentChange).toBe('+5,8\u00A0%');
+
+      // Comparaison avec la moyenne brute montrant pourquoi elle est rejetée dans la spec
+      const rawAvgS1 = (80 + 15 + 200) / 3;
+      const rawAvgS2 = (84 + 16) / 2;
+      expect(rawAvgS1).toBeCloseTo(98.3333, 2);
+      expect(rawAvgS2).toBe(50.0);
+    });
+
+    it('2.8 exemple séances : décompte des séances terminées par semaine', () => {
+      const sessions: Session[] = [
+        { id: 1, date: '2026-10-06', startedAt: '2026-10-06T10:00:00Z', endedAt: '2026-10-06T11:00:00Z' }, // S1 terminée
+        { id: 2, date: '2026-10-08', startedAt: '2026-10-08T10:00:00Z', endedAt: '2026-10-08T11:00:00Z' }, // S1 terminée
+        { id: 3, date: '2026-10-09', startedAt: '2026-10-09T10:00:00Z', endedAt: undefined }, // S1 NON terminée
+        { id: 4, date: '2026-10-14', startedAt: '2026-10-14T10:00:00Z', endedAt: '2026-10-14T11:00:00Z' }, // S2 terminée
+      ];
+
+      const prog = calculateGeneralProgression({
+        sessions,
+        sets: [],
+        exercises: [],
+        referenceDate: '2026-10-15',
+      });
+
+      expect(prog.weeks).toHaveLength(8);
+      // S1 (index 6) : 2 terminées (la 3e sans endedAt est ignorée)
+      expect(prog.weeks[6].sessionCount).toBe(2);
+      // S2 (index 7) : 1 terminée
+      expect(prog.weeks[7].sessionCount).toBe(1);
+      // Les semaines antérieures : 0
+      for (let i = 0; i < 6; i++) {
+        expect(prog.weeks[i].sessionCount).toBe(0);
+      }
+    });
+
+    it('2.8 exemple exclusion : exercice uniquement à 0 kg exclu de l\'indice', () => {
+      const sessions: Session[] = [
+        { id: 1, date: '2026-10-07', startedAt: '2026-10-07T10:00:00Z', endedAt: '2026-10-07T11:00:00Z' },
+        { id: 2, date: '2026-10-14', startedAt: '2026-10-14T10:00:00Z', endedAt: '2026-10-14T11:00:00Z' },
+      ];
+
+      const exercises: Exercise[] = [
+        { id: 1, name: 'Développé couché', muscleGroup: 'Pectoraux', archived: false },
+        { id: 2, name: 'Tractions', muscleGroup: 'Dos', archived: false },
+      ];
+
+      const sets: SetEntry[] = [
+        // S1 : couché 80 kg + tractions 0 kg
+        { id: 1, sessionId: 1, exerciseId: 1, order: 1, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-07T10:05:00Z' },
+        { id: 2, sessionId: 1, exerciseId: 2, order: 2, weight: 0, reps: 10, type: 'work', createdAt: '2026-10-07T10:10:00Z' },
+        // S2 : couché 88 kg + tractions 0 kg
+        { id: 3, sessionId: 2, exerciseId: 1, order: 1, weight: 88, reps: 10, type: 'work', createdAt: '2026-10-14T10:05:00Z' },
+        { id: 4, sessionId: 2, exerciseId: 2, order: 2, weight: 0, reps: 12, type: 'work', createdAt: '2026-10-14T10:10:00Z' },
+      ];
+
+      const prog = calculateGeneralProgression({
+        sessions,
+        sets,
+        exercises,
+        referenceDate: '2026-10-15',
+      });
+
+      // L'exercice de tractions est exclu car toutes ses séries sur la période sont à 0 kg.
+      // L'indice général repose uniquement sur le développé couché (88/80 = 110).
+      expect(prog.weeks[6].index).toBe(100);
+      expect(prog.weeks[7].index).toBeCloseTo(110);
+      expect(prog.currentChange).toBe('+10,0\u00A0%');
+    });
+
+    it('2.8 exemple semaine sans exercice : indice null', () => {
+      const sessions: Session[] = [];
+      const prog = calculateGeneralProgression({
+        sessions,
+        sets: [],
+        exercises: [],
+        referenceDate: '2026-10-15',
+      });
+
+      for (let i = 0; i < 8; i++) {
+        expect(prog.weeks[i].index).toBeNull();
+      }
+      expect(prog.currentChange).toBe('—');
+    });
+
+    it('2.9 exemple chiffré : séries work et volume pour les 11 groupes sur la semaine de référence', () => {
+      const sessions: Session[] = [
+        { id: 1, date: '2026-10-14', startedAt: '2026-10-14T10:00:00Z', endedAt: '2026-10-14T11:00:00Z' },
+        { id: 2, date: '2026-10-21', startedAt: '2026-10-21T10:00:00Z', endedAt: '2026-10-21T11:00:00Z' }, // hors semaine
+      ];
+
+      const exercises: Exercise[] = [
+        { id: 1, name: 'Développé couché', muscleGroup: 'Pectoraux', archived: false },
+        { id: 2, name: 'Barre au front', muscleGroup: 'Triceps', archived: false },
+      ];
+
+      const sets: SetEntry[] = [
+        // Pectoraux : 3 séries de 80 kg x 10 reps = 2400 kg
+        { id: 1, sessionId: 1, exerciseId: 1, order: 1, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-14T10:05:00Z' },
+        { id: 2, sessionId: 1, exerciseId: 1, order: 2, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-14T10:10:00Z' },
+        { id: 3, sessionId: 1, exerciseId: 1, order: 3, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-14T10:15:00Z' },
+        // Triceps : 3 séries de 30 kg x 10 reps = 900 kg
+        { id: 4, sessionId: 1, exerciseId: 2, order: 4, weight: 30, reps: 10, type: 'work', createdAt: '2026-10-14T10:20:00Z' },
+        { id: 5, sessionId: 1, exerciseId: 2, order: 5, weight: 30, reps: 10, type: 'work', createdAt: '2026-10-14T10:25:00Z' },
+        { id: 6, sessionId: 1, exerciseId: 2, order: 6, weight: 30, reps: 10, type: 'work', createdAt: '2026-10-14T10:30:00Z' },
+        // Hors semaine
+        { id: 7, sessionId: 2, exerciseId: 1, order: 1, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-21T10:05:00Z' },
+      ];
+
+      const stats = calculateWeeklyMuscleStats({
+        sessions,
+        sets,
+        exercises,
+        referenceDate: '2026-10-15',
+      });
+
+      expect(Object.keys(stats)).toHaveLength(11);
+      expect(stats.Pectoraux).toEqual({ workSets: 3, volume: 2400 });
+      expect(stats.Triceps).toEqual({ workSets: 3, volume: 900 });
+      expect(stats.Dos).toEqual({ workSets: 0, volume: 0 });
+      expect(stats.Épaules).toEqual({ workSets: 0, volume: 0 });
+      expect(stats.Biceps).toEqual({ workSets: 0, volume: 0 });
+      expect(stats['Avant-bras']).toEqual({ workSets: 0, volume: 0 });
+      expect(stats.Abdos).toEqual({ workSets: 0, volume: 0 });
+      expect(stats.Quadriceps).toEqual({ workSets: 0, volume: 0 });
+      expect(stats.Ischios).toEqual({ workSets: 0, volume: 0 });
+      expect(stats.Fessiers).toEqual({ workSets: 0, volume: 0 });
+      expect(stats.Mollets).toEqual({ workSets: 0, volume: 0 });
+    });
+
+    it('2.10 exemple chiffré : historique 8 semaines séries et volume pour un groupe musculaire', () => {
+      const sessions: Session[] = [
+        { id: 1, date: '2026-10-13', startedAt: '2026-10-13T10:00:00Z', endedAt: '2026-10-13T11:00:00Z' },
+        { id: 2, date: '2026-10-16', startedAt: '2026-10-16T10:00:00Z', endedAt: '2026-10-16T11:00:00Z' },
+      ];
+
+      const exercises: Exercise[] = [
+        { id: 1, name: 'Développé couché', muscleGroup: 'Pectoraux', archived: false },
+        { id: 2, name: 'Écarté haltères', muscleGroup: 'Pectoraux', archived: false },
+      ];
+
+      const sets: SetEntry[] = [
+        // Séance 1 : 3 séries couché (80 kg x 10 x 3) = 2400 kg
+        { id: 1, sessionId: 1, exerciseId: 1, order: 1, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-13T10:05:00Z' },
+        { id: 2, sessionId: 1, exerciseId: 1, order: 2, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-13T10:10:00Z' },
+        { id: 3, sessionId: 1, exerciseId: 1, order: 3, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-13T10:15:00Z' },
+        // Séance 2 : 4 séries écarté (50x10 + 50x10 + 50x10 + 57.5x10 = 2075 kg)
+        // Total Pectoraux semaine 8 = 2400 + 2075 = 4475 kg
+        { id: 4, sessionId: 2, exerciseId: 2, order: 1, weight: 50, reps: 10, type: 'work', createdAt: '2026-10-16T10:05:00Z' },
+        { id: 5, sessionId: 2, exerciseId: 2, order: 2, weight: 50, reps: 10, type: 'work', createdAt: '2026-10-16T10:10:00Z' },
+        { id: 6, sessionId: 2, exerciseId: 2, order: 3, weight: 50, reps: 10, type: 'work', createdAt: '2026-10-16T10:15:00Z' },
+        { id: 7, sessionId: 2, exerciseId: 2, order: 4, weight: 57.5, reps: 10, type: 'work', createdAt: '2026-10-16T10:20:00Z' },
+      ];
+
+      const history = calculateMuscleGroupHistory({
+        sessions,
+        sets,
+        exercises,
+        referenceDate: '2026-10-18',
+        muscleGroup: 'Pectoraux',
+      });
+
+      expect(history).toHaveLength(8);
+      for (let i = 0; i < 7; i++) {
+        expect(history[i].workSets).toBe(0);
+        expect(history[i].volume).toBe(0);
+      }
+      expect(history[7].workSets).toBe(7);
+      expect(history[7].volume).toBe(4475);
+    });
+
+    it('2.11 exemple formatage : formatIndexChange avec +5,8 %, −2,0 % et 0,0 %', () => {
+      expect(formatIndexChange(105.8333)).toBe('+5,8\u00A0%');
+      expect(formatIndexChange(98.0)).toBe('−2,0\u00A0%');
+      expect(formatIndexChange(100.0)).toBe('0,0\u00A0%');
+      expect(formatIndexChange(null)).toBe('—');
+    });
   });
 
   describe('3. Cas limites de la spec (un test chacun)', () => {
@@ -733,6 +954,55 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       expect(data.sessions.every((s) => s.id !== s3Id)).toBe(true);
 
       // Preuve que les séries de ces séances sont chargées sans filtrer warmup
+      expect(data.sets).toHaveLength(3);
+      expect(data.sets.some((s) => s.type === 'warmup')).toBe(true);
+
+      // Preuve que tous les exercices sont chargés (y compris archivés)
+      expect(data.exercises).toHaveLength(2);
+      expect(data.exercises.some((e) => e.archived === true)).toBe(true);
+    });
+
+    it('loadGeneralStatsData renvoie séances non terminées, séries warmup et exercices archivés sur 8 semaines (sans filtre)', async () => {
+      // Semaine courante (14/10/2026) et il y a 3 semaines (23/09/2026)
+      const s1Id = (await db.sessions.add({
+        date: '2026-10-14',
+        startedAt: '2026-10-14T10:00:00Z',
+        endedAt: '2026-10-14T11:00:00Z',
+      })) as number;
+
+      const s2Id = (await db.sessions.add({
+        date: '2026-09-23',
+        startedAt: '2026-09-23T10:00:00Z',
+        endedAt: undefined, // Non terminée mais dans les 8 semaines
+      })) as number;
+
+      // Séance hors des 8 semaines (il y a 16 semaines)
+      const s3Id = (await db.sessions.add({
+        date: '2026-06-01',
+        startedAt: '2026-06-01T10:00:00Z',
+        endedAt: '2026-06-01T11:00:00Z',
+      })) as number;
+
+      await db.exercises.bulkAdd([
+        { name: 'Ex actif', muscleGroup: 'Pectoraux', archived: false },
+        { name: 'Ex archivé', muscleGroup: 'Dos', archived: true },
+      ]);
+
+      await db.sets.bulkAdd([
+        { sessionId: s1Id, exerciseId: 1, order: 1, weight: 80, reps: 10, type: 'warmup', createdAt: '2026-10-14T10:05:00Z' },
+        { sessionId: s1Id, exerciseId: 1, order: 2, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-14T10:10:00Z' },
+        { sessionId: s2Id, exerciseId: 1, order: 1, weight: 70, reps: 8, type: 'work', createdAt: '2026-09-23T10:05:00Z' },
+        { sessionId: s3Id, exerciseId: 1, order: 1, weight: 60, reps: 8, type: 'work', createdAt: '2026-06-01T10:05:00Z' },
+      ]);
+
+      const data = await loadGeneralStatsData('2026-10-15');
+
+      // Preuve que les séances dans les 8 semaines sont chargées (y compris non terminée)
+      expect(data.sessions).toHaveLength(2);
+      expect(data.sessions.some((s) => s.endedAt === undefined)).toBe(true);
+      expect(data.sessions.every((s) => s.id !== s3Id)).toBe(true);
+
+      // Preuve que les séries sont chargées sans filtrer warmup
       expect(data.sets).toHaveLength(3);
       expect(data.sets.some((s) => s.type === 'warmup')).toBe(true);
 

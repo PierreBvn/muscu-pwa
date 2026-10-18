@@ -340,3 +340,370 @@ export async function loadWeeklyStatsData(weekDate: string): Promise<{
 
   return { sessions, sets, exercises };
 }
+
+/**
+ * Calcule les 8 plages de semaines calendaires consécutives (du lundi au dimanche) en UTC
+ * se terminant par celle de referenceDate.
+ * Renvoie un tableau de 8 éléments ordonnés chronologiquement (de la plus ancienne à la courante).
+ */
+export function getEightWeeksRangeUtc(referenceDate: string): Array<{
+  startOfWeek: string;
+  endOfWeek: string;
+}> {
+  const currentWeek = getWeekRangeUtc(referenceDate);
+  const [y, m, d] = currentWeek.startOfWeek.split('-').map(Number);
+  const currentMondayUtc = Date.UTC(y, m - 1, d);
+
+  const ranges: Array<{ startOfWeek: string; endOfWeek: string }> = [];
+
+  for (let i = 0; i < 8; i++) {
+    const mondayMs = currentMondayUtc - (7 - i) * 7 * 86_400_000;
+    const sundayMs = mondayMs + 6 * 86_400_000;
+    ranges.push({
+      startOfWeek: formatUtcDate(mondayMs),
+      endOfWeek: formatUtcDate(sundayMs),
+    });
+  }
+
+  return ranges;
+}
+
+/**
+ * Formatage de la variation d'indice par rapport à 100 :
+ * Écart = index - 100
+ * ex. "+5,8\u00A0%", "−2,0\u00A0%", "0,0\u00A0%". Renvoie "—" si index === null.
+ * Formatage manuel sans toLocaleString ni Intl.NumberFormat.
+ */
+export function formatIndexChange(index: number | null): string {
+  if (index === null) return '—';
+
+  const diff = index - 100;
+  const rounded = Math.round(diff * 10) / 10;
+
+  if (rounded === 0 || Object.is(rounded, -0)) {
+    return '0,0\u00A0%';
+  }
+
+  if (rounded > 0) {
+    return `+${rounded.toFixed(1).replace('.', ',')}\u00A0%`;
+  }
+
+  return `\u2212${Math.abs(rounded).toFixed(1).replace('.', ',')}\u00A0%`;
+}
+
+export interface WeeklyGeneralStatPoint {
+  weekStart: string;
+  weekEnd: string;
+  index: number | null;
+  sessionCount: number;
+}
+
+export interface GeneralProgression {
+  weeks: WeeklyGeneralStatPoint[];
+  currentChange: string;
+}
+
+/**
+ * Calcul de la progression générale sur 8 semaines (indice et nombre de séances).
+ */
+export function calculateGeneralProgression(params: {
+  sessions: Session[];
+  sets: SetEntry[];
+  exercises: Exercise[];
+  referenceDate: string;
+}): GeneralProgression {
+  const { sessions, sets, exercises, referenceDate } = params;
+
+  const eightWeeks = getEightWeeksRangeUtc(referenceDate);
+
+  // Filtrer les séances terminées
+  const finishedSessions = sessions.filter(
+    (s) => s.endedAt !== undefined && s.id !== undefined
+  );
+
+  // Compter les séances par semaine
+  const sessionCountByWeek = new Array<number>(8).fill(0);
+  const finishedSessionsByWeek = new Map<number, Set<number>>();
+
+  for (let w = 0; w < 8; w++) {
+    finishedSessionsByWeek.set(w, new Set<number>());
+  }
+
+  for (const session of finishedSessions) {
+    for (let w = 0; w < 8; w++) {
+      if (
+        session.date >= eightWeeks[w].startOfWeek &&
+        session.date <= eightWeeks[w].endOfWeek
+      ) {
+        sessionCountByWeek[w]++;
+        finishedSessionsByWeek.get(w)!.add(session.id!);
+        break;
+      }
+    }
+  }
+
+  const validExerciseIds = new Set(
+    exercises.map((e) => e.id).filter((id): id is number => id !== undefined)
+  );
+
+  const allFinishedSessionIds = new Set<number>();
+  for (let w = 0; w < 8; w++) {
+    for (const sid of finishedSessionsByWeek.get(w)!) {
+      allFinishedSessionIds.add(sid);
+    }
+  }
+
+  const periodWorkSets = sets.filter(
+    (s) =>
+      s.type === 'work' &&
+      s.sessionId !== undefined &&
+      allFinishedSessionIds.has(s.sessionId) &&
+      validExerciseIds.has(s.exerciseId)
+  );
+
+  // Règle d : exercices dont toutes les séries de la période sont à 0 kg sont exclus
+  const exerciseWeightsInPeriod = new Map<number, number[]>();
+  for (const s of periodWorkSets) {
+    if (!exerciseWeightsInPeriod.has(s.exerciseId)) {
+      exerciseWeightsInPeriod.set(s.exerciseId, []);
+    }
+    exerciseWeightsInPeriod.get(s.exerciseId)!.push(s.weight);
+  }
+
+  const eligibleExerciseIds = new Set<number>();
+  for (const [exId, weights] of exerciseWeightsInPeriod.entries()) {
+    if (weights.some((w) => w > 0)) {
+      eligibleExerciseIds.add(exId);
+    }
+  }
+
+  // Calcul du poids moyen par exercice et par semaine
+  const exerciseWeeklyAvg = new Map<number, Map<number, number>>();
+  for (const exId of eligibleExerciseIds) {
+    exerciseWeeklyAvg.set(exId, new Map<number, number>());
+  }
+
+  for (let w = 0; w < 8; w++) {
+    const sidsInWeek = finishedSessionsByWeek.get(w)!;
+    if (sidsInWeek.size === 0) continue;
+
+    const weekSets = periodWorkSets.filter(
+      (s) => sidsInWeek.has(s.sessionId!) && eligibleExerciseIds.has(s.exerciseId)
+    );
+
+    const setsByEx = new Map<number, SetEntry[]>();
+    for (const s of weekSets) {
+      if (!setsByEx.has(s.exerciseId)) {
+        setsByEx.set(s.exerciseId, []);
+      }
+      setsByEx.get(s.exerciseId)!.push(s);
+    }
+
+    for (const [exId, exSets] of setsByEx.entries()) {
+      const avg = calculateAverageWeight(exSets);
+      if (avg !== null && avg > 0) {
+        exerciseWeeklyAvg.get(exId)!.set(w, avg);
+      }
+    }
+  }
+
+  // Semaine de base pour chaque exercice (première semaine où avg > 0)
+  const exerciseBaseValue = new Map<number, number>();
+  for (const exId of eligibleExerciseIds) {
+    for (let w = 0; w < 8; w++) {
+      const avg = exerciseWeeklyAvg.get(exId)!.get(w);
+      if (avg !== undefined && avg > 0) {
+        exerciseBaseValue.set(exId, avg);
+        break;
+      }
+    }
+  }
+
+  // Calcul de l'indice hebdomadaire
+  const weeks: WeeklyGeneralStatPoint[] = [];
+
+  for (let w = 0; w < 8; w++) {
+    const indicesInWeek: number[] = [];
+
+    for (const exId of eligibleExerciseIds) {
+      const avg = exerciseWeeklyAvg.get(exId)!.get(w);
+      const base = exerciseBaseValue.get(exId);
+      if (avg !== undefined && base !== undefined && base > 0) {
+        const exIndex = (avg / base) * 100;
+        indicesInWeek.push(exIndex);
+      }
+    }
+
+    let weekIndex: number | null = null;
+    if (indicesInWeek.length > 0) {
+      const sum = indicesInWeek.reduce((acc, val) => acc + val, 0);
+      weekIndex = sum / indicesInWeek.length;
+    }
+
+    weeks.push({
+      weekStart: eightWeeks[w].startOfWeek,
+      weekEnd: eightWeeks[w].endOfWeek,
+      index: weekIndex,
+      sessionCount: sessionCountByWeek[w],
+    });
+  }
+
+  const currentChange = formatIndexChange(weeks[7].index);
+
+  return {
+    weeks,
+    currentChange,
+  };
+}
+
+export interface MuscleGroupWeeklyStat {
+  workSets: number;
+  volume: number;
+}
+
+/**
+ * Séries de travail et volume par groupe musculaire pour la semaine de referenceDate (exactement 11 clés).
+ */
+export function calculateWeeklyMuscleStats(params: {
+  sessions: Session[];
+  sets: SetEntry[];
+  exercises: Exercise[];
+  referenceDate: string;
+}): Record<MuscleGroup, MuscleGroupWeeklyStat> {
+  const { sessions, sets, exercises, referenceDate } = params;
+
+  const validGroups = new Set<string>(MUSCLE_GROUPS);
+  const result = {} as Record<MuscleGroup, MuscleGroupWeeklyStat>;
+  for (const group of MUSCLE_GROUPS) {
+    result[group] = { workSets: 0, volume: 0 };
+  }
+
+  const { startOfWeek, endOfWeek } = getWeekRangeUtc(referenceDate);
+
+  const finishedSessionsInWeek = sessions.filter(
+    (s) =>
+      s.endedAt !== undefined &&
+      s.date >= startOfWeek &&
+      s.date <= endOfWeek &&
+      s.id !== undefined
+  );
+  const sessionIdsInWeek = new Set(finishedSessionsInWeek.map((s) => s.id));
+
+  const exerciseMap = new Map<number, Exercise>();
+  for (const ex of exercises) {
+    if (ex.id !== undefined) {
+      exerciseMap.set(ex.id, ex);
+    }
+  }
+
+  for (const set of sets) {
+    if (set.type !== 'work') continue;
+    if (!set.sessionId || !sessionIdsInWeek.has(set.sessionId)) continue;
+
+    const exercise = exerciseMap.get(set.exerciseId);
+    if (!exercise) continue;
+    if (!validGroups.has(exercise.muscleGroup)) continue;
+
+    result[exercise.muscleGroup].workSets++;
+    result[exercise.muscleGroup].volume += set.weight * set.reps;
+  }
+
+  return result;
+}
+
+export interface WeeklyMuscleGroupHistoryPoint {
+  weekStart: string;
+  weekEnd: string;
+  workSets: number;
+  volume: number;
+}
+
+/**
+ * Historique des séries de travail et du volume sur 8 semaines pour un groupe musculaire.
+ */
+export function calculateMuscleGroupHistory(params: {
+  sessions: Session[];
+  sets: SetEntry[];
+  exercises: Exercise[];
+  referenceDate: string;
+  muscleGroup: MuscleGroup;
+}): WeeklyMuscleGroupHistoryPoint[] {
+  const { sessions, sets, exercises, referenceDate, muscleGroup } = params;
+
+  const eightWeeks = getEightWeeksRangeUtc(referenceDate);
+
+  const finishedSessions = sessions.filter(
+    (s) => s.endedAt !== undefined && s.id !== undefined
+  );
+
+  const exerciseMap = new Map<number, Exercise>();
+  for (const ex of exercises) {
+    if (ex.id !== undefined) {
+      exerciseMap.set(ex.id, ex);
+    }
+  }
+
+  const history: WeeklyMuscleGroupHistoryPoint[] = [];
+
+  for (let w = 0; w < 8; w++) {
+    const { startOfWeek, endOfWeek } = eightWeeks[w];
+
+    const weekSessionIds = new Set(
+      finishedSessions
+        .filter((s) => s.date >= startOfWeek && s.date <= endOfWeek)
+        .map((s) => s.id!)
+    );
+
+    let workSets = 0;
+    let volume = 0;
+
+    for (const set of sets) {
+      if (set.type !== 'work') continue;
+      if (!set.sessionId || !weekSessionIds.has(set.sessionId)) continue;
+
+      const exercise = exerciseMap.get(set.exerciseId);
+      if (!exercise || exercise.muscleGroup !== muscleGroup) continue;
+
+      workSets++;
+      volume += set.weight * set.reps;
+    }
+
+    history.push({
+      weekStart: startOfWeek,
+      weekEnd: endOfWeek,
+      workSets,
+      volume,
+    });
+  }
+
+  return history;
+}
+
+/**
+ * Charge les séances, séries et exercices nécessaires sur la période de 8 semaines se terminant à referenceDate.
+ * Lecture seule, sans filtrage de endedAt, ni de type de série, ni d'archivage.
+ */
+export async function loadGeneralStatsData(referenceDate: string): Promise<{
+  sessions: Session[];
+  sets: SetEntry[];
+  exercises: Exercise[];
+}> {
+  const eightWeeks = getEightWeeksRangeUtc(referenceDate);
+  const startOfPeriod = eightWeeks[0].startOfWeek;
+  const endOfPeriod = eightWeeks[7].endOfWeek;
+
+  const sessions = await db.sessions
+    .where('date')
+    .between(startOfPeriod, endOfPeriod, true, true)
+    .toArray();
+
+  const sessionIds = sessions.map((s) => s.id!).filter(Boolean);
+  const sets =
+    sessionIds.length > 0
+      ? await db.sets.where('sessionId').anyOf(sessionIds).toArray()
+      : [];
+
+  const exercises = await db.exercises.toArray();
+
+  return { sessions, sets, exercises };
+}
