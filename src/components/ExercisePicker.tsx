@@ -15,6 +15,7 @@ export interface ExercisePickerProps {
   isOpen: boolean;
   title?: string;
   existingExerciseIds?: number[];
+  includeArchived?: boolean;
   onClose: () => void;
   onSelectExercise: (exercise: Exercise) => Promise<void> | void;
 }
@@ -22,6 +23,7 @@ export interface ExercisePickerProps {
 const ExercisePickerContent: React.FC<ExercisePickerProps> = ({
   title = 'Ajouter un exercice',
   existingExerciseIds,
+  includeArchived = false,
   onClose,
   onSelectExercise,
 }) => {
@@ -35,13 +37,15 @@ const ExercisePickerContent: React.FC<ExercisePickerProps> = ({
     async () => {
       const counts = await getExerciseCountsByGroup({
         excludeIds: existingExerciseIds,
+        includeArchived,
       });
       const available = await filterExercises({
         excludeIds: existingExerciseIds,
+        includeArchived,
       });
       return { counts, available };
     },
-    [existingExerciseIds ? existingExerciseIds.join(',') : '']
+    [existingExerciseIds ? existingExerciseIds.join(',') : '', String(includeArchived)]
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -217,6 +217,15 @@ describe('Exercise database operations', () => {
       expect(res.map((e) => e.name)).toEqual(['Écarté poulie']);
     });
 
+    it('includes archived exercises when includeArchived is true', async () => {
+      const id = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+      await addExercise({ name: 'Écarté poulie', muscleGroup: 'Pectoraux' });
+      await deleteExercise(id);
+
+      const res = await filterExercises({ includeArchived: true });
+      expect(res.map((e) => e.name)).toEqual(['Développé couché', 'Écarté poulie']);
+    });
+
     it('combines query, muscleGroup and excludeIds', async () => {
       const id1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
       await addExercise({ name: 'Développé incliné', muscleGroup: 'Pectoraux' });
@@ -248,6 +257,16 @@ describe('Exercise database operations', () => {
       const countsExcluded = await getExerciseCountsByGroup({ excludeIds: [idBench] });
       expect(countsExcluded.Pectoraux).toBe(1);
       expect(countsExcluded.Quadriceps).toBe(0);
+    });
+
+    it('includes archived exercises in counts when includeArchived is true', async () => {
+      await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+      const idSquat = await addExercise({ name: 'Squat', muscleGroup: 'Quadriceps' });
+      await deleteExercise(idSquat); // archivé
+
+      const counts = await getExerciseCountsByGroup({ includeArchived: true });
+      expect(counts.Pectoraux).toBe(1);
+      expect(counts.Quadriceps).toBe(1);
     });
   });
 });

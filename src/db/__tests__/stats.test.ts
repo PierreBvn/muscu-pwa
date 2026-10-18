@@ -8,6 +8,7 @@ import {
   formatStatWeight,
   formatStatVolume,
   formatPersonalRecord,
+  formatStatReps,
   getWeekRangeUtc,
   formatIndexChange,
   buildExerciseProgression,
@@ -232,6 +233,13 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       expect(formatStatVolume(412)).toBe('412\u00A0kg');
       expect(formatStatVolume(2075)).toBe('2\u00A0075\u00A0kg');
       expect(formatStatVolume(0)).toBe('0\u00A0kg');
+    });
+
+    it('formatage des répétitions (formatStatReps)', () => {
+      expect(formatStatReps(25)).toBe('25\u00A0reps');
+      expect(formatStatReps(1)).toBe('1\u00A0rep');
+      expect(formatStatReps(0)).toBe('0\u00A0rep');
+      expect(formatStatReps(1000)).toBe('1\u00A0000\u00A0reps');
     });
 
     it('2.5 exemple back-off : 3 séries lourdes à 100 kg × 5 et 1 back-off à 70 kg × 12', () => {

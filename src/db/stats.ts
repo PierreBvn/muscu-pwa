@@ -1,3 +1,4 @@
+import { useLiveQuery } from 'dexie-react-hooks';
 import {
   db,
   MUSCLE_GROUPS,
@@ -115,6 +116,18 @@ export function formatStatVolume(volume: number): string {
  */
 export function formatPersonalRecord(record: SetEntry): string {
   return `Record\u00A0:\u00A0${formatStatWeight(record.weight)}\u00A0\u00D7\u00A0${record.reps}`;
+}
+
+/**
+ * Formatage des répétitions (pour le mode reps 0 kg) :
+ * ex. "25\u00A0reps", "1\u00A0rep", "0\u00A0rep".
+ * Formatage manuel sans toLocaleString ni Intl.NumberFormat.
+ */
+export function formatStatReps(reps: number): string {
+  const intStr = Math.round(reps).toString();
+  const formatted = intStr.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0');
+  const unit = Math.abs(reps) <= 1 ? 'rep' : 'reps';
+  return `${formatted}\u00A0${unit}`;
 }
 
 function formatUtcDate(ms: number): string {
@@ -312,6 +325,26 @@ export async function loadExerciseStatsData(exerciseId: number): Promise<{
       : [];
 
   return { sessions, sets };
+}
+
+/**
+ * Hook de chargement réactif de la progression d'un exercice.
+ * Emballe le résultat dans un objet { progression } pour distinguer l'état de chargement (undefined).
+ */
+export function useExerciseProgression(exerciseId: number | null):
+  | { progression: ExerciseProgression | null }
+  | undefined {
+  return useLiveQuery(
+    async () => {
+      if (exerciseId === null) {
+        return { progression: null };
+      }
+      const { sessions, sets } = await loadExerciseStatsData(exerciseId);
+      const progression = buildExerciseProgression({ sessions, sets, exerciseId });
+      return { progression };
+    },
+    [exerciseId]
+  );
 }
 
 /**

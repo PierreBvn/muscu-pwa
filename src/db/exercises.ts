@@ -116,11 +116,12 @@ export interface FilterExercisesOptions {
   query?: string;
   muscleGroup?: MuscleGroup;
   excludeIds?: number[];
+  includeArchived?: boolean;
 }
 
 /**
  * Recherche et filtre les exercices :
- * - Exclut les exercices archivés
+ * - Exclut les exercices archivés (sauf si includeArchived est vrai)
  * - Exclut les IDs spécifiés dans excludeIds (exercices déjà présents)
  * - Filtre par groupe musculaire si spécifié
  * - Filtre par recherche textuelle insensible à la casse et aux accents si spécifiée
@@ -140,7 +141,7 @@ export async function filterExercises(
 
   return all
     .filter((ex) => {
-      if (ex.archived) return false;
+      if (!options?.includeArchived && ex.archived) return false;
       if (ex.id !== undefined && excludeSet?.has(ex.id)) return false;
       if (options?.muscleGroup && ex.muscleGroup !== options.muscleGroup) return false;
       if (normalizedQuery && !normalizeSearchText(ex.name).includes(normalizedQuery)) {
@@ -153,13 +154,17 @@ export async function filterExercises(
 
 /**
  * Calcule le nombre d'exercices disponibles par groupe musculaire :
- * - Exclut les exercices archivés
+ * - Exclut les exercices archivés (sauf si includeArchived est vrai)
  * - Exclut les IDs spécifiés dans excludeIds
  */
 export async function getExerciseCountsByGroup(options?: {
   excludeIds?: number[];
+  includeArchived?: boolean;
 }): Promise<Record<MuscleGroup, number>> {
-  const available = await filterExercises({ excludeIds: options?.excludeIds });
+  const available = await filterExercises({
+    excludeIds: options?.excludeIds,
+    includeArchived: options?.includeArchived,
+  });
   const counts: Record<MuscleGroup, number> = {
     Pectoraux: 0,
     Dos: 0,
