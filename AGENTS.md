@@ -219,6 +219,23 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Toute fonction exportée ajoutée pendant l'implémentation est ajoutée à la spec, dans un commit docs séparé, avant le code.
 - Comparaison de dates ISO : < et >, jamais localeCompare.
 
+## Graphiques
+- SVG maison uniquement. Géométrie (bornes, coordonnées) dans une fonction pure testée, jamais dans le JSX.
+- Couleurs via les tokens. role="img" et aria-label sur chaque graphique.
+
+## Interface
+- Un écran par tâche. Les composants ne font ni calcul ni formatage : ils appellent src/db/.
+
+## Méthode de travail
+- Petit changement d'interface : mode Fast, pas de plan, pas de nouveau test.
+- Données et calculs : mode Planning, tests de chaque exemple de la spec.
+- L'agent lance npm run verify à la fin de chaque tâche et écrit la dernière ligne dans le walkthrough.
+- Fin de tâche : npm run ship (verify puis push).
+
+## Suivi
+- docs/roadmap.md liste les lots (fait / en cours / à faire) et fait autorité sur l'ordre des tâches.
+- L'agent met à jour roadmap.md dans le dernier commit de chaque lot.
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
@@ -246,3 +263,4 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Les correspondances sur un type union (ex. MuscleGroup) sont typées Record<Type, …> pour être exhaustives.
 - useLiveQuery : si la fonction peut renvoyer undefined pour « absent », emballer le résultat dans un objet pour distinguer « en chargement » de « absent ».
 - Logique répétée dans plusieurs composants (ex. blocage du défilement) : un hook partagé.
+- Métrique globale sur plusieurs exercices : moyenne des progressions en % de chaque exercice par rapport à lui-même, jamais une moyenne des poids bruts.

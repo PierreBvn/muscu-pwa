@@ -12,7 +12,8 @@
     "test": "vitest run",
     "hook-stats": "node scripts/hook-stats.mjs",
     "generate-icons": "node scripts/generate-icons.mjs",
-    "verify": "node scripts/checks.mjs"
+    "verify": "node scripts/checks.mjs",
+    "ship": "node scripts/checks.mjs && git push"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

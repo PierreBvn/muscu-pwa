@@ -135,6 +135,78 @@ Nombre de séries de travail (`type === 'work'`) des séances terminées par sem
   - `Triceps` : $3$ séries
   - `Dos`, `Épaules`, `Biceps`, `Avant-bras`, `Abdos`, `Quadriceps`, `Ischios`, `Fessiers`, `Mollets` : $0$ série chacun.
 
+### 2.8 Indice général de progression en poids (8 semaines)
+L'indice général mesure l'évolution globale de la force sur les **8 semaines calendaires consécutives (du lundi au dimanche)** se terminant par celle de `referenceDate` ('YYYY-MM-DD').
+Il neutralise les effets de composition d'exercices en moyennant les progressions individuelles de chaque exercice par rapport à lui-même.
+
+#### Règles de calcul :
+a) **Poids moyen par rep hebdomadaire** : Pour chaque exercice et chaque semaine $W$ de la période, on calcule le poids moyen par rep de toutes ses séries de travail (`type === 'work'`) des séances terminées (`endedAt !== undefined`).
+b) **Indice par exercice** : Pour chaque exercice éligible, la première semaine de la période où il est réalisé avec un poids moyen $> 0\text{ kg}$ sert de semaine de référence ($V_{base}$). Pour toute semaine $W$ où l'exercice est réalisé :
+   $$\text{Indice}(ex, W) = \frac{\text{Poids moyen}(ex, W)}{V_{base}} \times 100$$
+   En semaine de référence, $\text{Indice} = 100$.
+c) **Indice général de la semaine** : Moyenne simple des indices des exercices éligibles réalisés pendant cette semaine :
+   $$\text{Indice général}(W) = \frac{\sum_{ex \in E_W} \text{Indice}(ex, W)}{|E_W|}$$
+   Si aucun exercice éligible n'a été réalisé pendant la semaine ($|E_W| = 0$), l'indice de la semaine vaut `null`.
+d) **Exclusion des exercices à 0 kg** : Tout exercice dont toutes les séries de travail sur l'ensemble de la période des 8 semaines sont à 0 kg (ex. tractions ou dips au poids du corps strict) est strictement exclu du calcul de l'indice.
+e) **Nombre de séances terminées** : Décompte du nombre de séances terminées (`endedAt !== undefined`) par semaine calendaire sur les 8 semaines.
+
+#### Exemple obligatoire (comparaison avec la moyenne brute) :
+- **Semaine 1** :
+  - Développé couché : 80 kg ($V_{base} = 80$, indice = 100)
+  - Curl biceps : 15 kg ($V_{base} = 15$, indice = 100)
+  - Presse à cuisses : 200 kg ($V_{base} = 200$, indice = 100)
+  - $\text{Indice S1} = (100 + 100 + 100) / 3 = 100$
+- **Semaine 2** :
+  - Développé couché : 84 kg $\rightarrow 84 / 80 \times 100 = 105$ (+5 %)
+  - Curl biceps : 16 kg $\rightarrow 16 / 15 \times 100 = 106{,}666\dots$ (+6,7 %)
+  - Presse à cuisses : absente
+  - $\text{Indice S2} = (105 + 106{,}666\dots) / 2 = 105{,}833\dots \rightarrow$ **« +5,8 % »**.
+- **Justification du choix face à la moyenne brute** :
+  - Si l'on calculait la moyenne brute des poids soulevés :
+    - S1 : $(80 + 15 + 200) / 3 = 98{,}33\text{ kg}$.
+    - S2 : $(84 + 16) / 2 = 50{,}00\text{ kg}$.
+  - La moyenne brute chuterait de 98,3 kg à 50 kg par la seule absence de la presse, alors même que l'athlète a progressé sur tous les exercices exécutés (+5 % et +6,7 %). Le calcul par indice en % de chaque exercice par rapport à lui-même reflète fidèlement la progression réelle.
+
+### 2.9 Statistiques musculaires de la semaine de référence
+Pour la semaine calendaire de `referenceDate` ('YYYY-MM-DD'), calcul pour chacun des 11 groupes musculaires de `MUSCLE_GROUPS` :
+- `workSets` : nombre de séries de travail (`type === 'work'`) des séances terminées de la semaine ;
+- `volume` : volume total soulevé ($\sum \text{poids} \times \text{reps}$) des séries de travail des séances terminées de la semaine.
+- Renvoie **exactement 11 clés**. Tout groupe sans série vaut `{ workSets: 0, volume: 0 }`. Les exercices introuvables ou dont le groupe n'est pas dans `MUSCLE_GROUPS` sont ignorés.
+
+*Exemple chiffré :*
+- Semaine du 12/10/2026 au 18/10/2026 (`referenceDate: '2026-10-15'`) :
+  - Développé couché (Pectoraux) : 3 séries de 80 kg × 10 reps = 2400 kg.
+  - Barre au front (Triceps) : 3 séries de 30 kg × 10 reps = 900 kg.
+- Résultat :
+  - `Pectoraux` : `{ workSets: 3, volume: 2400 }`
+  - `Triceps` : `{ workSets: 3, volume: 900 }`
+  - Les 9 autres groupes : `{ workSets: 0, volume: 0 }` chacun.
+
+### 2.10 Historique musculaire sur 8 semaines pour un groupe
+Pour un groupe musculaire donné (`muscleGroup: MuscleGroup`), fournit les séries de travail et le volume pour chacune des 8 semaines consécutives se terminant par celle de `referenceDate`.
+- Renvoie un tableau de 8 éléments ordonnés chronologiquement du plus ancien au plus récent.
+- Chaque élément contient : `weekStart` ('YYYY-MM-DD', lundi), `weekEnd` ('YYYY-MM-DD', dimanche), `workSets` (nombre de séries de travail des séances terminées), `volume` (somme poids × reps).
+- Les semaines sans entraînement pour ce groupe ont `workSets: 0` et `volume: 0`.
+
+*Exemple chiffré :*
+- Groupe ciblé : `Pectoraux`.
+- Sur les 8 semaines se terminant le 18/10/2026 :
+  - Semaine du 12/10/2026 au 18/10/2026 (semaine 8) : 7 séries de travail, volume 4475 kg.
+  - Semaines 1 à 7 : 0 série, volume 0 kg si aucune séance pectoraux.
+- Le tableau renvoyé compte exactement 8 points hebdomadaires.
+
+### 2.11 Formatage de la variation d'indice (`formatIndexChange`)
+L'affichage de la variation de l'indice général compare la valeur de l'indice à 100 :
+$$\text{Écart} = \text{Indice} - 100$$
+- **Règles strictes** :
+  - Formatage manuel sans `Intl` ni `toLocaleString`.
+  - Arrondi à 1 décimale avec virgule `,`.
+  - Espace insécable `\u00A0` avant le symbole `%`.
+  - Si l'écart est strictement positif : préfixé du signe `+` (ex. `« +5,8 % »` $\rightarrow$ `'+5,8\u00A0%'`).
+  - Si l'écart est strictement négatif : préfixé du véritable signe moins Unicode `\u2212` (ex. `« −2,0 % »` $\rightarrow$ `'−2,0\u00A0%'`).
+  - Si l'écart arrondi est nul : affiché `'0,0\u00A0%'` sans signe.
+  - Si l'indice est `null` (aucun exercice fait) : affiché `'—'` (U+2014).
+
 ---
 
 ## 3. Cas limites et comportements attendus
@@ -292,6 +364,65 @@ export function calculateWeeklyWorkSetsByGroup(params: {
   exercises: Exercise[];
   referenceDate: string;
 }): Record<MuscleGroup, number>;
+
+// Calcul des 8 plages de semaines calendaires consécutives (lundi au dimanche) se terminant à referenceDate
+export function getEightWeeksRangeUtc(referenceDate: string): Array<{
+  startOfWeek: string;
+  endOfWeek: string;
+}>;
+
+// Formatage de la variation d'indice par rapport à 100 : ex. "+5,8\u00A0%", "−2,0\u00A0%", "0,0\u00A0%"
+export function formatIndexChange(index: number | null): string;
+
+// Point hebdomadaire pour la progression générale
+export interface WeeklyGeneralStatPoint {
+  weekStart: string; // 'YYYY-MM-DD' (lundi)
+  weekEnd: string;   // 'YYYY-MM-DD' (dimanche)
+  index: number | null; // moyenne des indices des exercices de la semaine, ou null
+  sessionCount: number; // nombre de séances terminées dans la semaine
+}
+
+export interface GeneralProgression {
+  weeks: WeeklyGeneralStatPoint[];
+  currentChange: string; // variation formatée pour la semaine courante (ex. "+5,8\u00A0%")
+}
+
+// Calcul de la progression générale sur 8 semaines (indice et nombre de séances)
+export function calculateGeneralProgression(params: {
+  sessions: Session[];
+  sets: SetEntry[];
+  exercises: Exercise[];
+  referenceDate: string;
+}): GeneralProgression;
+
+// Statistiques musculaires pour la semaine de référence (11 groupes)
+export interface MuscleGroupWeeklyStat {
+  workSets: number;
+  volume: number;
+}
+
+export function calculateWeeklyMuscleStats(params: {
+  sessions: Session[];
+  sets: SetEntry[];
+  exercises: Exercise[];
+  referenceDate: string;
+}): Record<MuscleGroup, MuscleGroupWeeklyStat>;
+
+// Historique hebdomadaire sur 8 semaines pour un groupe musculaire
+export interface WeeklyMuscleGroupHistoryPoint {
+  weekStart: string; // 'YYYY-MM-DD'
+  weekEnd: string;   // 'YYYY-MM-DD'
+  workSets: number;
+  volume: number;
+}
+
+export function calculateMuscleGroupHistory(params: {
+  sessions: Session[];
+  sets: SetEntry[];
+  exercises: Exercise[];
+  referenceDate: string;
+  muscleGroup: MuscleGroup;
+}): WeeklyMuscleGroupHistoryPoint[];
 ```
 
 #### Fonctions minces de chargement Dexie (lecture seule, sans calcul métier)
@@ -310,10 +441,17 @@ export async function loadWeeklyStatsData(weekDate: string): Promise<{
   sets: SetEntry[];
   exercises: Exercise[];
 }>;
+
+// Charge les séances, séries et exercices nécessaires sur la période de 8 semaines
+export async function loadGeneralStatsData(referenceDate: string): Promise<{
+  sessions: Session[];
+  sets: SetEntry[];
+  exercises: Exercise[];
+}>;
 ```
 
-### 6.2 Lot 4c : Interface utilisateur (`src/features/stats/`)
+### 6.2 Lot 4d : Interface utilisateur (`src/features/stats/`)
 - Composant `LineChart` en SVG natif avec tokens Tailwind et repère record gold.
-- Composant `StatsTab` gérant la bascule entre la vue Exercice et la vue Hebdomadaire par groupe.
+- Composant `StatsTab` gérant la bascule entre la vue Exercice, la vue Générale et la vue Hebdomadaire par groupe.
 - Intégration de la prop `includeArchived?: boolean` dans `ExercisePicker` et `filterExercises`.
 - Intégration de l'onglet `Progrès` dans `src/components/TabBar.tsx` et `src/App.tsx`.
