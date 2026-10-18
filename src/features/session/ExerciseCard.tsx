@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { SessionExercise, Exercise, SetEntry } from '../../db/schema';
-import { MuscleGroupBadge } from '../../components/MuscleGroupBadge';
+import { MuscleIcon } from '../../components/MuscleIcon';
 import { SetRow } from './SetRow';
 import { SetInputRow } from './SetInputRow';
 
@@ -178,7 +178,13 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
       >
         <div className="flex items-center justify-between gap-3 min-h-[44px]">
           <div className="flex items-center gap-3 min-w-0">
-            <MuscleGroupBadge muscleGroup={item.exercise?.muscleGroup} isOpen={false} />
+            {item.exercise?.muscleGroup && (
+              <MuscleIcon
+                group={item.exercise.muscleGroup}
+                alt={item.exercise.muscleGroup}
+                className="w-10 h-10 shrink-0 object-contain"
+              />
+            )}
             <span className="text-base font-semibold text-text truncate">
               {exName}
             </span>
@@ -221,7 +227,13 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
       {/* En-tête de l'exercice ouvert */}
       <div className="flex items-center justify-between gap-3 min-h-[44px]">
         <div className="flex items-center gap-3 min-w-0">
-          <MuscleGroupBadge muscleGroup={item.exercise?.muscleGroup} isOpen={true} />
+          {item.exercise?.muscleGroup && (
+            <MuscleIcon
+              group={item.exercise.muscleGroup}
+              alt={item.exercise.muscleGroup}
+              className="w-10 h-10 shrink-0 object-contain"
+            />
+          )}
           <h2 className="text-base font-semibold text-text truncate">
             {exName}
           </h2>

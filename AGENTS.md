@@ -175,6 +175,10 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Toute transformation d'image commence par mesurer les couleurs et les poids réels.
 - Tout rendu visuel nouveau : capture d'aperçu et validation de l'utilisateur avant l'intégration.
 
+## Groupes musculaires
+- Partout dans l'interface, un groupe est représenté par MuscleIcon (PNG recolorés), jamais par une abréviation.
+- Taille minimale : 40 px, et 48 px au maximum (fichiers en 144 px).
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.

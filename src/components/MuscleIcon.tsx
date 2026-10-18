@@ -28,13 +28,14 @@ const ICONS: Record<MuscleGroup, string> = {
 interface MuscleIconProps {
   group: MuscleGroup;
   className?: string;
+  alt?: string;
 }
 
-export const MuscleIcon: React.FC<MuscleIconProps> = ({ group, className }) => (
+export const MuscleIcon: React.FC<MuscleIconProps> = ({ group, className, alt }) => (
   <img
     src={ICONS[group]}
-    alt=""
-    aria-hidden="true"
+    alt={alt ?? ''}
+    aria-hidden={alt ? undefined : 'true'}
     className={className}
     draggable={false}
   />

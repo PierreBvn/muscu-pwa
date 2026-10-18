@@ -44,6 +44,13 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
       expect(screen.getByText('Développé couché')).toBeInTheDocument();
       expect(screen.getByText('Écarté poulie')).toBeInTheDocument();
     });
+
+    // Les cartes d'exercice en séance affichent MuscleIcon avec alt="Pectoraux"
+    const pecIcons = screen.getAllByRole('img', { name: 'Pectoraux' });
+    expect(pecIcons.length).toBeGreaterThanOrEqual(2);
+    for (const icon of pecIcons) {
+      expect(icon.getAttribute('src')).toContain('pectoraux.png');
+    }
   });
 
   it('2. propose la première séance type par nom quand deux séances types sont prévues le même jour', async () => {

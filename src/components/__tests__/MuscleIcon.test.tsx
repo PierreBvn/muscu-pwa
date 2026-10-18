@@ -32,4 +32,12 @@ describe('MuscleIcon', () => {
       expect(srcAttr).toContain(expectedFilename);
     },
   );
+
+  it('renders with accessible alt and without aria-hidden when alt prop is provided', () => {
+    const { container } = render(<MuscleIcon group="Pectoraux" alt="Pectoraux" />);
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img).toHaveAttribute('alt', 'Pectoraux');
+    expect(img).not.toHaveAttribute('aria-hidden');
+  });
 });

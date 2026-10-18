@@ -103,6 +103,11 @@ describe('ExercisePicker', () => {
     // Liste du groupe Dos
     expect(screen.getByRole('button', { name: 'Rowing barre' })).toBeInTheDocument();
 
+    // L'en-tête du groupe Dos affiche l'icône associée dos.png
+    const headerIcon = screen.getByText('Dos').closest('div')?.querySelector('img[aria-hidden="true"]');
+    expect(headerIcon).not.toBeNull();
+    expect(headerIcon?.getAttribute('src')).toContain('dos.png');
+
     // Bouton retour
     const backBtn = screen.getByRole('button', { name: /retour/i });
     fireEvent.click(backBtn);
@@ -148,9 +153,17 @@ describe('ExercisePicker', () => {
     // La grille n'est plus affichée
     expect(screen.queryByRole('button', { name: /^pectoraux/i })).toBeNull();
 
-    // Les deux exercices de groupes différents ressortent
-    expect(screen.getByRole('button', { name: 'Développé couché' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Développé militaire' })).toBeInTheDocument();
+    // Les deux exercices de groupes différents ressortent avec leur icône respective
+    const devCoucheBtn = screen.getByRole('button', { name: 'Développé couché' });
+    expect(devCoucheBtn).toBeInTheDocument();
+    const devCoucheIcon = devCoucheBtn.querySelector('img[aria-hidden="true"]');
+    expect(devCoucheIcon?.getAttribute('src')).toContain('pectoraux.png');
+
+    const devMilitaireBtn = screen.getByRole('button', { name: 'Développé militaire' });
+    expect(devMilitaireBtn).toBeInTheDocument();
+    const devMilitaireIcon = devMilitaireBtn.querySelector('img[aria-hidden="true"]');
+    expect(devMilitaireIcon?.getAttribute('src')).toContain('epaules.png');
+
     expect(screen.queryByRole('button', { name: 'Écarté à la poulie' })).toBeNull();
 
     // Recherche avec accents "ÉCARTÉ"

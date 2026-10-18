@@ -8,7 +8,7 @@ import {
   updateExercise,
   deleteExercise,
 } from '../../db/exercises';
-import { MuscleGroupBadge } from '../../components/MuscleGroupBadge';
+import { MuscleIcon } from '../../components/MuscleIcon';
 import { MuscleGroupGrid } from '../../components/MuscleGroupGrid';
 import { ExerciseCard } from './ExerciseCard';
 import { ExerciseModal } from './ExerciseModal';
@@ -115,7 +115,7 @@ export const ExerciseList: React.FC = () => {
                   <span>Retour</span>
                 </button>
                 <div className="flex items-center gap-2 min-w-0">
-                  <MuscleGroupBadge muscleGroup={selectedGroup} />
+                  <MuscleIcon group={selectedGroup} className="w-10 h-10 shrink-0 object-contain" />
                   <div className="min-w-0">
                     <h1 className="text-base font-semibold text-text truncate">
                       {selectedGroup}

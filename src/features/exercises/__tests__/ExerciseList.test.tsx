@@ -59,6 +59,21 @@ describe('ExerciseList UI component (grille & navigation)', () => {
       expect(screen.getByText('Écarté à la poulie')).toBeInTheDocument();
     });
 
+    // L'en-tête de catégorie affiche le titre Pectoraux et l'icône associée
+    const categoryHeading = screen.getByRole('heading', { name: /pectoraux/i });
+    expect(categoryHeading).toBeInTheDocument();
+    const headerContainer = categoryHeading.closest('div');
+    const headerIcon = headerContainer?.parentElement?.querySelector('img[aria-hidden="true"]');
+    expect(headerIcon).not.toBeNull();
+    expect(headerIcon?.getAttribute('src')).toContain('pectoraux.png');
+
+    // Les cartes d'exercices affichent l'icône MuscleIcon accessible avec alt="Pectoraux"
+    const exerciseIcons = screen.getAllByRole('img', { name: 'Pectoraux' });
+    expect(exerciseIcons.length).toBeGreaterThanOrEqual(3);
+    for (const icon of exerciseIcons) {
+      expect(icon.getAttribute('src')).toContain('pectoraux.png');
+    }
+
     // Bouton Retour
     const backBtn = screen.getByRole('button', { name: /retour/i });
     expect(backBtn).toBeInTheDocument();
