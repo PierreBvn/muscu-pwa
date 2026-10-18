@@ -205,6 +205,20 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Dates de calendrier passées en chaînes 'YYYY-MM-DD', jamais en Date.
 - « Réutiliser X sans modification » exige de citer (fichier:ligne) que X couvre le cas.
 
+## Formats et dates
+- Jamais toLocaleString ni Intl.NumberFormat quand un format exact est imposé : formatage manuel.
+- Jour de la semaine d'une chaîne 'YYYY-MM-DD' : calcul en UTC (Date.UTC, getUTCDay).
+- Tout test sur des semaines ou des dates passe dans au moins deux fuseaux opposés.
+- Le nom d'un test reprenant un exemple de spec cite sa section.
+
+## Tests
+- Un test qui modifie l'environnement (fuseau, langue, date) vérifie d'abord que la modification est effective.
+- Toute fonction qui regroupe par MuscleGroup ignore les valeurs hors MUSCLE_GROUPS (héritage de la migration v3) et renvoie exactement 11 clés.
+
+## Specs
+- Toute fonction exportée ajoutée pendant l'implémentation est ajoutée à la spec, dans un commit docs séparé, avant le code.
+- Comparaison de dates ISO : < et >, jamais localeCompare.
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
