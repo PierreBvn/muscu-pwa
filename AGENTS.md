@@ -186,6 +186,26 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 ## Groupes musculaires
 - Une ligne d'exercice affiche MuscleIcon seulement si la liste mélange plusieurs groupes.
 
+## Statistiques
+- Règles uniquement dans docs/specs/stats.md, logique uniquement dans src/db/stats.ts (fonctions pures).
+- Métrique principale : poids moyen par rep = somme(poids × reps) / somme(reps), séries de travail uniquement. Pas d'Epley.
+- Record = série au poids max (égalité : plus de reps, puis la plus ancienne).
+- Arrondi à 0,5 kg uniquement à l'affichage. Échauffement jamais compté. Aucune division par zéro.
+- Chaque exemple chiffré de la spec est repris tel quel dans un test.
+
+## Fonctions pures
+- Une fonction pure reçoit toutes ses données en paramètres (tableaux, date explicite) : pas de Dexie, pas de new Date(), pas de Promise.
+- La lecture Dexie se fait dans des fonctions load... séparées, sans calcul.
+
+## Specs
+- Une spec n'est commitée qu'une fois toutes ses questions ouvertes répondues et transformées en règles avec un exemple.
+- Format d'affichage unique et exact (séparateurs compris), jamais « ou ».
+- Chaque filtre est appliqué à un seul endroit, cité dans la spec.
+- Une fonction ne filtre que sur des données qu'elle reçoit en paramètre.
+- Dates de calendrier passées en chaînes 'YYYY-MM-DD', jamais en Date.
+- « Réutiliser X sans modification » exige de citer (fichier:ligne) que X couvre le cas.
+
+
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
 - Une ligne par série (SetEntry), jamais de "3x10" stocké en texte.
