@@ -146,35 +146,32 @@ e) **Nombre de séances terminées** : Décompte du nombre de séances terminée
     - S2 : $(84 + 16) / 2 = 50{,}00\text{ kg}$.
   - La moyenne brute chuterait de 98,3 kg à 50 kg par la seule absence de la presse, alors même que l'athlète a progressé sur tous les exercices exécutés (+5 % et +6,7 %). Le calcul par indice en % de chaque exercice par rapport à lui-même reflète fidèlement la progression réelle.
 
-### 2.8 Statistiques musculaires de la semaine de référence
-Pour la semaine calendaire de `referenceDate` ('YYYY-MM-DD'), calcul pour chacun des 11 groupes musculaires de `MUSCLE_GROUPS` :
-- `workSets` : nombre de séries de travail (`type === 'work'`) des séances terminées de la semaine.
-- Renvoie **exactement 11 clés**. Tout groupe sans série vaut `{ workSets: 0 }`. Les exercices introuvables ou dont le groupe n'est pas dans `MUSCLE_GROUPS` sont ignorés.
+### 2.8 Indice de progression et séries de travail par groupe musculaire (8 semaines)
+L'indice de progression d'un groupe musculaire suit le même algorithme que l'indice général (section 2.7), restreint aux exercices dont le groupe musculaire correspond (`exercise.muscleGroup === muscleGroup`) :
+- Seules les séances terminées (`endedAt !== undefined`) sont prises en compte.
+- Les exercices du groupe dont toutes les séries de travail sur les 8 semaines sont à 0 kg sont strictement exclus.
+- Pour chaque exercice éligible du groupe, sa première semaine dans la période avec un poids moyen $> 0\text{ kg}$ sert de semaine de base ($V_{base}$).
+- Pour chaque semaine de la période, l'indice du groupe est la moyenne simple des indices des exercices du groupe réalisés cette semaine-là (ou `null` si aucun exercice du groupe n'a été fait).
+- Les séries de travail (`type === 'work'`) du groupe sont comptabilisées pour chaque semaine des 8 semaines consécutives se terminant par celle de `referenceDate`.
+- L'ensemble des 11 groupes de `MUSCLE_GROUPS` est géré de manière exhaustive ; tout groupe hors `MUSCLE_GROUPS` est ignoré.
 
-*Exemple chiffré :*
-- Semaine du 12/10/2026 au 18/10/2026 (`referenceDate: '2026-10-15'`) :
-  - Développé couché (Pectoraux) : 3 séries de 80 kg × 10 reps.
-  - Barre au front (Triceps) : 3 séries de 30 kg × 10 reps.
-- Résultat :
-  - `Pectoraux` : `{ workSets: 3 }`
-  - `Triceps` : `{ workSets: 3 }`
-  - Les 9 autres groupes : `{ workSets: 0 }` chacun.
+*Exemple obligatoire chiffré pour un groupe musculaire :*
+- Groupe ciblé : `Pectoraux` sur les 8 semaines se terminant le 18/10/2026 (`referenceDate: '2026-10-18'`).
+- Semaine 7 (du 05/10 au 11/10) : Développé couché à 80 kg ($V_{base} = 80$, indice = 100), 3 séries work.
+- Semaine 8 (du 12/10 au 18/10) : Développé couché à 84 kg $\rightarrow 84 / 80 \times 100 = 105$ (+5 %), 4 séries work.
+- Résultat pour `Pectoraux` :
+  - Semaine 7 : `index: 100`, `workSets: 3`.
+  - Semaine 8 : `index: 105`, `workSets: 4`, variation actuelle $\rightarrow$ **« +5,0 % »**.
+  - Semaines 1 à 6 : `index: null`, `workSets: 0`.
 
-### 2.9 Historique musculaire sur 8 semaines pour un groupe
-Pour un groupe musculaire donné (`muscleGroup: MuscleGroup`), fournit les séries de travail pour chacune des 8 semaines consécutives se terminant par celle de `referenceDate`.
-- Renvoie un tableau de 8 éléments ordonnés chronologiquement du plus ancien au plus récent.
-- Chaque élément contient : `weekStart` ('YYYY-MM-DD', lundi), `weekEnd` ('YYYY-MM-DD', dimanche), `workSets` (nombre de séries de travail des séances terminées).
-- Les semaines sans entraînement pour ce groupe ont `workSets: 0`.
-
-*Exemple chiffré :*
-- Groupe ciblé : `Pectoraux`.
-- Sur les 8 semaines se terminant le 18/10/2026 :
-  - Semaine du 12/10/2026 au 18/10/2026 (semaine 8) : 7 séries de travail.
-  - Semaines 1 à 7 : 0 série si aucune séance pectoraux.
-- Le tableau renvoyé compte exactement 8 points hebdomadaires.
+### 2.9 Vue d'ensemble des 11 groupes musculaires
+Pour alimenter la grille des 11 groupes musculaires de l'onglet Progrès :
+- Le moteur calcule pour chaque groupe de `MUSCLE_GROUPS` sa progression sur les 8 semaines (`MuscleGroupProgression`).
+- La fonction renvoie **exactement 11 clés** (une par élément de `MUSCLE_GROUPS`).
+- Chaque groupe fournit son `currentChange` formaté (ex. `'+5,0\u00A0%'` ou `'—'` si aucune séance du groupe n'est présente sur les 8 semaines) et le nombre de séries work de la semaine de référence.
 
 ### 2.10 Formatage de la variation d'indice (`formatIndexChange`)
-L'affichage de la variation de l'indice général compare la valeur de l'indice à 100 :
+L'affichage de la variation de l'indice général et de chaque groupe musculaire compare la valeur de l'indice à 100 :
 $$\text{Écart} = \text{Indice} - 100$$
 - **Règles strictes** :
   - Formatage manuel sans `Intl` ni `toLocaleString`.
@@ -184,6 +181,12 @@ $$\text{Écart} = \text{Indice} - 100$$
   - Si l'écart est strictement négatif : préfixé du véritable signe moins Unicode `\u2212` (ex. `« −2,0 % »` $\rightarrow$ `'−2,0\u00A0%'`).
   - Si l'écart arrondi est nul : affiché `'0,0\u00A0%'` sans signe.
   - Si l'indice est `null` (aucun exercice fait) : affiché `'—'` (U+2014).
+
+### 2.11 Formatage des séries de travail (`formatStatSets`)
+Le décompte des séries de travail est formaté manuellement au singulier/pluriel avec espace insécable `\u00A0` :
+- $0$ série : `'0\u00A0série'`
+- $1$ série : `'1\u00A0série'`
+- $\ge 2$ séries : `${sets}\u00A0séries` (ex. `'7\u00A0séries'`).
 
 ---
 
@@ -209,47 +212,58 @@ Le mode du graphique est déterminé en analysant l'ensemble des séances termin
 | **Séance en cours** | Exclue car `endedAt` est absent ou indéfini. | Voir section 2.2. |
 | **Exercice archivé** | Dans `src/db/exercises.ts:143`, `filterExercises` exclut par défaut les archivés (`if (ex.archived) return false;`). `ExercisePicker` (`src/components/ExercisePicker.tsx:39`) les masque donc actuellement. La spec ajoute une prop optionnelle `includeArchived?: boolean` (défaut `false`, comportement actuel inchangé) à `ExercisePicker` et `filterExercises` pour permettre de consulter les statistiques d'un exercice archivé. | L'exercice archivé sélectionné affiche ses statistiques complètes sans section « Archivés » dédiée. |
 | **Séance sans série pour l'exercice** | Aucun point tracé pour cette séance sur la courbe de l'exercice. | La séance n'a pas inclus cet exercice $\rightarrow$ ignorée sur sa courbe. |
-| **Valeur constante ou séance unique ($min = max = V$)** | L'axe vertical Y est borné de $[V - 2{,}5\text{ kg} ; V + 2{,}5\text{ kg}]$. Le point est centré verticalement. | 1 séance à 60 kg $\rightarrow$ Axe Y va de 57,5 kg à 62,5 kg. Le point à 60 kg est tracé au milieu. |
-| **Étendue temporelle (v1)** | L'intégralité des séances terminées de l'exercice est affichée chronologiquement, sans pagination ni défilement horizontal. | 15 séances sur un an $\rightarrow$ 15 points répartis sur toute la largeur du graphique. |
+| **Valeur constante ou séance unique ($min = max = V$)** | Pour le poids : axe Y borné à $[V - 2{,}5\text{ kg} ; V + 2{,}5\text{ kg}]$. Pour les reps : axe Y borné à $[\max(0, V - 5) ; V + 5\text{ reps}]$. Pour l'indice (`mode === 'index'`) : axe Y borné à $[V - 2{,}5 ; V + 2{,}5\text{ points}]$ (ex. pour un indice constant à 100 : $[97{,}5 ; 102{,}5]$, graduations `'−2,5\u00A0%'` et `'+2,5\u00A0%'`). | 1 séance à 60 kg $\rightarrow$ Axe Y va de 57,5 kg à 62,5 kg. Indice constant à 100 $\rightarrow$ Axe Y de 97,5 à 102,5. |
+| **Étendue temporelle** | Pour un exercice : toutes ses séances terminées chronologiquement. Pour le Général et les Muscles : les 8 semaines calendaires consécutives (du lundi au dimanche) se terminant par celle de `referenceDate`. | 8 semaines affichées horizontalement de gauche à droite. |
 
 ---
 
 ## 4. Interface utilisateur : 4e onglet « Progrès »
 
 ### 4.1 Intégration dans la barre de navigation
-- Disposition actuelle dans `src/components/TabBar.tsx:36` :
-  ```tsx
-  <div className="max-w-md mx-auto grid grid-cols-3 px-2 h-[var(--tabbar-height)] items-center">
-  ```
-- Passage à 4 colonnes (`grid-cols-4`) pour accueillir le 4e onglet :
-  ```tsx
-  <div className="max-w-md mx-auto grid grid-cols-4 px-2 h-[var(--tabbar-height)] items-center">
-  ```
+- Disposition dans `src/components/TabBar.tsx` : 4 colonnes (`grid-cols-4`).
 - **Caractéristiques de l'onglet :**
   - Identifiant : `'progress'`
   - Libellé : `Progrès`
   - Icône : `TrendingUp` de `lucide-react` (taille 24px, `strokeWidth={2}`, `aria-hidden="true"`).
-- **Maintien dans `--tabbar-height` (4rem / 64px) et calculs de largeur :**
-  - Sur un écran mobile iPhone standard de 375 px de largeur :
-    - Le conteneur applique `px-2` ($2 \times 8\text{px} = 16\text{px}$ de marge interne totale).
-    - Largeur nette disponible : $375\text{px} - 16\text{px} = 359\text{px}$.
-    - Largeur réelle par colonne : $\frac{359\text{px}}{4} = 89{,}75\text{px}$.
-    - Le libellé le plus long de la barre est « Séances types » (13 caractères). Il tient dans les ~90 px avec la typographie `text-xs leading-tight`.
-    - Le libellé « Progrès » (7 caractères) y tient très largement sans retour à la ligne.
-    - **Contrainte de vérification lot 4c** : La capture d'écran requise pour valider l'interface devra obligatoirement montrer la barre d'onglets sur un viewport de 375 px de largeur afin de confirmer l'absence de chevauchement.
-  - La zone tactile respecte $\ge 48\text{px}$ de hauteur et $\ge 44\text{px}$ de largeur.
-  - La hauteur reste strictement fixée par `var(--tabbar-height)` avec `pb-[env(safe-area-inset-bottom)]`.
+- La zone tactile respecte $\ge 48\text{px}$ de hauteur et $\ge 44\text{px}$ de largeur.
+- La hauteur reste fixée par `var(--tabbar-height)` avec `pb-[env(safe-area-inset-bottom)]`.
 
-### 4.2 Vues de l'onglet Progrès
-- **Vue 1 : Progression par exercice**
-  - Sélecteur d'exercice : réutilise le composant existant `ExercisePicker` avec la prop `includeArchived={true}`.
-  - Cartouche de métriques :
-    - Poids moyen de la dernière séance terminée (ex. `'83\u00A0kg'`).
-    - Record personnel de l'exercice (ex. `'Record\u00A0:\u00A085\u00A0kg\u00A0\u00D7\u00A08'`).
-  - Graphique : courbe temporelle du poids moyen (ou des reps si 0 kg) avec point gold marquant le record personnel.
-- **Vue 2 : Séries par groupe et par semaine**
-  - Sélecteur de semaine (chaîne `'YYYY-MM-DD'` explicite).
-  - Décompte des séries de travail pour les 11 groupes musculaires, chacun accompagné de son composant `MuscleIcon`.
+### 4.2 Les 3 vues de l'onglet Progrès
+En haut de l'écran, un contrôle segmenté (`role="tablist"`) permet de basculer entre les trois vues :
+- Options : « Général », « Muscles », « Exercices ».
+- Vue sélectionnée par défaut : **Général**.
+- La barre de défilement est masquée, zones tactiles $\ge 44\text{px}$.
+
+#### Vue 1 : Général (par défaut)
+- Affiche la progression globale de la force sur les 8 semaines consécutives.
+- En haut : cartouche de résumé indiquant la variation de la dernière semaine (`currentChange`, ex. `'+5,8\u00A0%'`).
+- Graphique : courbe de l'indice sur 8 semaines via `LineChart` (`mode="index"`).
+- Si aucune séance éligible sur la période : affiche sobrement `« Aucune séance »`. Aucun autre texte.
+
+#### Vue 2 : Muscles
+- **Écran principal (vue grille)** :
+  - Grille des 11 groupes musculaires (réutilisation du composant partagé `MuscleGroupGrid` avec la prop `subtitles` pour afficher l'indice sous chaque nom de groupe).
+  - Chaque tuile affiche l'icône `MuscleIcon`, le nom du groupe et sa variation actuelle (`currentChange`, ex. `'+5,0\u00A0%'` ou `'—'` si aucune séance).
+- **Écran de détail d'un groupe** (au clic sur une tuile) :
+  - Bouton retour en haut à gauche pour revenir à la grille des muscles (`« ← Tous les muscles »`).
+  - En-tête avec l'icône `MuscleIcon` et le nom du groupe.
+  - Cartouche de résumé avec :
+    - La variation d'indice de la dernière semaine (`currentChange`).
+    - Les séries de travail de la dernière semaine (`formatStatSets`, ex. `'4\u00A0séries'`).
+  - Graphique : courbe de l'indice du groupe sur 8 semaines via `LineChart` (`mode="index"`).
+  - Récapitulatif hebdomadaire : liste des 8 semaines indiquant pour chacune l'intervalle et son nombre de séries work formaté (`formatStatSets`).
+  - Si aucune séance pour ce groupe : affiche sobrement `« Aucune séance »`. Aucun autre texte.
+
+#### Vue 3 : Exercices
+- Conserve fidèlement l'interface existante :
+  - Bouton de choix d'exercice ouvrant `ExercisePicker` (`includeArchived={true}`).
+  - Cartouche de résumé : poids moyen de la dernière séance terminée, puis le record personnel s'il existe.
+  - Graphique : courbe de progression de l'exercice (`mode="weight"` ou `mode="reps"`).
+  - Si aucune séance pour l'exercice : affiche sobrement `« Aucune séance »`. Aucun autre texte.
+
+#### Règle stricte d'interface
+- Aucun calcul ni formatage dans les composants : uniquement via `src/db/`.
+- En l'absence de données : `« Aucune séance »`. Aucun texte d'aide ni sous-titre superflu.
 
 ---
 
@@ -380,20 +394,40 @@ export function calculateWeeklyMuscleStats(params: {
   referenceDate: string;
 }): Record<MuscleGroup, MuscleGroupWeeklyStat>;
 
-// Historique hebdomadaire sur 8 semaines pour un groupe musculaire
-export interface WeeklyMuscleGroupHistoryPoint {
-  weekStart: string; // 'YYYY-MM-DD'
-  weekEnd: string;   // 'YYYY-MM-DD'
-  workSets: number;
+// Formatage du nombre de séries de travail : ex. "7\u00A0séries", "1\u00A0série", "0\u00A0série"
+export function formatStatSets(sets: number): string;
+
+// Point hebdomadaire pour un groupe musculaire
+export interface WeeklyMuscleStatPoint {
+  weekStart: string; // 'YYYY-MM-DD' (lundi)
+  weekEnd: string;   // 'YYYY-MM-DD' (dimanche)
+  index: number | null; // moyenne des indices des exercices du groupe, ou null
+  workSets: number;  // nombre de séries de travail du groupe pour la semaine
 }
 
-export function calculateMuscleGroupHistory(params: {
+export interface MuscleGroupProgression {
+  muscleGroup: MuscleGroup;
+  weeks: WeeklyMuscleStatPoint[];
+  currentChange: string; // variation formatée pour la semaine courante (ex. "+5,0\u00A0%")
+  currentWorkSets: number; // séries work de la semaine courante (semaine 8)
+}
+
+// Calcul de la progression sur 8 semaines pour un groupe musculaire
+export function calculateMuscleGroupProgression(params: {
   sessions: Session[];
   sets: SetEntry[];
   exercises: Exercise[];
   referenceDate: string;
   muscleGroup: MuscleGroup;
-}): WeeklyMuscleGroupHistoryPoint[];
+}): MuscleGroupProgression;
+
+// Calcul de la progression sur 8 semaines pour l'ensemble des 11 groupes musculaires
+export function calculateAllMuscleGroupsProgression(params: {
+  sessions: Session[];
+  sets: SetEntry[];
+  exercises: Exercise[];
+  referenceDate: string;
+}): Record<MuscleGroup, MuscleGroupProgression>;
 ```
 
 #### Fonctions minces de chargement Dexie (lecture seule, sans calcul métier)
@@ -421,8 +455,35 @@ export async function loadGeneralStatsData(referenceDate: string): Promise<{
 }>;
 ```
 
-### 6.2 Lot 4d : Interface utilisateur (`src/features/stats/`)
+#### Hooks réactifs useLiveQuery (`src/db/stats.ts`)
+```typescript
+// Hook réactif pour la progression d'un exercice (vue Exercices)
+export function useExerciseProgression(exerciseId: number | null):
+  | { progression: ExerciseProgression | null }
+  | undefined;
+
+// Hook réactif pour la progression générale sur 8 semaines (vue Général)
+export function useGeneralProgression(referenceDate?: string):
+  | { progression: GeneralProgression }
+  | undefined;
+
+// Hook réactif pour la progression des 11 groupes musculaires (vue Muscles)
+export function useMusclesProgression(referenceDate?: string):
+  | { progression: Record<MuscleGroup, MuscleGroupProgression> }
+  | undefined;
+```
+
+### 6.2 Lot 4d : Progression par exercice (`src/features/stats/`)
 - Composant `LineChart` en SVG natif avec tokens Tailwind et repère record gold.
-- Composant `StatsTab` gérant la bascule entre la vue Exercice, la vue Générale et la vue Hebdomadaire par groupe.
+- Composant `StatsTab` avec choix de l'exercice et affichage de la courbe.
 - Intégration de la prop `includeArchived?: boolean` dans `ExercisePicker` et `filterExercises`.
 - Intégration de l'onglet `Progrès` dans `src/components/TabBar.tsx` et `src/App.tsx`.
+
+### 6.3 Lot 4e : Vues Général et Muscles (`src/features/stats/`)
+- Contrôle segmenté en haut de `StatsTab` : « Général | Muscles | Exercices », Général sélectionné par défaut.
+- Vue Général : variation de la dernière semaine (`progression.currentChange`) et courbe sur 8 semaines via `LineChart` (`mode="index"`).
+- Vue Muscles :
+  - Grille des 11 groupes musculaires réutilisant `MuscleGroupGrid` avec la prop `subtitles` pour afficher l'indice sous chaque nom.
+  - Détail d'un groupe au clic : bouton retour, icône, variation actuelle, séries de travail de la dernière semaine, courbe sur 8 semaines et historique hebdomadaire des séries.
+- Mode `index` dans `LineChart` et `chartGeometry` avec bornes à $\pm 2{,}5\text{ points}$ en cas d'indice constant.
+- Règle « Aucune séance » si aucune donnée disponible.
