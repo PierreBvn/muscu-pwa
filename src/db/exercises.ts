@@ -2,34 +2,61 @@ import { db, type Exercise, type MuscleGroup } from './schema';
 
 export const DEFAULT_EXERCISES: Omit<Exercise, 'id'>[] = [
   // Pectoraux (3)
-  { name: 'Développé couché', muscleGroup: 'Pectoraux' },
+  { name: 'Développé couché barre', muscleGroup: 'Pectoraux' },
+  { name: 'Développé couché haltères', muscleGroup: 'Pectoraux' },
+  { name: 'Développé incliné barre', muscleGroup: 'Pectoraux' },
   { name: 'Développé incliné haltères', muscleGroup: 'Pectoraux' },
   { name: 'Écarté à la poulie', muscleGroup: 'Pectoraux' },
+  { name: 'Écarté à la poulie haute', muscleGroup: 'Pectoraux' },
+  { name: 'Écarté à la poulie basse', muscleGroup: 'Pectoraux' },
 
   // Dos (4)
   { name: 'Tractions', muscleGroup: 'Dos' },
+  { name: 'Tirage vertical prise large', muscleGroup: 'Dos' },
+  { name: 'Tirage vertical prise serrée', muscleGroup: 'Dos' },
+  { name: 'Tirage vertical unilatéral', muscleGroup: 'Dos' },
+  { name: 'Tirage horizontal prise large', muscleGroup: 'Dos' },
+  { name: 'Tirage horizontal prise serrée', muscleGroup: 'Dos' },
+  { name: 'Tirage horizontal unilatéral', muscleGroup: 'Dos' },
+  { name: 'Pull-Over', muscleGroup: 'Dos' },
+  { name: 'Bûcheron', muscleGroup: 'Dos' },
   { name: 'Soulevé de terre', muscleGroup: 'Dos' },
   { name: 'Rowing barre', muscleGroup: 'Dos' },
-  { name: 'Tirage vertical', muscleGroup: 'Dos' },
+
 
   // Épaules (3)
   { name: 'Développé militaire', muscleGroup: 'Épaules' },
   { name: 'Élévations latérales', muscleGroup: 'Épaules' },
+  { name: 'Élévations frontales', muscleGroup: 'Épaules' },
+  { name: 'Élévations frontales unilatérales', muscleGroup: 'Épaules' },
+  { name: 'Arrière d\'épaule', muscleGroup: 'Épaules' },
   { name: 'Oiseau banc incliné', muscleGroup: 'Épaules' },
 
   // Quadriceps (3)
   { name: 'Squat', muscleGroup: 'Quadriceps' },
-  { name: 'Presse à cuisses', muscleGroup: 'Quadriceps' },
+  { name: 'Jambes extensions', muscleGroup: 'Quadriceps' },
   { name: 'Fentes', muscleGroup: 'Quadriceps' },
+  { name: 'Presse', muscleGroup: 'Quadriceps' },
 
   // Ischios (1)
   { name: 'Leg curl', muscleGroup: 'Ischios' },
+  { name: 'Leg curl unilatéral', muscleGroup: 'Ischios' },
 
   // Biceps (1)
-  { name: 'Curl biceps barre', muscleGroup: 'Biceps' },
+  { name: 'Curl poulie basse', muscleGroup: 'Biceps' },
+  { name: 'Curl poulie basse unilatéral', muscleGroup: 'Biceps' },
+  { name: 'Curl banc incliné haltères', muscleGroup: 'Biceps' },
+  { name: 'Curl pupitre', muscleGroup: 'Biceps' },
+  { name: 'Curl haltères', muscleGroup: 'Biceps' },
+  { name: 'Curl marteau', muscleGroup: 'Biceps' },
+  { name: 'Curl barre', muscleGroup: 'Biceps' },
 
   // Triceps (2)
   { name: 'Dips', muscleGroup: 'Triceps' },
+  { name: 'Poulie haute', muscleGroup: 'Triceps' },
+  { name: 'Poulie haute unilatéral', muscleGroup: 'Triceps' },
+  { name: 'Poulie basse', muscleGroup: 'Triceps' },
+  { name: 'Poulie basse unilatéral', muscleGroup: 'Triceps' },
   { name: 'Barre au front', muscleGroup: 'Triceps' },
 
   // Avant-bras (1)
@@ -38,6 +65,7 @@ export const DEFAULT_EXERCISES: Omit<Exercise, 'id'>[] = [
   // Abdos (2)
   { name: 'Crunch', muscleGroup: 'Abdos' },
   { name: 'Gainage planche', muscleGroup: 'Abdos' },
+  { name: 'Crunch à la poulie haute', muscleGroup: 'Abdos' },
 
   // Fessiers (1)
   { name: 'Hip thrust', muscleGroup: 'Fessiers' },
