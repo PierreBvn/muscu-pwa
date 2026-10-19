@@ -15,6 +15,9 @@ description: Règles de mise en page CSS, gestion des safe areas, défilement et
 - Barres de défilement masquées sur `html`, `body` et tout conteneur défilant.
 - Les espaces ajoutés pour le défilement sont calculés au plus juste, jamais égaux à une hauteur d'écran par défaut.
 - Toute liste qui défile vers un élément prévoit un espace en bas pour atteindre la position voulue.
+- Un affichage qui change souvent (minuteur, compteur) vit dans son propre composant ;
+  il ne doit jamais provoquer le re-rendu ni le remontage de la liste parente.
+
 
 ## Éléments fixes et superposition
 - Aucun ancêtre d'un élément `fixed` ne doit porter `transform`, `filter`, `backdrop-filter`, `will-change` ou une animation.

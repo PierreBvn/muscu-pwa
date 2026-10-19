@@ -1,17 +1,41 @@
-import React from 'react';
-import { formatTimer } from '../../timer';
+import React, { useState, useEffect } from 'react';
+import { type TimerState, remaining, isExpired, formatTimer } from '../../timer';
 
 interface RestBannerProps {
-  remainingSeconds: number;
+  timer?: TimerState;
+  remainingSeconds?: number;
   onAddTime: () => void;
   onSkip: () => void;
+  onExpire?: () => void;
 }
 
 export const RestBanner: React.FC<RestBannerProps> = ({
-  remainingSeconds,
+  timer,
+  remainingSeconds: propRemainingSeconds,
   onAddTime,
   onSkip,
+  onExpire,
 }) => {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!timer) return;
+
+    const interval = window.setInterval(() => {
+      const current = Date.now();
+      if (isExpired(timer, current)) {
+        clearInterval(interval);
+        onExpire?.();
+      } else {
+        setNow(current);
+      }
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, [timer, onExpire]);
+
+  const displaySeconds = timer ? remaining(timer, now) : (propRemainingSeconds ?? 0);
+
   return (
     <aside
       role="region"
@@ -24,10 +48,10 @@ export const RestBanner: React.FC<RestBannerProps> = ({
             Repos
           </span>
           <span
-            aria-label={`${remainingSeconds} secondes restantes`}
+            aria-label={`${displaySeconds} secondes restantes`}
             className="text-2xl font-bold tabular-nums text-gold tracking-tight"
           >
-            {formatTimer(remainingSeconds)}
+            {formatTimer(displaySeconds)}
           </span>
         </div>
 

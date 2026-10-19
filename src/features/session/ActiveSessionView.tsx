@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Session, Program, SetEntry, SessionExercise, Exercise } from '../../db/schema';
 import type { SessionDetails } from '../../db/sessions';
@@ -21,7 +21,6 @@ import { getSettings } from '../../settings';
 import {
   type TimerState,
   startRest,
-  remaining,
   addTime,
   isExpired,
   saveTimer,
@@ -59,35 +58,28 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
 
   const [timerState, setTimerState] = useState<TimerState | null>(() => {
     if (!session.id) return null;
-    return resumeTimer(Date.now(), session.id);
+    const resumed = resumeTimer(Date.now(), session.id);
+    if (!resumed) return null;
+    if (isExpired(resumed, Date.now())) {
+      clearTimer();
+      return null;
+    }
+    return resumed;
   });
-  const [now, setNow] = useState(() => Date.now());
 
-  useEffect(() => {
-    if (!timerState) return;
-
-    const interval = window.setInterval(() => {
-      const current = Date.now();
-      if (isExpired(timerState, current)) {
-        if (getSettings().restSound) {
-          playTimerBeep();
-        }
-        clearTimer();
-        setTimerState(null);
-      } else {
-        setNow(current);
-      }
-    }, 250);
-
-    return () => clearInterval(interval);
-  }, [timerState]);
+  const handleTimerExpire = useCallback(() => {
+    if (getSettings().restSound) {
+      playTimerBeep();
+    }
+    clearTimer();
+    setTimerState(null);
+  }, []);
 
   const handleAddRestTime = () => {
     if (!timerState) return;
     const updated = addTime(timerState, 30);
     saveTimer(updated);
     setTimerState(updated);
-    setNow(Date.now());
   };
 
   const handleSkipRestTimer = () => {
@@ -203,17 +195,29 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   }) => {
     unlockAudio();
     await addSet(data);
-    // Décision (3) : quand l'exercice ouvert devient terminé,
-    // il se ferme et le premier non terminé s'ouvre (retour au défaut getSessionProgress).
-    setOpenedSessionExerciseId(null);
 
-    // Déclenchement du minuteur de repos
-    if (session.id) {
+    // Vérifier si l'exercice vient de devenir terminé (toutes ses workSets prévues sont faites)
+    const exItem = details.exercises.find((e) => e.exerciseId === data.exerciseId);
+    if (exItem && data.type === 'work') {
+      const workSetsDoneBefore = details.sets.filter(
+        (s) => s.exerciseId === data.exerciseId && s.type === 'work'
+      ).length;
+      const willBeCompleted = workSetsDoneBefore + 1 >= exItem.workSets;
+      const wasAlreadyCompleted = workSetsDoneBefore >= exItem.workSets;
+
+      if (willBeCompleted && !wasAlreadyCompleted) {
+        // Décision (3) : quand l'exercice ouvert devient terminé,
+        // il se ferme et le premier non terminé s'ouvre (retour au défaut getSessionProgress).
+        setOpenedSessionExerciseId(null);
+      }
+    }
+
+    // Déclenchement du minuteur de repos (uniquement après une vraie série)
+    if (session.id && data.type === 'work') {
       const currentSettings = getSettings();
       const newTimer = startRest(Date.now(), currentSettings.restSeconds, session.id);
       saveTimer(newTimer);
       setTimerState(newTimer);
-      setNow(Date.now());
     }
   };
 
@@ -269,7 +273,11 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
     skipped: boolean
   ) => {
     await skipSessionExercise(sessionExerciseId, skipped);
-    setOpenedSessionExerciseId(null);
+    if (skipped) {
+      setOpenedSessionExerciseId(null);
+    } else {
+      setOpenedSessionExerciseId(sessionExerciseId);
+    }
   };
 
   const existingExerciseIds = details.exercises.map((e) => e.exerciseId);
@@ -412,11 +420,12 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
       )}
 
       {/* Bandeau de repos */}
-      {timerState && remaining(timerState, now) > 0 && (
+      {timerState && (
         <RestBanner
-          remainingSeconds={remaining(timerState, now)}
+          timer={timerState}
           onAddTime={handleAddRestTime}
           onSkip={handleSkipRestTimer}
+          onExpire={handleTimerExpire}
         />
       )}
 

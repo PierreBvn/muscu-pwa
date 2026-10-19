@@ -4,7 +4,7 @@ import { SeanceTab } from '../SeanceTab';
 import { db } from '../../../db/schema';
 import { createProgram, addExerciseToProgram, deleteProgram, getProgramWithExercises } from '../../../db/programs';
 import { addExercise } from '../../../db/exercises';
-import { startSession, addSet, getSession, finishSession, getSessionExercises } from '../../../db/sessions';
+import { startSession, addSet, getSession, finishSession, getSessionExercises, getSetsForSession } from '../../../db/sessions';
 
 describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   beforeEach(async () => {
@@ -1360,6 +1360,96 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     // De retour sur la vue Séance
     expect(await screen.findByRole('button', { name: 'Paramètres' })).toBeInTheDocument();
     expect(screen.queryByText('Minuteur de repos')).not.toBeInTheDocument();
+  });
+
+  it('45. ouvrir l’exercice 2 et valider une série garde l’exercice 2 ouvert', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    const exId2 = await addExercise({ name: 'Écarté haltères', muscleGroup: 'Pectoraux' });
+
+    const progId = await createProgram({ name: 'Pecs', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId1, warmupSets: 0, workSets: 3 });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId2, warmupSets: 0, workSets: 3 });
+
+    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    // Au départ, l'exercice 1 est ouvert, l'exercice 2 est fermé
+    const openEx2Btn = await screen.findByRole('button', { name: /ouvrir écarté haltères/i });
+    fireEvent.click(openEx2Btn);
+
+    // Vérifier que l'exercice 2 est ouvert
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /ouvrir développé couché/i })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /ouvrir écarté haltères/i })).not.toBeInTheDocument();
+    });
+
+    // Saisir un poids et valider la première série de l'exercice 2
+    const weightInput = await screen.findByLabelText(/poids personnalisé/i);
+    fireEvent.change(weightInput, { target: { value: '20' } });
+    const rep10Btn = screen.getByRole('button', { name: /10 reps/i });
+    fireEvent.click(rep10Btn);
+    const validateBtn = screen.getByRole('button', { name: /valider série 1/i });
+    fireEvent.click(validateBtn);
+
+    // Vérifier que la série a été enregistrée en base
+    await waitFor(async () => {
+      const sets = await getSetsForSession(currentSessionId);
+      expect(sets).toHaveLength(1);
+    });
+
+    // Attendu : l'exercice 2 reste ouvert (ne revient pas au premier exercice Développé couché)
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /ouvrir écarté haltères/i })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /ouvrir développé couché/i })).toBeInTheDocument();
+    });
+  });
+
+  it('46. ouvrir l’exercice 2 et valider un échauffement garde l’exercice 2 ouvert', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exId1 = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    const exId2 = await addExercise({ name: 'Écarté haltères', muscleGroup: 'Pectoraux' });
+
+    const progId = await createProgram({ name: 'Pecs Warmup', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId1, warmupSets: 1, workSets: 3 });
+    await addExerciseToProgram({ programId: progId, exerciseId: exId2, warmupSets: 1, workSets: 3 });
+
+    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+
+    render(<SeanceTab />);
+
+    // Ouvrir l'exercice 2
+    const openEx2Btn = await screen.findByRole('button', { name: /ouvrir écarté haltères/i });
+    fireEvent.click(openEx2Btn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /ouvrir développé couché/i })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /ouvrir écarté haltères/i })).not.toBeInTheDocument();
+    });
+
+    // Valider l'échauffement de l'exercice 2
+    const weightInput = await screen.findByLabelText(/poids personnalisé/i);
+    fireEvent.change(weightInput, { target: { value: '10' } });
+    const rep10Btn = screen.getByRole('button', { name: /10 reps/i });
+    fireEvent.click(rep10Btn);
+    const validateBtn = screen.getByRole('button', { name: /valider échauffement/i });
+    fireEvent.click(validateBtn);
+
+    // Vérifier enregistrement de l'échauffement
+    await waitFor(async () => {
+      const sets = await getSetsForSession(currentSessionId);
+      expect(sets).toHaveLength(1);
+      expect(sets[0].type).toBe('warmup');
+    });
+
+    // L'exercice 2 reste ouvert
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /ouvrir écarté haltères/i })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /ouvrir développé couché/i })).toBeInTheDocument();
+    });
   });
 });
 

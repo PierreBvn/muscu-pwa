@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { RestBanner } from '../RestBanner';
 
@@ -48,5 +48,45 @@ describe('RestBanner', () => {
     fireEvent.click(skipBtn);
 
     expect(handleSkip).toHaveBeenCalledTimes(1);
+  });
+
+  it('décompte en interne via timer et déclenche onExpire à expiration', () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const now = 10000;
+      vi.setSystemTime(now);
+
+      const handleExpire = vi.fn();
+      const timer = {
+        sessionId: 1,
+        endsAt: now + 5000,
+      };
+
+      render(
+        <RestBanner
+          timer={timer}
+          onAddTime={vi.fn()}
+          onSkip={vi.fn()}
+          onExpire={handleExpire}
+        />
+      );
+
+      expect(screen.getByText('0:05')).toBeInTheDocument();
+
+      // Avancer de 2 secondes
+      act(() => {
+        vi.advanceTimersByTime(2000);
+      });
+      expect(screen.getByText('0:03')).toBeInTheDocument();
+      expect(handleExpire).not.toHaveBeenCalled();
+
+      // Avancer jusqu'à expiration
+      act(() => {
+        vi.advanceTimersByTime(3500);
+      });
+      expect(handleExpire).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -38,3 +38,5 @@ Stack : Vite, React 19, TypeScript strict, Tailwind CSS v4, Dexie (IndexedDB), V
 ## Maintenance des règles
 - `AGENTS.md` reste sous 100 lignes ; toute règle propre à un domaine va dans un skill.
 - Avant d'ajouter une règle, vérifier qu'elle ne contredit ni ne duplique une règle existante.
+- Sous Windows, utiliser npm.cmd / npx.cmd dans le terminal.
+- Un test qui échoue : corriger le code ; ne modifier le test que s'il est prouvé faux, et le signaler.
