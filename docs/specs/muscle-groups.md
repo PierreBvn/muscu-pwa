@@ -312,3 +312,10 @@ Ces vérifications manuelles sur iPhone (safari / PWA installée, viewport 390×
 - [ ] **Séance libre (ajout d'exercice)** : L'exercice ajouté se place comme avant (fin de liste si aucune série, sinon avant le premier exercice non terminé).
 - [ ] **Séance type (ajout d'exercice)** : L'exercice ajouté a 1 série d'échauffement et 3 de travail.
 - [ ] **Exercice déjà présent** : N'apparaît ni dans la liste ni dans le compteur de son groupe.
+ 
+---
+ 
+## 8. Règles d'affichage des icônes
+- Partout dans l'interface, un groupe musculaire est représenté par MuscleIcon (PNG recolorés), jamais par une abréviation.
+- Taille d'affichage : entre 40 px et 48 px (fichiers en 144 px).
+- Une ligne d'exercice affiche MuscleIcon seulement si la liste mélange plusieurs groupes.

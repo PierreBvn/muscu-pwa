@@ -78,6 +78,8 @@ les mêmes exercices. À la salle, je veux enregistrer chaque série en
 
 ## Règles métier
 - Une seule séance en cours à la fois.
+- Les actions sur une séance (ajouter, retirer, passer, réordonner) ne modifient jamais la séance type.
+- Un exercice ne peut apparaître qu'une fois par séance et par séance type (le poids de référence en dépend).
 - Chaque série est écrite en base immédiatement (iOS peut tuer la PWA).
 - Une séance terminée sans aucune série est supprimée.
 - Exercices archivés : exclus des sélecteurs, conservés dans l'historique.
