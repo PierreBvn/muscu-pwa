@@ -240,6 +240,13 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - docs/roadmap.md liste les lots (fait / en cours / à faire) et fait autorité sur l'ordre des tâches.
 - L'agent met à jour roadmap.md dans le dernier commit de chaque lot.
 
+## Terminal et performances
+- Ne jamais lancer de commande qui ne se termine pas seule (npm run dev, vite preview, vitest sans "run"), sauf si je le demande. Si un serveur est nécessaire, l'arrêter à la fin.
+- Tests : toujours "vitest run", jamais le mode watch.
+- Commandes non interactives uniquement (ajouter --yes ou équivalent).
+- Ne jamais lire node_modules/, dist/, dev-dist/, coverage/.
+- Captures du navigateur : seulement pour une tâche visuelle, à 375 px, 3 au maximum.
+
 
 ## Règles
 - Local-first : aucune donnée envoyée à un serveur.
