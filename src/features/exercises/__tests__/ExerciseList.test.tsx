@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { db, MUSCLE_GROUPS } from '../../../db/schema';
-import { addExercise } from '../../../db/exercises';
+import { addExercise, ensureSeeded } from '../../../db/exercises';
 import { ExerciseList } from '../ExerciseList';
 
 describe('ExerciseList UI component (grille & navigation)', () => {
   beforeEach(async () => {
     await db.exercises.clear();
+    await ensureSeeded();
   });
 
   it('renders the header and displays the 2-column grid of 11 muscle groups with exercise counts', async () => {
@@ -202,6 +203,8 @@ describe('ExerciseList UI component (grille & navigation)', () => {
   });
 
   it('displays "Aucun exercice" empty state when a group has 0 exercises', async () => {
+    // Vider la base pour tester l'état vide
+    await db.exercises.clear();
     // Insérer un seul exercice dans Dos
     await addExercise({ name: 'Tractions', muscleGroup: 'Dos' });
 

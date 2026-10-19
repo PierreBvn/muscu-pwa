@@ -40,3 +40,5 @@ Stack : Vite, React 19, TypeScript strict, Tailwind CSS v4, Dexie (IndexedDB), V
 - Avant d'ajouter une règle, vérifier qu'elle ne contredit ni ne duplique une règle existante.
 - Sous Windows, utiliser npm.cmd / npx.cmd dans le terminal.
 - Un test qui échoue : corriger le code ; ne modifier le test que s'il est prouvé faux, et le signaler.
+- L'initialisation des données (seed) se fait au démarrage de l'app, jamais dans un écran.
+- Toute fonctionnalité de données se teste aussi sur une base vide (première installation).

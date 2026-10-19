@@ -49,8 +49,9 @@ export const DEFAULT_EXERCISES: Omit<Exercise, 'id'>[] = [
 /**
  * Pré-remplit les exercices par défaut si la table est vide.
  * Exécuté de manière atomique dans une transaction pour éviter le double seed.
+ * Idempotent : ne fait rien et renvoie false si des exercices existent déjà.
  */
-export async function seedExercisesIfNeeded(): Promise<boolean> {
+export async function ensureSeeded(): Promise<boolean> {
   return await db.transaction('rw', db.exercises, async () => {
     const count = await db.exercises.count();
     if (count === 0) {
@@ -62,6 +63,8 @@ export async function seedExercisesIfNeeded(): Promise<boolean> {
     return false;
   });
 }
+
+export const seedExercisesIfNeeded = ensureSeeded;
 
 /**
  * Récupère tous les exercices actifs (non archivés) triés alphabétiquement par nom.

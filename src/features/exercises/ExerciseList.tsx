@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { MUSCLE_GROUPS, type Exercise, type MuscleGroup } from '../../db/schema';
 import {
-  seedExercisesIfNeeded,
   getExercisesByGroup,
   addExercise,
   updateExercise,
@@ -20,13 +19,6 @@ export const ExerciseList: React.FC = () => {
   const [modalDefaultGroup, setModalDefaultGroup] = useState<MuscleGroup | undefined>(undefined);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [exerciseToDelete, setExerciseToDelete] = useState<Exercise | null>(null);
-
-  // Initialisation du seed au premier chargement
-  useEffect(() => {
-    seedExercisesIfNeeded().catch((err) => {
-      console.error('Erreur lors du seed initial des exercices :', err);
-    });
-  }, []);
 
   // Requête réactive via useLiveQuery emballée
   const groupedExercisesQuery = useLiveQuery(
