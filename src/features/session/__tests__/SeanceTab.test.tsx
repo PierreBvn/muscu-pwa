@@ -4,7 +4,7 @@ import { SeanceTab } from '../SeanceTab';
 import { db } from '../../../db/schema';
 import { createProgram, addExerciseToProgram, deleteProgram, getProgramWithExercises } from '../../../db/programs';
 import { addExercise } from '../../../db/exercises';
-import { startSession, addSet, getSession, finishSession, getSessionExercises, getSetsForSession } from '../../../db/sessions';
+import { startSession, addSet, getSession, finishSession, getSessionExercises, getSetsForSession, reorderSessionExercises } from '../../../db/sessions';
 
 describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
   beforeEach(async () => {
@@ -922,7 +922,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     });
   });
 
-  it('29. réordonne avec ↑ ↓ via le menu ⋯ et désactive les boutons aux extrémités', async () => {
+  it('29. affiche la poignée de réordonnancement sur chaque exercice et retire Monter/Descendre du menu ⋯', async () => {
     vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
 
     const exId1 = await addExercise({ name: 'Exercice Un', muscleGroup: 'Biceps' });
@@ -931,38 +931,25 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     await addExerciseToProgram({ programId: progId, exerciseId: exId1 });
     await addExerciseToProgram({ programId: progId, exerciseId: exId2 });
 
-    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
 
     render(<SeanceTab />);
 
+    // Poignées de réordonnancement présentes avec labels accessibles
+    expect(await screen.findByRole('button', { name: /réordonner exercice un/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /réordonner exercice deux/i })).toBeInTheDocument();
+
     // Ouvrir menu Exercice Un
-    const optionsBtn1 = await screen.findByRole('button', { name: /options exercice un/i });
+    const optionsBtn1 = screen.getByRole('button', { name: /options exercice un/i });
     fireEvent.click(optionsBtn1);
 
-    const upBtn1 = screen.getByRole('button', { name: /monter exercice un/i });
-    expect(upBtn1).toBeDisabled();
+    // Monter et Descendre ne sont plus dans le menu ⋯
+    expect(screen.queryByRole('button', { name: /monter/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /descendre/i })).not.toBeInTheDocument();
 
-    // Descendre le premier
-    const downBtn1 = screen.getByRole('button', { name: /descendre exercice un/i });
-    fireEvent.click(downBtn1);
-
-    await waitFor(async () => {
-      const seList = await getSessionExercises(currentSessionId);
-      expect(seList[0].exerciseId).toBe(exId2);
-      expect(seList[1].exerciseId).toBe(exId1);
-    });
-
-    // Attendre que le DOM soit réordonné : Exercice Deux en premier, Exercice Un en second
-    await waitFor(() => {
-      const names = screen.getAllByText(/exercice (un|deux)/i);
-      expect(names[0]).toHaveTextContent('Exercice Deux');
-      expect(names[1]).toHaveTextContent('Exercice Un');
-    });
-
-    // Exercice Un est maintenant le second -> descendre est désactivé
-    fireEvent.click(screen.getByRole('button', { name: /options exercice un/i }));
-    const downBtnEnd = screen.getByRole('button', { name: /descendre exercice un/i });
-    expect(downBtnEnd).toBeDisabled();
+    // Passer et Retirer restent présents dans le menu ⋯
+    expect(screen.getByRole('button', { name: /passer exercice un/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /retirer exercice un/i })).toBeInTheDocument();
   });
 
   it('30. plus aucun réglage du nombre de séries dans la séance', async () => {
@@ -1000,7 +987,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     const initialProgram = await getProgramWithExercises(progId);
     expect(initialProgram?.exercises).toHaveLength(2);
 
-    await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
+    const currentSessionId = await startSession({ programId: progId, now: new Date(2026, 9, 19, 10, 0, 0) });
 
     render(<SeanceTab />);
 
@@ -1018,11 +1005,8 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     const skipBtn = await screen.findByRole('button', { name: /passer tractions/i });
     fireEvent.click(skipBtn);
 
-    // 3. Déplacer un exercice via menu ⋯
-    const optionsBtn2 = await screen.findByRole('button', { name: /options tractions/i });
-    fireEvent.click(optionsBtn2);
-    const downBtn = await screen.findByRole('button', { name: /descendre tractions/i });
-    fireEvent.click(downBtn);
+    // 3. Déplacer un exercice via reorderSessionExercises
+    await reorderSessionExercises(currentSessionId, 0, 1);
 
     // Vérifier l'état de la séance type en base
     const unchangedProgram = await getProgramWithExercises(progId);
@@ -1047,11 +1031,8 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     const { unmount } = render(<SeanceTab />);
 
-    // Inverser l'ordre (descendre Curl barre via menu ⋯)
-    const optionsBtn1 = await screen.findByRole('button', { name: /options curl barre/i });
-    fireEvent.click(optionsBtn1);
-    const downBtn = await screen.findByRole('button', { name: /descendre curl barre/i });
-    fireEvent.click(downBtn);
+    // Inverser l'ordre
+    await reorderSessionExercises(currentSessionId, 0, 1);
 
     // Passer Barre au front via menu ⋯
     const optionsBtn2 = await screen.findByRole('button', { name: /options barre au front/i });
@@ -1271,8 +1252,8 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     const optionsBtn2 = await screen.findByRole('button', { name: /options écarté haltères/i });
     fireEvent.click(optionsBtn2);
 
-    // Le menu ⋯ est ouvert (item "Monter" visible)
-    expect(screen.getByRole('button', { name: /monter écarté haltères/i })).toBeInTheDocument();
+    // Le menu ⋯ est ouvert (item "Retirer" visible)
+    expect(screen.getByRole('button', { name: /retirer écarté haltères/i })).toBeInTheDocument();
 
     // Mais ex2 reste FERMÉ (le bouton "Ouvrir Écarté haltères" est toujours présent)
     expect(screen.getByRole('button', { name: /ouvrir écarté haltères/i })).toBeInTheDocument();

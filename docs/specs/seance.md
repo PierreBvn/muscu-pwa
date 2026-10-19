@@ -106,7 +106,7 @@ notifications, synchronisation.
 - Exercice terminé : au moins workSets vraies séries enregistrées, ou exercice passé. Des séries supplémentaires restent possibles.
 - Un seul exercice ouvert à la fois. Par défaut : le premier non terminé. Taper sur un exercice fermé l'ouvre et ferme l'autre ; un exercice terminé peut être rouvert.
 - Exercice fermé : monogramme du groupe musculaire + nom + « ✓ » (terminé) ou « n/N » (commencé). Rien d'autre.
-- Menu « ⋯ » par exercice : ↑, ↓, Passer, Retirer. Plus aucun réglage du nombre de séries pendant la séance.
+- Menu « ⋯ » par exercice : Passer, Retirer. Plus aucun réglage du nombre de séries pendant la séance.
 - Exercice ajouté pendant la séance : si aucune série n'a encore été enregistrée dans la séance, ajouté à la fin ; sinon inséré juste avant le premier exercice non terminé (à la fin si tous sont terminés).
 - Exercice ouvert :
   - Libellé de la prochaine série : « Échauffement » ou « Série N », rien d'autre.
@@ -135,7 +135,7 @@ notifications, synchronisation.
 - Série validée : modifiable / supprimable pendant la séance en cours.
 - Exercice archivé : reste dans les programmes (badge), absent des sélecteurs.
 - Programme supprimé : session.programId conservé, affiché "Programme supprimé".
-- Réordonnancement : boutons ↑ ↓ (≥ 44px), pas de drag & drop.
+- Réordonnancement : glisser-déposer (@dnd-kit) avec poignée GripVertical (lucide) à gauche de chaque exercice (zone ≥ 44 px, touch-action: none uniquement sur la poignée), TouchSensor (délai 200 ms, tolérance 5 px) + KeyboardSensor. Ne modifie jamais la séance type.
 - Minuteur : localStorage { endsAt, sessionId } ; ignoré si sessionId
   ≠ séance en cours ; expiré au retour → pas de son, minuteur effacé.
   Non bloquant (bandeau). Son via Web Audio, débloqué au tap de validation.

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { GripVertical } from 'lucide-react';
+import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core';
 import type { SessionExercise, Exercise, SetEntry } from '../../db/schema';
 import { MuscleIcon } from '../../components/MuscleIcon';
 import { SetRow } from './SetRow';
@@ -6,8 +8,8 @@ import { SetInputRow } from './SetInputRow';
 
 interface ExerciseCardProps {
   item: SessionExercise & { exercise?: Exercise };
-  index: number;
-  totalExercises: number;
+  index?: number;
+  totalExercises?: number;
   sets: SetEntry[];
   sessionId: number;
   isOpen: boolean;
@@ -23,15 +25,16 @@ interface ExerciseCardProps {
   }) => Promise<void>;
   onEditSet: (set: SetEntry) => void;
   onDeleteSet: (set: SetEntry) => void;
-  onMoveExercise: (sessionExerciseId: number, direction: 'up' | 'down') => Promise<void>;
-  onSkipExercise: (sessionExerciseId: number, skipped: boolean) => Promise<void>;
+  onSkipExercise: (sessionExerciseId: number, skipped: boolean) => Promise<void> | void;
   onRequestRemoveExercise: (item: SessionExercise & { exercise?: Exercise }) => void;
+  dragHandleProps?: {
+    attributes?: DraggableAttributes;
+    listeners?: DraggableSyntheticListeners;
+  };
 }
 
 export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   item,
-  index,
-  totalExercises,
   sets,
   sessionId,
   isOpen,
@@ -41,9 +44,9 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   onAddSet,
   onEditSet,
   onDeleteSet,
-  onMoveExercise,
   onSkipExercise,
   onRequestRemoveExercise,
+  dragHandleProps,
 }) => {
   const [isAddingExtraSet, setIsAddingExtraSet] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -98,36 +101,6 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     >
       <button
         type="button"
-        aria-label={`Monter ${exName}`}
-        disabled={index === 0}
-        onClick={(e) => {
-          e.stopPropagation();
-          setMenuOpen(false);
-          if (item.id) onMoveExercise(item.id, 'up');
-        }}
-        className="min-h-[44px] px-3 rounded-lg text-left text-xs font-semibold text-text hover:bg-surface disabled:opacity-30 disabled:pointer-events-none flex items-center gap-2.5 transition"
-      >
-        <span className="text-sm font-bold">↑</span>
-        <span>Monter</span>
-      </button>
-
-      <button
-        type="button"
-        aria-label={`Descendre ${exName}`}
-        disabled={index === totalExercises - 1}
-        onClick={(e) => {
-          e.stopPropagation();
-          setMenuOpen(false);
-          if (item.id) onMoveExercise(item.id, 'down');
-        }}
-        className="min-h-[44px] px-3 rounded-lg text-left text-xs font-semibold text-text hover:bg-surface disabled:opacity-30 disabled:pointer-events-none flex items-center gap-2.5 transition"
-      >
-        <span className="text-sm font-bold">↓</span>
-        <span>Descendre</span>
-      </button>
-
-      <button
-        type="button"
         aria-label={isSkipped ? `Rétablir ${exName}` : `Passer ${exName}`}
         onClick={(e) => {
           e.stopPropagation();
@@ -176,8 +149,19 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
         }}
         className="rounded-xl border border-line bg-surface p-3 transition active:bg-surface-2 cursor-pointer"
       >
-        <div className="flex items-center justify-between gap-3 min-h-[44px]">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center justify-between gap-2 min-h-[44px]">
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              type="button"
+              aria-label={`Réordonner ${exName}`}
+              {...dragHandleProps?.attributes}
+              {...dragHandleProps?.listeners}
+              onClick={(e) => e.stopPropagation()}
+              className="min-h-[44px] min-w-[44px] -ml-2 flex items-center justify-center text-muted hover:text-text active:text-gold transition touch-none cursor-grab active:cursor-grabbing shrink-0"
+              style={{ touchAction: 'none' }}
+            >
+              <GripVertical className="w-5 h-5" aria-hidden="true" />
+            </button>
             {item.exercise?.muscleGroup && (
               <MuscleIcon
                 group={item.exercise.muscleGroup}
@@ -225,8 +209,19 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   return (
     <div className="rounded-xl border border-line bg-surface p-4 space-y-3.5 transition">
       {/* En-tête de l'exercice ouvert */}
-      <div className="flex items-center justify-between gap-3 min-h-[44px]">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center justify-between gap-2 min-h-[44px]">
+        <div className="flex items-center gap-2 min-w-0">
+          <button
+            type="button"
+            aria-label={`Réordonner ${exName}`}
+            {...dragHandleProps?.attributes}
+            {...dragHandleProps?.listeners}
+            onClick={(e) => e.stopPropagation()}
+            className="min-h-[44px] min-w-[44px] -ml-2 flex items-center justify-center text-muted hover:text-text active:text-gold transition touch-none cursor-grab active:cursor-grabbing shrink-0"
+            style={{ touchAction: 'none' }}
+          >
+            <GripVertical className="w-5 h-5" aria-hidden="true" />
+          </button>
           {item.exercise?.muscleGroup && (
             <MuscleIcon
               group={item.exercise.muscleGroup}

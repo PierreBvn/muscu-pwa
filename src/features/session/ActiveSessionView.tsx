@@ -1,5 +1,22 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  TouchSensor,
+  MouseSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Session, Program, SetEntry, SessionExercise, Exercise } from '../../db/schema';
 import type { SessionDetails } from '../../db/sessions';
 import {
@@ -9,7 +26,7 @@ import {
   addExerciseToSession,
   removeExerciseFromSession,
   skipSessionExercise,
-  moveSessionExercise,
+  reorderSessionExercises,
   getSessionProgress,
 } from '../../db/sessions';
 import { ExerciseCard } from './ExerciseCard';
@@ -38,6 +55,100 @@ interface ActiveSessionViewProps {
 }
 
 const EXERCISE_HEADER_GAP_PX = 8;
+
+interface SortableExerciseCardProps {
+  item: SessionExercise & { exercise?: Exercise };
+  index: number;
+  totalExercises: number;
+  sets: SetEntry[];
+  sessionId: number;
+  isOpen: boolean;
+  isCompleted: boolean;
+  workSetsDone: number;
+  onToggleOpen: () => void;
+  onAddSet: (data: {
+    sessionId: number;
+    exerciseId: number;
+    weight: number;
+    reps: number;
+    type: 'warmup' | 'work';
+  }) => Promise<void>;
+  onEditSet: (set: SetEntry) => void;
+  onDeleteSet: (set: SetEntry) => void;
+  onSkipExercise: (sessionExerciseId: number, skipped: boolean) => Promise<void> | void;
+  onRequestRemoveExercise: (item: SessionExercise & { exercise?: Exercise }) => void;
+  registerCardRef: (id: number, el: HTMLDivElement | null) => void;
+}
+
+const SortableExerciseCard: React.FC<SortableExerciseCardProps> = ({
+  item,
+  index,
+  totalExercises,
+  sets,
+  sessionId,
+  isOpen,
+  isCompleted,
+  workSetsDone,
+  onToggleOpen,
+  onAddSet,
+  onEditSet,
+  onDeleteSet,
+  onSkipExercise,
+  onRequestRemoveExercise,
+  registerCardRef,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id! });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const handleRef = (el: HTMLDivElement | null) => {
+    setNodeRef(el);
+    if (item.id) {
+      registerCardRef(item.id, el);
+    }
+  };
+
+  return (
+    <div
+      ref={handleRef}
+      style={style}
+      className={`scroll-mt-[calc(4.5rem+env(safe-area-inset-top))] ${
+        isDragging ? 'z-50 relative opacity-90' : ''
+      }`}
+    >
+      <ExerciseCard
+        item={item}
+        index={index}
+        totalExercises={totalExercises}
+        sets={sets}
+        sessionId={sessionId}
+        isOpen={isOpen}
+        isCompleted={isCompleted}
+        workSetsDone={workSetsDone}
+        onToggleOpen={onToggleOpen}
+        onAddSet={onAddSet}
+        onEditSet={onEditSet}
+        onDeleteSet={onDeleteSet}
+        onSkipExercise={onSkipExercise}
+        onRequestRemoveExercise={onRequestRemoveExercise}
+        dragHandleProps={{
+          attributes,
+          listeners,
+        }}
+      />
+    </div>
+  );
+};
 const DEFAULT_HEADER_HEIGHT_PX = 64;
 
 export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
@@ -261,11 +372,37 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
     }
   };
 
-  const handleMoveExercise = async (
-    sessionExerciseId: number,
-    direction: 'up' | 'down'
-  ) => {
-    await moveSessionExercise(sessionExerciseId, direction);
+  const sensors = useSensors(
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    }),
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !session.id) return;
+
+    const oldIndex = details.exercises.findIndex((e) => e.id === active.id);
+    const newIndex = details.exercises.findIndex((e) => e.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      // 5. L'exercice ouvert reste ouvert après un déplacement (ne pas réintroduire le bug du retour au premier)
+      if (currentOpenId !== null) {
+        setOpenedSessionExerciseId(currentOpenId);
+      }
+      await reorderSessionExercises(session.id, oldIndex, newIndex);
+    }
   };
 
   const handleSkipExercise = async (
@@ -333,71 +470,75 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
             </button>
           </div>
         ) : (
-          details.exercises.map((item, index) => {
-            const exerciseSets = details.sets.filter(
-              (s) => s.exerciseId === item.exerciseId
-            );
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={details.exercises.map((e) => e.id!)}
+              strategy={verticalListSortingStrategy}
+            >
+              {details.exercises.map((item, index) => {
+                const exerciseSets = details.sets.filter(
+                  (s) => s.exerciseId === item.exerciseId
+                );
 
-            const itemProgress = sessionProgress?.exercises.find(
-              (e) => e.sessionExerciseId === item.id
-            );
+                const itemProgress = sessionProgress?.exercises.find(
+                  (e) => e.sessionExerciseId === item.id
+                );
 
-            const isCompleted = itemProgress?.completed ?? false;
-            const workSetsDone = itemProgress?.workSetsDone ?? 0;
-            const isOpen = currentOpenId === item.id;
+                const isCompleted = itemProgress?.completed ?? false;
+                const workSetsDone = itemProgress?.workSetsDone ?? 0;
+                const isOpen = currentOpenId === item.id;
 
-            return (
-              <div
-                key={item.id ?? index}
-                ref={(el) => {
-                  if (item.id) {
-                    if (el) cardRefs.current.set(item.id, el);
-                    else cardRefs.current.delete(item.id);
-                  }
-                }}
-                className="scroll-mt-[calc(4.5rem+env(safe-area-inset-top))]"
-              >
-                <ExerciseCard
-                  item={item}
-                  index={index}
-                  totalExercises={details.exercises.length}
-                  sets={exerciseSets}
-                  sessionId={session.id!}
-                  isOpen={isOpen}
-                  isCompleted={isCompleted}
-                  workSetsDone={workSetsDone}
-                  onToggleOpen={() => {
-                    if (isOpen) {
-                      setOpenedSessionExerciseId(null);
-                    } else {
-                      setOpenedSessionExerciseId(item.id ?? null);
+                return (
+                  <SortableExerciseCard
+                    key={item.id ?? index}
+                    item={item}
+                    index={index}
+                    totalExercises={details.exercises.length}
+                    sets={exerciseSets}
+                    sessionId={session.id!}
+                    isOpen={isOpen}
+                    isCompleted={isCompleted}
+                    workSetsDone={workSetsDone}
+                    onToggleOpen={() => {
+                      if (isOpen) {
+                        setOpenedSessionExerciseId(null);
+                      } else {
+                        setOpenedSessionExerciseId(item.id ?? null);
+                      }
+                    }}
+                    onAddSet={handleAddSet}
+                    onEditSet={(s) =>
+                      setEditingSetInfo({
+                        set: s,
+                        label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
+                      })
                     }
-                  }}
-                  onAddSet={handleAddSet}
-                  onEditSet={(s) =>
-                    setEditingSetInfo({
-                      set: s,
-                      label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
-                    })
-                  }
-                  onDeleteSet={(s) =>
-                    setSetToDelete({
-                      set: s,
-                      label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
-                    })
-                  }
-                  onMoveExercise={handleMoveExercise}
-                  onSkipExercise={handleSkipExercise}
-                  onRequestRemoveExercise={(exItem: SessionExercise & { exercise?: Exercise }) =>
-                    setExerciseToRemove({
-                      id: exItem.id!,
-                      name: exItem.exercise?.name ?? 'l’exercice',
-                    })
-                  }
-                />
-              </div>
-            );
-          })
+                    onDeleteSet={(s) =>
+                      setSetToDelete({
+                        set: s,
+                        label: s.type === 'warmup' ? 'l’échauffement' : 'la série',
+                      })
+                    }
+                    onSkipExercise={handleSkipExercise}
+                    onRequestRemoveExercise={(exItem: SessionExercise & { exercise?: Exercise }) =>
+                      setExerciseToRemove({
+                        id: exItem.id!,
+                        name: exItem.exercise?.name ?? 'l’exercice',
+                      })
+                    }
+                    registerCardRef={(id, el) => {
+                      if (el) cardRefs.current.set(id, el);
+                      else cardRefs.current.delete(id);
+                    }}
+                  />
+                );
+              })}
+            </SortableContext>
+          </DndContext>
         )}
         {/* Spacer dynamique pour permettre à l'exercice ouvert d'atteindre la 2e position */}
         <div ref={spacerRef} aria-hidden="true" />
