@@ -246,6 +246,18 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
       return;
     }
 
+    const openIndex = details.exercises.findIndex((e) => e.id === currentOpenId);
+    let previousExerciseHeight = 0;
+    if (openIndex > 0) {
+      const prevItem = details.exercises[openIndex - 1];
+      if (prevItem?.id) {
+        const prevEl = cardRefs.current.get(prevItem.id);
+        if (prevEl) {
+          previousExerciseHeight = prevEl.getBoundingClientRect().height;
+        }
+      }
+    }
+
     const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 0;
     const headerHeight = headerRef.current?.getBoundingClientRect().height ?? 0;
     const navEl =
@@ -266,13 +278,14 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
       headerHeight,
       navHeight,
       timerHeight,
+      previousExerciseHeight,
       openExerciseHeight,
     });
 
     spacerRef.current.style.height = `${spacerHeight}px`;
-  }, [currentOpenId, timerState]);
+  }, [currentOpenId, details.exercises, timerState]);
 
-  // Défilement automatique de l'exercice ouvert aligné juste sous l'en-tête (y compris le dernier)
+  // Défilement automatique : l'exercice ouvert est en deuxième position (avec le précédent sous l'en-tête)
   useEffect(() => {
     if (currentOpenId === null) {
       lastScrolledOpenIdRef.current = null;
@@ -302,6 +315,13 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
       lastScrolledOpenIdRef.current = currentOpenId;
 
       const openIndex = details.exercises.findIndex((e) => e.id === currentOpenId);
+      const targetIndex = openIndex > 0 ? openIndex - 1 : 0;
+      const targetItem = details.exercises[targetIndex];
+      const targetEl =
+        (targetIndex !== openIndex && targetItem?.id
+          ? cardRefs.current.get(targetItem.id)
+          : null) ?? openEl;
+
       const rafId = requestAnimationFrame(() => {
         updateSpacer();
 
@@ -316,13 +336,13 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
             window.scrollTo({ top: 0, behavior });
           }
         } else {
-          if (typeof openEl.scrollIntoView === 'function') {
-            openEl.scrollIntoView({ behavior, block: 'start', inline: 'nearest' });
+          if (typeof targetEl.scrollIntoView === 'function') {
+            targetEl.scrollIntoView({ behavior, block: 'start', inline: 'nearest' });
           } else if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
             const headerHeight = headerRef.current?.getBoundingClientRect().height ?? 0;
             const targetY = Math.max(
               0,
-              openEl.getBoundingClientRect().top + window.scrollY - headerHeight
+              targetEl.getBoundingClientRect().top + window.scrollY - headerHeight
             );
             window.scrollTo({ top: targetY, behavior });
           }
@@ -596,7 +616,7 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
             </SortableContext>
           </DndContext>
         )}
-        {/* Spacer dynamique pour permettre à l'exercice ouvert d'être aligné sous l'en-tête */}
+        {/* Spacer dynamique pour permettre à l'exercice ouvert d'atteindre la 2e position */}
         <div ref={spacerRef} aria-hidden="true" style={{ height: '0px' }} />
       </main>
 

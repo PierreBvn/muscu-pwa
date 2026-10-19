@@ -17,13 +17,14 @@ describe('calculateSessionSpacerHeight', () => {
         viewportHeight: 844,
         headerHeight: 64,
         navHeight: 64,
+        previousExerciseHeight: 80,
         openExerciseHeight: -15,
       })
     ).toBe(0);
   });
 
-  it('calcule la hauteur de l’espaceur sans bandeau minuteur', () => {
-    // 844 - 64 - 64 - 0 - 300 = 416
+  it('calcule la hauteur de l’espaceur pour le premier exercice (sans exercice précédent)', () => {
+    // 844 - 64 - 64 - 0 - 0 - 300 = 416
     const spacer = calculateSessionSpacerHeight({
       viewportHeight: 844,
       headerHeight: 64,
@@ -33,25 +34,39 @@ describe('calculateSessionSpacerHeight', () => {
     expect(spacer).toBe(416);
   });
 
-  it('calcule la hauteur de l’espaceur avec le bandeau minuteur affiché', () => {
-    // 844 - 64 - 64 - 64 - 300 = 352
+  it('calcule la hauteur de l’espaceur avec un exercice précédent (deuxième position)', () => {
+    // 844 - 64 - 64 - 0 - 80 - 300 = 336
+    const spacer = calculateSessionSpacerHeight({
+      viewportHeight: 844,
+      headerHeight: 64,
+      navHeight: 64,
+      previousExerciseHeight: 80,
+      openExerciseHeight: 300,
+    });
+    expect(spacer).toBe(336);
+  });
+
+  it('calcule la hauteur de l’espaceur avec exercice précédent et bandeau minuteur affiché', () => {
+    // 844 - 64 - 64 - 64 - 80 - 300 = 272
     const spacer = calculateSessionSpacerHeight({
       viewportHeight: 844,
       headerHeight: 64,
       navHeight: 64,
       timerHeight: 64,
+      previousExerciseHeight: 80,
       openExerciseHeight: 300,
     });
-    expect(spacer).toBe(352);
+    expect(spacer).toBe(272);
   });
 
-  it('retourne 0 si la hauteur de l’exercice ouvert dépasse la hauteur visible restante', () => {
-    // 844 - 64 - 64 - 0 - 750 = -34 -> 0
+  it('retourne 0 si la somme (exercice précédent + exercice ouvert) dépasse la hauteur visible restante', () => {
+    // 844 - 64 - 64 - 0 - 80 - 700 = -64 -> 0
     const spacer = calculateSessionSpacerHeight({
       viewportHeight: 844,
       headerHeight: 64,
       navHeight: 64,
-      openExerciseHeight: 750,
+      previousExerciseHeight: 80,
+      openExerciseHeight: 700,
     });
     expect(spacer).toBe(0);
   });
@@ -61,19 +76,21 @@ describe('calculateSessionSpacerHeight', () => {
       viewportHeight: 844,
       headerHeight: 64,
       navHeight: 64,
+      previousExerciseHeight: 80,
       openExerciseHeight: 250,
     });
-    // 844 - 64 - 64 - 250 = 466
-    expect(initialSpacer).toBe(466);
+    // 844 - 64 - 64 - 80 - 250 = 386
+    expect(initialSpacer).toBe(386);
 
     const updatedSpacer = calculateSessionSpacerHeight({
       viewportHeight: 844,
       headerHeight: 64,
       navHeight: 64,
+      previousExerciseHeight: 80,
       openExerciseHeight: 350,
     });
-    // 844 - 64 - 64 - 350 = 366
-    expect(updatedSpacer).toBe(366);
+    // 844 - 64 - 64 - 80 - 350 = 286
+    expect(updatedSpacer).toBe(286);
     expect(updatedSpacer).toBeLessThan(initialSpacer);
   });
 });
