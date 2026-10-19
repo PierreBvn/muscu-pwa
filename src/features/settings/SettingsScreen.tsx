@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import {
   Download,
   Upload,
-  Trash2,
   Volume2,
   VolumeX,
   Smartphone,
@@ -21,7 +20,6 @@ import {
   exportBackup,
   parseBackup,
   importBackup,
-  clearAllData,
   type BackupData,
 } from '../../db/backup';
 import { formatLocalDate } from '../../db/sessions';
@@ -49,10 +47,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
   );
   const [isImportConfirmOpen, setIsImportConfirmOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-
-  // États pour tout effacer
-  const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
-  const [isClearing, setIsClearing] = useState(false);
 
   const handleRestSecondsChange = (val: RestSeconds) => {
     const updated = updateSettings({ restSeconds: val });
@@ -174,23 +168,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
     }
   };
 
-  const handleConfirmClear = async () => {
-    try {
-      setIsClearing(true);
-      await clearAllData();
-      setIsClearConfirmOpen(false);
-      window.location.reload();
-    } catch (err: unknown) {
-      setIsClearing(false);
-      setIsClearConfirmOpen(false);
-      setDataFeedback({
-        type: 'error',
-        message:
-          (err as Error)?.message || 'Erreur lors de la suppression des données.',
-      });
-    }
-  };
-
   return (
     <div className="w-full max-w-md mx-auto min-h-svh bg-bg text-text flex flex-col pt-header pb-[calc(var(--tabbar-height)+env(safe-area-inset-bottom)+2rem)]">
       {/* En-tête fixed */}
@@ -303,15 +280,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
                   aria-checked={settings.restSound}
                   aria-label="Signal sonore à la fin"
                   onClick={handleToggleSound}
-                  className={`w-12 h-7 rounded-full p-1 transition-colors flex items-center min-h-[44px] ${
-                    settings.restSound ? 'bg-gold justify-end' : 'bg-surface-2 justify-start border border-line'
-                  }`}
+                  className="flex items-center justify-center min-h-[44px] min-w-[48px] py-2"
                 >
                   <span
-                    className={`w-5 h-5 rounded-full transition-transform ${
-                      settings.restSound ? 'bg-gold-ink' : 'bg-muted'
+                    className={`w-11 h-6 rounded-full p-0.5 transition-colors flex items-center ${
+                      settings.restSound
+                        ? 'bg-gold justify-end'
+                        : 'bg-surface-2 justify-start border border-line'
                     }`}
-                  />
+                  >
+                    <span
+                      className={`w-5 h-5 rounded-full transition-transform ${
+                        settings.restSound ? 'bg-gold-ink' : 'bg-muted'
+                      }`}
+                    />
+                  </span>
                 </button>
               </div>
 
@@ -333,15 +316,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
                   aria-checked={settings.keepAwake}
                   aria-label="Garder l’écran allumé"
                   onClick={handleToggleKeepAwake}
-                  className={`w-12 h-7 rounded-full p-1 transition-colors flex items-center min-h-[44px] ${
-                    settings.keepAwake ? 'bg-gold justify-end' : 'bg-surface-2 justify-start border border-line'
-                  }`}
+                  className="flex items-center justify-center min-h-[44px] min-w-[48px] py-2"
                 >
                   <span
-                    className={`w-5 h-5 rounded-full transition-transform ${
-                      settings.keepAwake ? 'bg-gold-ink' : 'bg-muted'
+                    className={`w-11 h-6 rounded-full p-0.5 transition-colors flex items-center ${
+                      settings.keepAwake
+                        ? 'bg-gold justify-end'
+                        : 'bg-surface-2 justify-start border border-line'
                     }`}
-                  />
+                  >
+                    <span
+                      className={`w-5 h-5 rounded-full transition-transform ${
+                        settings.keepAwake ? 'bg-gold-ink' : 'bg-muted'
+                      }`}
+                    />
+                  </span>
                 </button>
               </div>
             </div>
@@ -387,18 +376,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
               <Upload size={18} className="text-gold" aria-hidden="true" />
               <span>Importer une sauvegarde</span>
             </button>
-
-            <div className="pt-2 border-t border-line/60">
-              <button
-                type="button"
-                onClick={() => setIsClearConfirmOpen(true)}
-                disabled={isClearing}
-                className="w-full min-h-[48px] px-4 rounded-xl bg-danger/10 border border-danger/30 hover:bg-danger/20 active:opacity-90 text-sm font-semibold text-danger transition flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <Trash2 size={18} aria-hidden="true" />
-                <span>Tout effacer</span>
-              </button>
-            </div>
           </div>
         </section>
 
@@ -440,20 +417,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
         }}
         onConfirm={handleConfirmImport}
       />
-
-      {/* Confirmation de suppression intégrale */}
-      <ConfirmDialog
-        isOpen={isClearConfirmOpen}
-        title="Tout effacer ?"
-        titleId="confirm-clear-title"
-        message="Toutes les séances, tous les exercices et toutes les séances types seront définitivement supprimés. Cette action est irréversible."
-        cancelLabel="Annuler"
-        confirmLabel="Tout effacer"
-        confirmVariant="danger"
-        isLoading={isClearing}
-        onCancel={() => setIsClearConfirmOpen(false)}
-        onConfirm={handleConfirmClear}
-      />
     </div>
   );
 };
+

@@ -29,7 +29,7 @@ Ce document liste l'état d'avancement des différents lots du projet Muscu PWA.
 - [x] **Écran Paramètres**
   - Accès depuis l'en-tête de la vue Séance.
   - Stockage tolérant des réglages dans `localStorage` (`src/settings.ts`) : `restSeconds`, `restSound`, `keepAwake`.
-  - Section Données (export JSON, import avec `ConfirmDialog`, tout effacer).
+  - Section Données (export JSON, import avec `ConfirmDialog`).
   - Section À propos (version dynamique de l'application).
 
 ---

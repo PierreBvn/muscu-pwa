@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SettingsScreen } from '../SettingsScreen';
 import * as backupModule from '../../../db/backup';
 import { getSettings } from '../../../settings';
@@ -134,32 +134,11 @@ describe('SettingsScreen component', () => {
     });
   });
 
-  it('demande confirmation avant de tout effacer puis appelle clearAllData', async () => {
-    // Espion sur window.location.reload
-    const reloadMock = vi.fn();
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: { ...window.location, reload: reloadMock },
-    });
-
+  it('ne propose plus de bouton Tout effacer', () => {
     render(<SettingsScreen onBack={() => {}} />);
-
-    const clearButton = screen.getByRole('button', { name: 'Tout effacer' });
-    fireEvent.click(clearButton);
-
-    const dialog = await screen.findByRole('alertdialog', {
-      name: 'Tout effacer ?',
-    });
-    expect(dialog).toBeInTheDocument();
-
-    const confirmButton = within(dialog).getByRole('button', {
-      name: 'Tout effacer',
-    });
-    fireEvent.click(confirmButton);
-
-    await waitFor(() => {
-      expect(backupModule.clearAllData).toHaveBeenCalledTimes(1);
-    });
+    expect(
+      screen.queryByRole('button', { name: /tout effacer/i })
+    ).not.toBeInTheDocument();
   });
 
   it('affiche la section À propos', () => {
