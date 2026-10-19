@@ -4,22 +4,28 @@ import { MuscleIcon } from './MuscleIcon';
 
 export interface MuscleGroupGridProps {
   counts?: Partial<Record<MuscleGroup, number>>;
+  subtitles?: Partial<Record<MuscleGroup, string>>;
   onSelectGroup: (group: MuscleGroup) => void;
 }
 
 export const MuscleGroupGrid: React.FC<MuscleGroupGridProps> = ({
   counts = {},
+  subtitles,
   onSelectGroup,
 }) => {
   return (
     <div className="grid grid-cols-2 gap-3">
       {MUSCLE_GROUPS.map((group) => {
         const count = counts[group] ?? 0;
+        const subtitleText = subtitles
+          ? (subtitles[group] ?? '—')
+          : `${count} ${count > 1 ? 'exercices' : 'exercice'}`;
+
         return (
           <button
             key={group}
             type="button"
-            aria-label={`${group} (${count} ${count > 1 ? 'exercices' : 'exercice'})`}
+            aria-label={`${group} (${subtitleText})`}
             onClick={() => onSelectGroup(group)}
             className="min-h-[88px] p-3.5 rounded-xl bg-surface border border-line flex flex-col justify-between items-start text-left hover:border-gold/50 active:bg-surface-2 transition-colors focus:outline-none focus:ring-1 focus:ring-gold"
           >
@@ -29,7 +35,7 @@ export const MuscleGroupGrid: React.FC<MuscleGroupGridProps> = ({
                 {group}
               </span>
               <span className="block text-xs text-muted tabular-nums mt-0.5">
-                {count} {count > 1 ? 'exercices' : 'exercice'}
+                {subtitleText}
               </span>
             </div>
           </button>
