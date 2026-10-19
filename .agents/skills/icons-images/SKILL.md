@@ -12,6 +12,7 @@ description: Traitement et intégration des icônes de navigation (lucide-react)
 
 ## Pictogrammes de groupes musculaires
 - Rendu centralisé via `src/components/MuscleIcon.tsx`.
+- MuscleIcon s'affiche aussi dans les résumés de séance type (composant partagé `ProgramSummary`).
 - Correspondance d'assets typée exhaustivement avec `Record<MuscleGroup, ...>` pour prévenir tout oubli de groupe.
 - Toute icône générée ou assistée par IA doit être validée visuellement sur iPhone avant validation finale de la tâche.
 

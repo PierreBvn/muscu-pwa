@@ -1,11 +1,12 @@
 import React from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { Program } from '../../db/schema';
+import type { Program, MuscleGroup } from '../../db/schema';
 import {
   getProgramExercises,
   type ProgramWithSummary,
-  type ProgramSummary,
+  type ProgramSummary as ProgramSummaryType,
 } from '../../db/programs';
+import { ProgramSummary } from '../../components/ProgramSummary';
 
 const DAY_NAMES: Record<number, string> = {
   1: 'Lun',
@@ -18,7 +19,7 @@ const DAY_NAMES: Record<number, string> = {
 };
 
 interface ProgramCardProps {
-  program: Program | ProgramWithSummary | (Program & Partial<ProgramSummary>);
+  program: Program | ProgramWithSummary | (Program & Partial<ProgramSummaryType>);
   onSelect: (program: Program) => void;
   onEdit: (program: Program) => void;
   onDelete: (program: Program) => void;
@@ -31,7 +32,7 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({
   onDelete,
 }) => {
   // Si le résumé n'a pas été fourni (ex. rendu isolé hors de ProgramList), fallback vers la requête Dexie
-  const hasPrecomputedSummary = 'summaryText' in program && program.summaryText !== undefined;
+  const hasPrecomputedSummary = 'muscleGroups' in program && program.muscleGroups !== undefined;
 
   const exercises = useLiveQuery(
     async () => {
@@ -46,14 +47,10 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({
     .map((day) => DAY_NAMES[day] ?? `${day}`)
     .join(', ');
 
-  const summaryText =
-    ('summaryText' in program && program.summaryText)
-      ? program.summaryText
-      : exercises === undefined
-        ? '...'
-        : exercises.length === 0
-          ? 'Aucun exercice'
-          : `${exercises.length} ${exercises.length > 1 ? 'exercices' : 'exercice'}`;
+  const muscleGroups: MuscleGroup[] =
+    ('muscleGroups' in program && program.muscleGroups)
+      ? program.muscleGroups
+      : [];
 
   const exerciseCountText =
     ('exerciseCountText' in program && program.exerciseCountText)
@@ -77,15 +74,12 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({
           <h2 className="text-base font-semibold text-text tracking-tight transition line-clamp-2 break-words">
             {program.name}
           </h2>
-          <p className="text-xs text-muted mt-0.5 line-clamp-2 break-words">
-            {summaryText}
-          </p>
-          <p className="text-xs text-muted font-medium mt-1">
+          <p className="text-xs text-muted font-medium mt-0.5">
             {formattedDays || 'Aucun jour'}
           </p>
         </button>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
             aria-label={`Modifier ${program.name}`}
@@ -132,17 +126,22 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-2 border-t border-line text-xs text-muted">
-        <span className="tabular-nums">{exerciseCountText}</span>
-        <button
-          type="button"
-          onClick={() => onSelect(program)}
-          className="min-h-[44px] text-gold font-medium hover:opacity-80 flex items-center gap-1 focus:outline-none"
-        >
-          <span>Gérer les exercices</span>
-          <span aria-hidden="true">→</span>
-        </button>
-      </div>
+      <ProgramSummary
+        summary={{
+          muscleGroups,
+          exerciseCountText,
+        }}
+        rightMeta={
+          <button
+            type="button"
+            onClick={() => onSelect(program)}
+            className="min-h-[44px] text-gold font-medium hover:opacity-80 flex items-center gap-1 focus:outline-none shrink-0"
+          >
+            <span>Gérer les exercices</span>
+            <span aria-hidden="true">→</span>
+          </button>
+        }
+      />
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Settings } from 'lucide-react';
 import type { ProgramWithSummary } from '../../db/programs';
 import type { HomeSummary } from '../../db/homeSummary';
-import { MuscleIcon } from '../../components/MuscleIcon';
+import { ProgramSummary } from '../../components/ProgramSummary';
 import { ProgramPickerModal } from './ProgramPickerModal';
 
 interface StartSessionViewProps {
@@ -105,33 +105,10 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
                 {nextProgram.program.name}
               </h2>
 
-              {/* Groupes musculaires travaillés */}
-              {nextProgram.muscleGroups.length > 0 ? (
-                <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-                  {nextProgram.muscleGroups.map((group) => (
-                    <span
-                      key={group}
-                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-surface-2 border border-line text-xs font-medium text-text"
-                    >
-                      <MuscleIcon
-                        group={group}
-                        className="w-4 h-4 object-contain"
-                      />
-                      <span>{group}</span>
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted mt-2">
-                  Aucun groupe musculaire
-                </p>
-              )}
-
-              {/* Métadonnées : nombre d'exercices et dernière fois */}
-              <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-line text-xs text-muted">
-                <span>{nextProgram.exerciseCountText}</span>
-                <span>{nextProgram.lastDoneText}</span>
-              </div>
+              <ProgramSummary
+                summary={nextProgram}
+                rightMeta={<span>{nextProgram.lastDoneText}</span>}
+              />
             </section>
           ) : (
             <div className="rounded-2xl bg-surface border border-line p-5 text-center my-4">

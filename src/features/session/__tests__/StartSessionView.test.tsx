@@ -158,9 +158,11 @@ describe('StartSessionView', () => {
     // La modale ProgramPickerModal s'ouvre
     expect(screen.getByRole('dialog', { name: /choisir une séance type/i })).toBeInTheDocument();
     expect(screen.getByText('Dos & Épaules')).toBeInTheDocument();
-    expect(screen.getByText('Dos · Épaules · 3 exos')).toBeInTheDocument();
+    expect(screen.getAllByText('Dos').length).toBeGreaterThan(0);
+    expect(screen.getByText('3 exercices')).toBeInTheDocument();
     expect(screen.getByText('Jambes')).toBeInTheDocument();
-    expect(screen.getByText('Aucun exercice')).toBeInTheDocument();
+    expect(screen.getByText('Aucun groupe musculaire')).toBeInTheDocument();
+    expect(screen.getByText('0 exercice')).toBeInTheDocument();
   });
 
   it('affiche l’état base vide quand aucun programme n’existe', () => {

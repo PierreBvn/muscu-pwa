@@ -176,12 +176,15 @@ describe('ProgramList UI', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Traction & Bras')).toBeInTheDocument();
-      // Format : « Dos · Biceps · 2 exos »
-      expect(screen.getByText('Dos · Biceps · 2 exos')).toBeInTheDocument();
+      // Badges avec MuscleIcon et décompte d'exercices
+      expect(screen.getByText('Dos')).toBeInTheDocument();
+      expect(screen.getByText('Biceps')).toBeInTheDocument();
+      expect(screen.getByText('2 exercices')).toBeInTheDocument();
 
       expect(screen.getByText('Cardio')).toBeInTheDocument();
-      // Séance type vide : « Aucun exercice »
-      expect(screen.getByText('Aucun exercice')).toBeInTheDocument();
+      // Séance type vide : « Aucun groupe musculaire » et « 0 exercice »
+      expect(screen.getByText('Aucun groupe musculaire')).toBeInTheDocument();
+      expect(screen.getByText('0 exercice')).toBeInTheDocument();
     });
   });
 });
