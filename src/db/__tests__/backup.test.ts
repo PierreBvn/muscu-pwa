@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { db, type MuscleGroup } from '../schema';
-import { exportBackup, parseBackup, importBackup, type BackupData } from '../backup';
+import {
+  exportBackup,
+  parseBackup,
+  importBackup,
+  clearAllData,
+  type BackupData,
+} from '../backup';
 import { seedExercisesIfNeeded } from '../exercises';
 
 const EXPECTED_TABLES = [
@@ -391,4 +397,20 @@ describe('Backup & Restore (src/db/backup.ts)', () => {
       expect(afterRollbackSnapshot).toEqual(initialSnapshot);
     });
   });
+
+  describe('clearAllData', () => {
+    it('vide l’intégralité de toutes les tables Dexie', async () => {
+      await populateAllTables();
+      for (const table of db.tables) {
+        expect(await table.count()).toBeGreaterThan(0);
+      }
+
+      await clearAllData();
+
+      for (const table of db.tables) {
+        expect(await table.count()).toBe(0);
+      }
+    });
+  });
 });
+

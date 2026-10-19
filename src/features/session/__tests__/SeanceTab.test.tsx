@@ -1338,7 +1338,31 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
       expect(scrollToMock).toHaveBeenCalledTimes(2);
     });
   });
+
+  it('ouvre l’écran Paramètres via le bouton de l’en-tête et revient à la séance via Retour', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    render(<SeanceTab />);
+
+    const settingsBtn = await screen.findByRole('button', { name: 'Paramètres' });
+    expect(settingsBtn).toBeInTheDocument();
+
+    fireEvent.click(settingsBtn);
+
+    // L'écran Paramètres est ouvert
+    expect(await screen.findByRole('heading', { name: 'Paramètres' })).toBeInTheDocument();
+    expect(screen.getByText('Minuteur de repos')).toBeInTheDocument();
+
+    // Clic sur Retour
+    const backBtn = screen.getByRole('button', { name: 'Retour' });
+    fireEvent.click(backBtn);
+
+    // De retour sur la vue Séance
+    expect(await screen.findByRole('button', { name: 'Paramètres' })).toBeInTheDocument();
+    expect(screen.queryByText('Minuteur de repos')).not.toBeInTheDocument();
+  });
 });
+
 
 
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Settings } from 'lucide-react';
 import type { Program } from '../../db/schema';
 import { ProgramPickerModal } from './ProgramPickerModal';
 
@@ -7,6 +8,7 @@ interface StartSessionViewProps {
   allPrograms: Program[];
   onStartProgram: (programId: number) => Promise<void>;
   onStartFreeSession: () => Promise<void>;
+  onOpenSettings?: () => void;
 }
 
 export const StartSessionView: React.FC<StartSessionViewProps> = ({
@@ -14,6 +16,7 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
   allPrograms,
   onStartProgram,
   onStartFreeSession,
+  onOpenSettings,
 }) => {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -50,12 +53,32 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[70vh] pt-[env(safe-area-inset-top)]">
-      <div className="w-16 h-16 rounded-xl bg-surface border border-line flex items-center justify-center mb-6 text-gold">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
+    <div className="w-full max-w-md mx-auto flex flex-col min-h-svh pt-header">
+      {/* En-tête fixe avec bouton Paramètres */}
+      <header className="fixed top-0 left-0 right-0 z-header bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)]">
+        <div className="max-w-md mx-auto px-4 flex items-center justify-between h-[var(--header-height)]">
+          <h1 className="text-xl font-semibold text-text tracking-tight">
+            Séance
+          </h1>
+          {onOpenSettings && (
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              aria-label="Paramètres"
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center text-muted hover:text-text active:opacity-80 transition-colors"
+            >
+              <Settings size={22} strokeWidth={2} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      </header>
+
+      <main className="flex-1 px-4 py-8 flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-16 h-16 rounded-xl bg-surface border border-line flex items-center justify-center mb-6 text-gold">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
           stroke="currentColor"
           strokeWidth="2"
           strokeLinecap="round"
@@ -72,10 +95,6 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
           <path d="M6 12h12" />
         </svg>
       </div>
-
-      <h1 className="text-2xl font-semibold text-text tracking-tight mb-2 text-center">
-        Séance
-      </h1>
 
       {suggestedProgram ? (
         <div className="w-full mt-4 space-y-4">
@@ -133,6 +152,7 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
           </div>
         </div>
       )}
+      </main>
 
       {isPickerOpen && (
         <ProgramPickerModal

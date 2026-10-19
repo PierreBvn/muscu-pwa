@@ -150,3 +150,11 @@ export async function importBackup(data: BackupData): Promise<void> {
     }
   });
 }
+
+/**
+ * Supprime l'intégralité des données de toutes les tables Dexie.
+ */
+export async function clearAllData(): Promise<void> {
+  await Promise.all(db.tables.map((table) => table.clear()));
+}
+

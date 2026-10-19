@@ -180,7 +180,7 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Taille minimale : 40 px, et 48 px au maximum (fichiers en 144 px).
 
 ## Sauvegarde
-- Logique dans src/db/backup.ts, testée, sans interface pour l'instant.
+- Logique dans src/db/backup.ts, accessible depuis l'écran Paramètres.
 - Ne pas supprimer backup.ts ni ses tests.
 
 ## Groupes musculaires
@@ -246,6 +246,12 @@ vite-plugin-pwa, Vitest + Testing Library, ESLint.
 - Commandes non interactives uniquement (ajouter --yes ou équivalent).
 - Ne jamais lire node_modules/, dist/, dev-dist/, coverage/.
 - Captures du navigateur : seulement pour une tâche visuelle, à 375 px, 3 au maximum.
+
+## Paramètres
+- Réglages dans src/settings.ts uniquement, stockés dans localStorage (une seule clé), jamais dans Dexie.
+- Toujours lire via getSettings() qui fournit des valeurs par défaut ; jamais localStorage directement ailleurs.
+- La sauvegarde (export/import) est accessible uniquement depuis Paramètres et passe par backup.ts.
+- Toute action destructive (import, tout effacer) passe par ConfirmDialog.
 
 
 ## Règles

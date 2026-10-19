@@ -16,9 +16,11 @@ import { getSuggestedProgramForDate } from '../../db/suggestions';
 import { StartSessionView } from './StartSessionView';
 import { ForgottenSessionPrompt } from './ForgottenSessionPrompt';
 import { ActiveSessionView } from './ActiveSessionView';
+import { SettingsScreen } from '../settings/SettingsScreen';
 
 export const SeanceTab: React.FC = () => {
   const [hasResumed, setHasResumed] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Date locale actuelle pour comparer les dates de séance
   const now = new Date();
@@ -57,6 +59,10 @@ export const SeanceTab: React.FC = () => {
     async () => ({ programs: await getAllPrograms() }),
     []
   );
+
+  if (isSettingsOpen) {
+    return <SettingsScreen onBack={() => setIsSettingsOpen(false)} />;
+  }
 
   // Tant que l'état initial de la session n'est pas résolu : rien n'est affiché
   if (sessionResult === undefined) {
@@ -118,6 +124,8 @@ export const SeanceTab: React.FC = () => {
       onStartFreeSession={async () => {
         await startSession();
       }}
+      onOpenSettings={() => setIsSettingsOpen(true)}
     />
   );
 };
+
