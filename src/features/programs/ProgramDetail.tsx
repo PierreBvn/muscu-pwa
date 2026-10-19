@@ -137,7 +137,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                   className="rounded-xl bg-surface border border-line p-4 shadow-none"
                 >
                   <div className="flex items-start justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       {pe.exercise?.muscleGroup && (
                         <MuscleIcon
                           group={pe.exercise.muscleGroup}
@@ -145,7 +145,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                           className="w-10 h-10 shrink-0 object-contain"
                         />
                       )}
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 min-w-0">
                           <span className="text-xs font-mono font-semibold text-muted tabular-nums shrink-0">
                             #{index + 1}

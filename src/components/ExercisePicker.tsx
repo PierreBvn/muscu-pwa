@@ -159,9 +159,9 @@ const ExercisePickerContent: React.FC<ExercisePickerProps> = ({
                     disabled={isAdding}
                     className="w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-surface-2 border border-line hover:border-gold/50 active:bg-surface text-left transition flex items-center justify-between gap-3 group disabled:opacity-50"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <MuscleIcon group={exercise.muscleGroup} className="w-10 h-10 shrink-0 object-contain" />
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <span className="font-semibold text-text text-sm block line-clamp-2 break-words">
                           {exercise.name}
                         </span>
@@ -219,7 +219,7 @@ const ExercisePickerContent: React.FC<ExercisePickerProps> = ({
                         disabled={isAdding}
                         className="w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-surface-2 border border-line hover:border-gold/50 active:bg-surface text-left transition flex items-center justify-between gap-3 group disabled:opacity-50"
                       >
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <span className="font-semibold text-text text-sm block line-clamp-2 break-words">
                             {exercise.name}
                           </span>

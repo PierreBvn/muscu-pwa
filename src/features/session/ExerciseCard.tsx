@@ -150,7 +150,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
         className="rounded-xl border border-line bg-surface p-3 transition active:bg-surface-2 cursor-pointer"
       >
         <div className="flex items-center justify-between gap-2 min-h-[44px]">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
               type="button"
               aria-label={`Réordonner ${exName}`}
@@ -210,7 +210,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     <div className="rounded-xl border border-line bg-surface p-4 space-y-3.5 transition">
       {/* En-tête de l'exercice ouvert */}
       <div className="flex items-center justify-between gap-2 min-h-[44px]">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <button
             type="button"
             aria-label={`Réordonner ${exName}`}
