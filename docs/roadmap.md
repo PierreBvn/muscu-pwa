@@ -34,12 +34,16 @@ Ce document liste l'état d'avancement des différents lots du projet Muscu PWA.
 
 ---
 
-## Lots à venir (À faire)
+- [x] **Lot 5 — Minuteur de repos**
+  - Logique pure et persistance `endsAt` dans `src/timer.ts` (sans compteur décrémenté, résistant à l'arrière-plan iOS).
+  - Déclenchement automatique à la validation d'une série avec reprise de session et durée `restSeconds`.
+  - Bandeau fixe (`RestBanner`) au-dessus de la barre de navigation : compte à rebours m:ss, boutons « +30 s » et « Passer » (≥ 44 px), marge pour ne pas masquer le contenu.
+  - Bip sonore Web Audio au terme du repos (`restSound`), AudioContext débloqué au tap utilisateur.
+  - Maintien de l'écran allumé via Wake Lock (`keepAwake`) avec redemande sur `visibilitychange`.
 
-- [ ] **Lot 5 — Minuteur de repos**
-  - Déclenchement automatique ou manuel du minuteur après une série.
-  - Prise en compte des réglages stockés (`restSeconds`, `restSound`, `keepAwake`).
-  - Retour visuel et sonore hors-ligne.
+---
+
+## Lots à venir (À faire)
 
 - [ ] **Lot 6 — Préparation production et PWA**
   - Audit d'installation sur iPhone iOS 18 (manifeste, icônes, cache Service Worker hors-ligne).

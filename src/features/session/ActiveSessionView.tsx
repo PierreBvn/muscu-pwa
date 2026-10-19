@@ -16,6 +16,20 @@ import { ExerciseCard } from './ExerciseCard';
 import { SetEditModal } from './SetEditModal';
 import { AddExerciseModal } from './AddExerciseModal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { RestBanner } from './RestBanner';
+import { getSettings } from '../../settings';
+import {
+  type TimerState,
+  startRest,
+  remaining,
+  addTime,
+  isExpired,
+  saveTimer,
+  clearTimer,
+  resumeTimer,
+} from '../../timer';
+import { unlockAudio, playTimerBeep } from '../../audio';
+import { useWakeLock } from '../../hooks/useWakeLock';
 
 interface ActiveSessionViewProps {
   session: Session;
@@ -39,6 +53,47 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   const [isAddExerciseModalOpen, setIsAddExerciseModalOpen] = useState(false);
 
   const [openedSessionExerciseId, setOpenedSessionExerciseId] = useState<number | null>(null);
+
+  const settings = getSettings();
+  useWakeLock(settings.keepAwake);
+
+  const [timerState, setTimerState] = useState<TimerState | null>(() => {
+    if (!session.id) return null;
+    return resumeTimer(Date.now(), session.id);
+  });
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!timerState) return;
+
+    const interval = window.setInterval(() => {
+      const current = Date.now();
+      if (isExpired(timerState, current)) {
+        if (getSettings().restSound) {
+          playTimerBeep();
+        }
+        clearTimer();
+        setTimerState(null);
+      } else {
+        setNow(current);
+      }
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, [timerState]);
+
+  const handleAddRestTime = () => {
+    if (!timerState) return;
+    const updated = addTime(timerState, 30);
+    saveTimer(updated);
+    setTimerState(updated);
+    setNow(Date.now());
+  };
+
+  const handleSkipRestTimer = () => {
+    clearTimer();
+    setTimerState(null);
+  };
 
   // Progrès de la séance depuis Dexie
   const sessionProgress = useLiveQuery(
@@ -130,6 +185,8 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
     if (isFinishing) return;
     try {
       setIsFinishing(true);
+      clearTimer();
+      setTimerState(null);
       await onFinishSession();
       setShowFinishConfirm(false);
     } finally {
@@ -144,10 +201,20 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
     reps: number;
     type: 'warmup' | 'work';
   }) => {
+    unlockAudio();
     await addSet(data);
     // Décision (3) : quand l'exercice ouvert devient terminé,
     // il se ferme et le premier non terminé s'ouvre (retour au défaut getSessionProgress).
     setOpenedSessionExerciseId(null);
+
+    // Déclenchement du minuteur de repos
+    if (session.id) {
+      const currentSettings = getSettings();
+      const newTimer = startRest(Date.now(), currentSettings.restSeconds, session.id);
+      saveTimer(newTimer);
+      setTimerState(newTimer);
+      setNow(Date.now());
+    }
   };
 
   const handleSaveEditedSet = async (
@@ -243,7 +310,7 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
       </header>
 
       {/* Liste des exercices de la séance */}
-      <main className="flex-1 px-4 py-4 space-y-3">
+      <main className={`flex-1 px-4 py-4 space-y-3 ${timerState ? 'pb-24' : ''}`}>
         {details.exercises.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[260px] text-center p-6 rounded-xl bg-surface border border-dashed border-line">
             <p className="text-sm text-muted mb-4">
@@ -334,10 +401,23 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
           type="button"
           aria-label="Ajouter un exercice"
           onClick={() => setIsAddExerciseModalOpen(true)}
-          className="fixed right-4 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom)+16px)] w-14 h-14 min-w-[56px] min-h-[56px] rounded-xl bg-gold text-gold-ink font-bold text-2xl flex items-center justify-center shadow-lg active:opacity-90 transition z-fab"
+          className={`fixed right-4 w-14 h-14 min-w-[56px] min-h-[56px] rounded-xl bg-gold text-gold-ink font-bold text-2xl flex items-center justify-center shadow-lg active:opacity-90 transition z-fab ${
+            timerState
+              ? 'bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom)+5rem)]'
+              : 'bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom)+16px)]'
+          }`}
         >
           +
         </button>
+      )}
+
+      {/* Bandeau de repos */}
+      {timerState && remaining(timerState, now) > 0 && (
+        <RestBanner
+          remainingSeconds={remaining(timerState, now)}
+          onAddTime={handleAddRestTime}
+          onSkip={handleSkipRestTimer}
+        />
       )}
 
       {/* Modale d'ajout d'exercice */}

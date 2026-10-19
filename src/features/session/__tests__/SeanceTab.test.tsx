@@ -888,7 +888,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     // Rétablir via le menu ⋯
     fireEvent.click(screen.getByRole('button', { name: /options crunch/i }));
-    const restoreBtn = screen.getByRole('button', { name: /rétablir crunch/i });
+    const restoreBtn = await screen.findByRole('button', { name: /rétablir crunch/i });
     fireEvent.click(restoreBtn);
 
     await waitFor(async () => {

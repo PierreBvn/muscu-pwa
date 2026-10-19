@@ -17,6 +17,7 @@ import { StartSessionView } from './StartSessionView';
 import { ForgottenSessionPrompt } from './ForgottenSessionPrompt';
 import { ActiveSessionView } from './ActiveSessionView';
 import { SettingsScreen } from '../settings/SettingsScreen';
+import { clearTimer } from '../../timer';
 
 export const SeanceTab: React.FC = () => {
   const [hasResumed, setHasResumed] = useState(false);
@@ -81,6 +82,7 @@ export const SeanceTab: React.FC = () => {
           onResume={() => setHasResumed(true)}
           onCloseSession={async () => {
             if (activeSession.id !== undefined) {
+              clearTimer();
               await closeForgottenSession(activeSession.id);
             }
           }}
@@ -100,6 +102,7 @@ export const SeanceTab: React.FC = () => {
         program={programResult.program}
         onFinishSession={async () => {
           if (activeSession.id !== undefined) {
+            clearTimer();
             await finishSession(activeSession.id);
             setHasResumed(false);
           }

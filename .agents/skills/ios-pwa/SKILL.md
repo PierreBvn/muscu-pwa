@@ -34,3 +34,9 @@ description: Règles de mise en page CSS, gestion des safe areas, défilement et
 - Si la cause n'est pas dans le code, rechercher un bug connu du moteur WebKit/iOS.
 - Captures du navigateur : seulement pour les tâches visuelles, en largeur 375 px, 3 au maximum.
 - Tout plan touchant l'affichage se termine par une liste de vérifications manuelles à faire sur iPhone.
+
+## Temps et arrière-plan
+- Tout minuteur se calcule depuis un horodatage absolu (endsAt), jamais avec un compteur décrémenté.
+- Les fonctions de temps reçoivent "now" en paramètre.
+- Web Audio : créer/débloquer l'AudioContext dans un geste utilisateur.
+- Wake Lock : le redemander sur visibilitychange, échec silencieux si non supporté.
