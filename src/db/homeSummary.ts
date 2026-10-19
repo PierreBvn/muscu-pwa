@@ -5,11 +5,14 @@ import {
   type ProgramExercise,
   type Exercise,
   type Session,
-  type MuscleGroup,
   type Weekday,
 } from './schema';
 import { formatLocalDate } from './sessions';
 import { getWeekRangeUtc } from './stats';
+import {
+  calculateProgramSummary,
+  type ProgramSummary,
+} from './programs';
 
 const WEEKDAY_NAMES: Record<Weekday, string> = {
   1: 'lundi',
@@ -97,12 +100,8 @@ export function findNextProgram(
   return sortedAll[0];
 }
 
-export interface NextProgramSummary {
+export interface NextProgramSummary extends ProgramSummary {
   program: Program;
-  exerciseCount: number;
-  exerciseCountText: string;
-  muscleGroups: MuscleGroup[];
-  muscleGroupsText: string;
   daysAgo: number | null;
   lastDoneText: string;
 }
@@ -155,17 +154,7 @@ export function calculateHomeSummary(
     };
   }
 
-  // Exercices du programme
-  const peList = data.allProgramExercises
-    .filter((pe) => pe.programId === nextProg.id)
-    .sort((a, b) => a.order - b.order);
-
-  const exerciseCount = peList.length;
-  const exerciseCountText = `${exerciseCount} ${
-    exerciseCount > 1 ? 'exercices' : 'exercice'
-  }`;
-
-  // Groupes musculaires uniques préservant l'ordre
+  // Exercices du programme et résumé calculé
   const exerciseMap = new Map<number, Exercise>();
   for (const ex of data.allExercises) {
     if (ex.id !== undefined) {
@@ -173,15 +162,11 @@ export function calculateHomeSummary(
     }
   }
 
-  const rawGroups: MuscleGroup[] = [];
-  for (const pe of peList) {
-    const ex = exerciseMap.get(pe.exerciseId);
-    if (ex?.muscleGroup) {
-      rawGroups.push(ex.muscleGroup);
-    }
-  }
-  const muscleGroups = Array.from(new Set(rawGroups));
-  const muscleGroupsText = muscleGroups.join(', ');
+  const peList = data.allProgramExercises
+    .filter((pe) => pe.programId === nextProg.id)
+    .sort((a, b) => a.order - b.order);
+
+  const progSummary = calculateProgramSummary(peList, exerciseMap);
 
   // Dernière fois terminée
   const completedForProgram = data.allSessions.filter(
@@ -212,10 +197,7 @@ export function calculateHomeSummary(
     weeklySessionsText,
     nextProgram: {
       program: nextProg,
-      exerciseCount,
-      exerciseCountText,
-      muscleGroups,
-      muscleGroupsText,
+      ...progSummary,
       daysAgo,
       lastDoneText,
     },

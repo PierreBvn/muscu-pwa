@@ -13,7 +13,10 @@ import {
   updateProgramExercise,
   removeExerciseFromProgram,
   moveProgramExercise,
+  calculateProgramSummary,
+  getAllProgramsWithSummary,
 } from '../programs';
+import { addExercise } from '../exercises';
 
 describe('Programs CRUD operations', () => {
   beforeEach(async () => {
@@ -381,6 +384,96 @@ describe('Programs CRUD operations', () => {
       list = await getProgramExercises(progId);
       expect(list.map((e) => e.id)).toEqual([pe3, pe2, pe1Bis]);
       expect(list.map((e) => e.order)).toEqual([0, 1, 2]);
+    });
+  });
+
+  describe('calculateProgramSummary', () => {
+    it('gère une séance type vide : retourne 0 exercice et "Aucun exercice"', () => {
+      const summary = calculateProgramSummary([], new Map());
+
+      expect(summary.exerciseCount).toBe(0);
+      expect(summary.exerciseCountText).toBe('0 exercice');
+      expect(summary.muscleGroups).toEqual([]);
+      expect(summary.muscleGroupsText).toBe('');
+      expect(summary.summaryText).toBe('Aucun exercice');
+    });
+
+    it('gère le comptage : 1 exo au singulier et plusieurs exos au pluriel', () => {
+      const exerciseMap = new Map([
+        [10, { id: 10, name: 'Tirage', muscleGroup: 'Dos' as const }],
+      ]);
+
+      const singleSummary = calculateProgramSummary(
+        [{ id: 1, programId: 1, exerciseId: 10, order: 0, warmupSets: 1, workSets: 3 }],
+        exerciseMap
+      );
+
+      expect(singleSummary.exerciseCount).toBe(1);
+      expect(singleSummary.exerciseCountText).toBe('1 exercice');
+      expect(singleSummary.summaryText).toBe('Dos · 1 exo');
+
+      // 5 exos avec le même groupe musculaire
+      const fivePes = [1, 2, 3, 4, 5].map((i) => ({
+        id: i,
+        programId: 1,
+        exerciseId: 10,
+        order: i - 1,
+        warmupSets: 1,
+        workSets: 3,
+      }));
+
+      const fiveSummary = calculateProgramSummary(fivePes, exerciseMap);
+      expect(fiveSummary.exerciseCount).toBe(5);
+      expect(fiveSummary.exerciseCountText).toBe('5 exercices');
+      expect(fiveSummary.summaryText).toBe('Dos · 5 exos');
+    });
+
+    it('retourne les groupes sans doublon et dans l’ordre strict de MUSCLE_GROUPS', () => {
+      // Exercices insérés dans le désordre : Triceps (index 4), Mollets (index 10), Pectoraux (index 0), Triceps bis
+      const exerciseMap = new Map([
+        [1, { id: 1, name: 'Barre front', muscleGroup: 'Triceps' as const }],
+        [2, { id: 2, name: 'Mollets debout', muscleGroup: 'Mollets' as const }],
+        [3, { id: 3, name: 'Développé couché', muscleGroup: 'Pectoraux' as const }],
+        [4, { id: 4, name: 'Dips', muscleGroup: 'Triceps' as const }],
+      ]);
+
+      const pes = [
+        { id: 101, programId: 1, exerciseId: 1, order: 0, warmupSets: 1, workSets: 3 },
+        { id: 102, programId: 1, exerciseId: 2, order: 1, warmupSets: 1, workSets: 3 },
+        { id: 103, programId: 1, exerciseId: 3, order: 2, warmupSets: 1, workSets: 3 },
+        { id: 104, programId: 1, exerciseId: 4, order: 3, warmupSets: 1, workSets: 3 },
+      ];
+
+      const summary = calculateProgramSummary(pes, exerciseMap);
+
+      // Ordre de MUSCLE_GROUPS : Pectoraux, Triceps, Mollets
+      expect(summary.muscleGroups).toEqual(['Pectoraux', 'Triceps', 'Mollets']);
+      expect(summary.muscleGroupsText).toBe('Pectoraux, Triceps, Mollets');
+      expect(summary.exerciseCount).toBe(4);
+      expect(summary.summaryText).toBe('Pectoraux · Triceps · Mollets · 4 exos');
+    });
+
+    it('getAllProgramsWithSummary charge et enrichit tous les programmes', async () => {
+      const ex1 = await addExercise({ name: 'Tractions', muscleGroup: 'Dos' });
+      const ex2 = await addExercise({ name: 'Curl', muscleGroup: 'Biceps' });
+
+      const p1 = await createProgram({ name: 'Programme B', weekdays: [1] });
+      const p2 = await createProgram({ name: 'Programme A', weekdays: [2] });
+
+      await addExerciseToProgram({ programId: p1, exerciseId: ex1 });
+      await addExerciseToProgram({ programId: p1, exerciseId: ex2 });
+
+      const all = await getAllProgramsWithSummary();
+
+      // Trié alphabétiquement : Programme A puis Programme B
+      expect(all).toHaveLength(2);
+      expect(all[0].id).toBe(p2);
+      expect(all[0].name).toBe('Programme A');
+      expect(all[0].summaryText).toBe('Aucun exercice');
+
+      expect(all[1].id).toBe(p1);
+      expect(all[1].name).toBe('Programme B');
+      expect(all[1].summaryText).toBe('Dos · Biceps · 2 exos');
     });
   });
 });

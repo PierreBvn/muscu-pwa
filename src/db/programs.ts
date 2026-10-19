@@ -1,4 +1,11 @@
-import { db, type Program, type ProgramExercise, type Exercise } from './schema';
+import {
+  db,
+  MUSCLE_GROUPS,
+  type Program,
+  type ProgramExercise,
+  type Exercise,
+  type MuscleGroup,
+} from './schema';
 
 /**
  * Valide qu'un tableau de jours contient des entiers valides entre 1 et 7, sans doublons.
@@ -345,3 +352,109 @@ export async function moveProgramExercise(
     }
   });
 }
+
+export interface ProgramSummary {
+  exerciseCount: number;
+  exerciseCountText: string;
+  muscleGroups: MuscleGroup[];
+  muscleGroupsText: string;
+  summaryText: string;
+}
+
+export type ProgramWithSummary = Program & ProgramSummary;
+
+/**
+ * Calcule purement le résumé d'un programme (nombre d'exercices et groupes musculaires ordonnés).
+ * Règle de format : « Dos · Biceps · 5 exos », « Aucun exercice » si vide.
+ * Groupes dans l'ordre strict de MUSCLE_GROUPS, sans doublon.
+ */
+export function calculateProgramSummary(
+  programExercises: ProgramExercise[],
+  exercises: Exercise[] | Map<number, Exercise>
+): ProgramSummary {
+  const count = programExercises.length;
+  if (count === 0) {
+    return {
+      exerciseCount: 0,
+      exerciseCountText: '0 exercice',
+      muscleGroups: [],
+      muscleGroupsText: '',
+      summaryText: 'Aucun exercice',
+    };
+  }
+
+  const exerciseMap =
+    exercises instanceof Map
+      ? exercises
+      : new Map<number, Exercise>(
+          exercises
+            .filter((e) => e.id !== undefined)
+            .map((e) => [e.id!, e])
+        );
+
+  const presentGroups = new Set<MuscleGroup>();
+  for (const pe of programExercises) {
+    const ex = exerciseMap.get(pe.exerciseId);
+    if (ex?.muscleGroup) {
+      presentGroups.add(ex.muscleGroup);
+    }
+  }
+
+  const muscleGroups = MUSCLE_GROUPS.filter((g) => presentGroups.has(g));
+  const muscleGroupsText = muscleGroups.join(', ');
+  const exerciseCountText = `${count} ${count > 1 ? 'exercices' : 'exercice'}`;
+  const exosSuffix = `${count} ${count > 1 ? 'exos' : 'exo'}`;
+
+  const summaryText =
+    muscleGroups.length > 0
+      ? [...muscleGroups, exosSuffix].join(' · ')
+      : exosSuffix;
+
+  return {
+    exerciseCount: count,
+    exerciseCountText,
+    muscleGroups,
+    muscleGroupsText,
+    summaryText,
+  };
+}
+
+/**
+ * Récupère tous les programmes enrichis de leur résumé d'exercices,
+ * triés alphabétiquement par nom.
+ */
+export async function getAllProgramsWithSummary(): Promise<ProgramWithSummary[]> {
+  const [programs, programExercises, exercises] = await Promise.all([
+    db.programs.toArray(),
+    db.programExercises.toArray(),
+    db.exercises.toArray(),
+  ]);
+
+  const exerciseMap = new Map<number, Exercise>();
+  for (const ex of exercises) {
+    if (ex.id !== undefined) {
+      exerciseMap.set(ex.id, ex);
+    }
+  }
+
+  const peByProgramId = new Map<number, ProgramExercise[]>();
+  for (const pe of programExercises) {
+    const list = peByProgramId.get(pe.programId) ?? [];
+    list.push(pe);
+    peByProgramId.set(pe.programId, list);
+  }
+
+  const sorted = [...programs].sort((a, b) =>
+    a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
+  );
+
+  return sorted.map((program) => {
+    const peList = program.id ? (peByProgramId.get(program.id) ?? []) : [];
+    const summary = calculateProgramSummary(peList, exerciseMap);
+    return {
+      ...program,
+      ...summary,
+    };
+  });
+}
+
