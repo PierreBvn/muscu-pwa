@@ -388,13 +388,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
             À propos
           </h2>
 
-          <div className="rounded-xl bg-surface border border-line p-4 flex items-center justify-between min-h-[52px]">
-            <div className="flex items-center gap-2.5">
+          <div className="rounded-xl bg-surface border border-line p-4 flex items-center justify-between min-h-[52px] gap-2">
+            <div className="flex items-center gap-2.5 shrink-0">
               <Info size={18} className="text-gold" aria-hidden="true" />
               <span className="text-sm font-medium text-text">Version</span>
             </div>
-            <span className="text-sm text-muted font-mono tabular-nums">
-              v{typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0'}
+            <span className="text-xs text-muted font-mono tabular-nums text-right">
+              v{typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0'} · {typeof __COMMIT_HASH__ !== 'undefined' ? __COMMIT_HASH__ : 'local'} · {typeof __BUILD_TIME__ !== 'undefined' ? __BUILD_TIME__ : ''}
             </span>
           </div>
         </section>

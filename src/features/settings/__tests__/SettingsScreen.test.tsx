@@ -141,10 +141,11 @@ describe('SettingsScreen component', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('affiche la section À propos', () => {
+  it('affiche la section À propos avec la version, le hash et la date du build', () => {
     render(<SettingsScreen onBack={() => {}} />);
 
     expect(screen.getByText('À propos')).toBeInTheDocument();
     expect(screen.getByText('Version')).toBeInTheDocument();
+    expect(screen.getByText(/v.* · .* · .*/)).toBeInTheDocument();
   });
 });
