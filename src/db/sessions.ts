@@ -542,6 +542,63 @@ export async function updateSessionExerciseSetsCount(
 }
 
 /**
+ * Fonction pure de déplacement d'un élément d'un tableau d'un index vers un autre.
+ * Retourne une nouvelle copie du tableau sans muter l'original.
+ * Si les index sont identiques ou hors limites, retourne une copie superficielle de la liste.
+ */
+export function moveExercise<T>(items: readonly T[], from: number, to: number): T[] {
+  if (from === to || items.length <= 1) {
+    return [...items];
+  }
+  if (from < 0 || from >= items.length || to < 0 || to >= items.length) {
+    return [...items];
+  }
+  const result = [...items];
+  const [item] = result.splice(from, 1);
+  result.splice(to, 0, item);
+  return result;
+}
+
+/**
+ * Réordonne les exercices d'une séance d'un index vers un autre (glisser-déposer).
+ * Met à jour atomiquement les champs `order` (0, 1, 2...) dans Dexie.
+ * Ne modifie jamais la séance type (Program / ProgramExercise).
+ */
+export async function reorderSessionExercises(
+  sessionId: number,
+  fromIndex: number,
+  toIndex: number
+): Promise<void> {
+  if (fromIndex === toIndex) return;
+
+  await db.transaction('rw', db.sessionExercises, async () => {
+    const list = await db.sessionExercises
+      .where('sessionId')
+      .equals(sessionId)
+      .toArray();
+
+    list.sort((a, b) => a.order - b.order);
+
+    if (
+      fromIndex < 0 ||
+      fromIndex >= list.length ||
+      toIndex < 0 ||
+      toIndex >= list.length
+    ) {
+      return;
+    }
+
+    const reordered = moveExercise(list, fromIndex, toIndex);
+
+    for (let i = 0; i < reordered.length; i++) {
+      if (reordered[i].id !== undefined && reordered[i].order !== i) {
+        await db.sessionExercises.update(reordered[i].id!, { order: i });
+      }
+    }
+  });
+}
+
+/**
  * Déplace un exercice d'un cran vers le haut ('up') ou vers le bas ('down') dans la séance.
  */
 export async function moveSessionExercise(
@@ -566,23 +623,16 @@ export async function moveSessionExercise(
       return;
     }
 
-    if (direction === 'up') {
-      if (currentIndex === 0) return;
-      const targetIndex = currentIndex - 1;
-      const temp = list[currentIndex];
-      list[currentIndex] = list[targetIndex];
-      list[targetIndex] = temp;
-    } else if (direction === 'down') {
-      if (currentIndex === list.length - 1) return;
-      const targetIndex = currentIndex + 1;
-      const temp = list[currentIndex];
-      list[currentIndex] = list[targetIndex];
-      list[targetIndex] = temp;
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= list.length) {
+      return;
     }
 
-    for (let i = 0; i < list.length; i++) {
-      if (list[i].id !== undefined && list[i].order !== i) {
-        await db.sessionExercises.update(list[i].id!, { order: i });
+    const reordered = moveExercise(list, currentIndex, targetIndex);
+
+    for (let i = 0; i < reordered.length; i++) {
+      if (reordered[i].id !== undefined && reordered[i].order !== i) {
+        await db.sessionExercises.update(reordered[i].id!, { order: i });
       }
     }
   });

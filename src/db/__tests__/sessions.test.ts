@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { db } from '../schema';
 import { addExercise } from '../exercises';
-import { createProgram, addExerciseToProgram } from '../programs';
+import { createProgram, addExerciseToProgram, getProgramExercises } from '../programs';
 import {
   formatLocalDate,
   getActiveSession,
@@ -16,6 +16,8 @@ import {
   skipSessionExercise,
   updateSessionExerciseSetsCount,
   moveSessionExercise,
+  moveExercise,
+  reorderSessionExercises,
   addSet,
   updateSet,
   deleteSet,
@@ -262,6 +264,123 @@ describe('Sessions data layer (src/db/sessions.ts)', () => {
       list = await getSessionExercises(sid);
       expect(list.map((e) => e.exerciseId)).toEqual([ex2, ex3, ex1]);
       expect(list.map((e) => e.order)).toEqual([0, 1, 2]);
+    });
+  });
+
+  describe('Pure moveExercise(items, from, to)', () => {
+    const list = ['A', 'B', 'C', 'D'];
+
+    it('déplace un élément du haut vers le bas (index 0 vers 2)', () => {
+      const result = moveExercise(list, 0, 2);
+      expect(result).toEqual(['B', 'C', 'A', 'D']);
+      expect(list).toEqual(['A', 'B', 'C', 'D']); // immutabilité
+    });
+
+    it('déplace un élément du bas vers le haut (index 3 vers 1)', () => {
+      const result = moveExercise(list, 3, 1);
+      expect(result).toEqual(['A', 'D', 'B', 'C']);
+      expect(list).toEqual(['A', 'B', 'C', 'D']); // immutabilité
+    });
+
+    it('même position : retourne une copie identique sans modification (index 1 vers 1)', () => {
+      const result = moveExercise(list, 1, 1);
+      expect(result).toEqual(['A', 'B', 'C', 'D']);
+      expect(result).not.toBe(list); // nouvelle référence
+    });
+
+    it('renvoie une copie identique si les index sont hors limites ou invalides', () => {
+      expect(moveExercise(list, -1, 2)).toEqual(['A', 'B', 'C', 'D']);
+      expect(moveExercise(list, 0, 10)).toEqual(['A', 'B', 'C', 'D']);
+      expect(moveExercise([], 0, 1)).toEqual([]);
+      expect(moveExercise(['A'], 0, 0)).toEqual(['A']);
+    });
+  });
+
+  describe('reorderSessionExercises (glisser-déposer et persistance Dexie)', () => {
+    it('déplace un exercice du haut vers le bas (0 -> 2) et met à jour l’ordre contigu', async () => {
+      const ex1 = await addExercise({ name: 'Ex1', muscleGroup: 'Pectoraux' });
+      const ex2 = await addExercise({ name: 'Ex2', muscleGroup: 'Pectoraux' });
+      const ex3 = await addExercise({ name: 'Ex3', muscleGroup: 'Pectoraux' });
+
+      const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
+      await addExerciseToSession({ sessionId: sid, exerciseId: ex1 });
+      await addExerciseToSession({ sessionId: sid, exerciseId: ex2 });
+      await addExerciseToSession({ sessionId: sid, exerciseId: ex3 });
+
+      await reorderSessionExercises(sid, 0, 2);
+
+      const list = await getSessionExercises(sid);
+      expect(list.map((e) => e.exerciseId)).toEqual([ex2, ex3, ex1]);
+      expect(list.map((e) => e.order)).toEqual([0, 1, 2]);
+    });
+
+    it('déplace un exercice du bas vers le haut (2 -> 0) et met à jour l’ordre contigu', async () => {
+      const ex1 = await addExercise({ name: 'Ex1', muscleGroup: 'Pectoraux' });
+      const ex2 = await addExercise({ name: 'Ex2', muscleGroup: 'Pectoraux' });
+      const ex3 = await addExercise({ name: 'Ex3', muscleGroup: 'Pectoraux' });
+
+      const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
+      await addExerciseToSession({ sessionId: sid, exerciseId: ex1 });
+      await addExerciseToSession({ sessionId: sid, exerciseId: ex2 });
+      await addExerciseToSession({ sessionId: sid, exerciseId: ex3 });
+
+      await reorderSessionExercises(sid, 2, 0);
+
+      const list = await getSessionExercises(sid);
+      expect(list.map((e) => e.exerciseId)).toEqual([ex3, ex1, ex2]);
+      expect(list.map((e) => e.order)).toEqual([0, 1, 2]);
+    });
+
+    it('même position : ne change rien à l’ordre existant', async () => {
+      const ex1 = await addExercise({ name: 'Ex1', muscleGroup: 'Pectoraux' });
+      const ex2 = await addExercise({ name: 'Ex2', muscleGroup: 'Pectoraux' });
+      const ex3 = await addExercise({ name: 'Ex3', muscleGroup: 'Pectoraux' });
+
+      const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
+      await addExerciseToSession({ sessionId: sid, exerciseId: ex1 });
+      await addExerciseToSession({ sessionId: sid, exerciseId: ex2 });
+      await addExerciseToSession({ sessionId: sid, exerciseId: ex3 });
+
+      await reorderSessionExercises(sid, 1, 1);
+
+      const list = await getSessionExercises(sid);
+      expect(list.map((e) => e.exerciseId)).toEqual([ex1, ex2, ex3]);
+      expect(list.map((e) => e.order)).toEqual([0, 1, 2]);
+    });
+
+    it('séance type inchangée : réordonner la séance ne modifie jamais les exercices du programme', async () => {
+      const ex1 = await addExercise({ name: 'Pec 1', muscleGroup: 'Pectoraux' });
+      const ex2 = await addExercise({ name: 'Pec 2', muscleGroup: 'Pectoraux' });
+      const ex3 = await addExercise({ name: 'Pec 3', muscleGroup: 'Pectoraux' });
+
+      const progId = await createProgram({ name: 'Push Day', weekdays: [1] });
+      await addExerciseToProgram({ programId: progId, exerciseId: ex1 });
+      await addExerciseToProgram({ programId: progId, exerciseId: ex2 });
+      await addExerciseToProgram({ programId: progId, exerciseId: ex3 });
+
+      // Démarrage de la séance depuis le programme (copie des exercices)
+      const sid = await startSession({ programId: progId, now: new Date(2026, 9, 15, 8, 0) });
+
+      // Vérification ordre initial de la séance et du programme
+      let sessionEx = await getSessionExercises(sid);
+      expect(sessionEx.map((e) => e.exerciseId)).toEqual([ex1, ex2, ex3]);
+
+      let progEx = await getProgramExercises(progId);
+      expect(progEx.map((e) => e.exerciseId)).toEqual([ex1, ex2, ex3]);
+      expect(progEx.map((e) => e.order)).toEqual([0, 1, 2]);
+
+      // Déplacement de l'exercice 0 vers 2 dans la séance
+      await reorderSessionExercises(sid, 0, 2);
+
+      // La séance est bien réordonnée
+      sessionEx = await getSessionExercises(sid);
+      expect(sessionEx.map((e) => e.exerciseId)).toEqual([ex2, ex3, ex1]);
+      expect(sessionEx.map((e) => e.order)).toEqual([0, 1, 2]);
+
+      // Le programme (séance type) est STRICTEMENT INTACT
+      progEx = await getProgramExercises(progId);
+      expect(progEx.map((e) => e.exerciseId)).toEqual([ex1, ex2, ex3]);
+      expect(progEx.map((e) => e.order)).toEqual([0, 1, 2]);
     });
   });
 
