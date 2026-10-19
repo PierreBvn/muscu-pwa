@@ -245,7 +245,7 @@ export async function getRepSuggestions(
     type?: 'warmup' | 'work';
   }
 ): Promise<RepSuggestions> {
-  const buttons = [6, 8, 10, 12];
+  const buttons = [6, 8, 10, 12, 15];
   const targetType: 'warmup' | 'work' =
     options.type ?? (options.isWarmup ? 'warmup' : 'work');
 

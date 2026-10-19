@@ -266,10 +266,10 @@ describe('Suggestions engine (src/db/suggestions.ts)', () => {
   });
 
   describe('Rep suggestions (getRepSuggestions)', () => {
-    it('provides standard rep buttons [6, 8, 10, 12]', async () => {
+    it('provides standard rep buttons [6, 8, 10, 12, 15]', async () => {
       const sid = await startSession({ now: new Date(2026, 9, 15, 8, 0) });
       const suggestions = await getRepSuggestions(1, { currentSessionId: sid });
-      expect(suggestions.buttons).toEqual([6, 8, 10, 12]);
+      expect(suggestions.buttons).toEqual([6, 8, 10, 12, 15]);
     });
 
     it('returns null preselected reps when no history exists', async () => {
@@ -350,7 +350,7 @@ describe('Suggestions engine (src/db/suggestions.ts)', () => {
 
       expect(suggestions.weight).toBeDefined();
       expect(suggestions.reps).toBeDefined();
-      expect(suggestions.reps.buttons).toEqual([6, 8, 10, 12]);
+      expect(suggestions.reps.buttons).toEqual([6, 8, 10, 12, 15]);
     });
   });
 });

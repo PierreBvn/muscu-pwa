@@ -19,10 +19,10 @@ describe('Seed initial au démarrage de l’app', () => {
     // Les exercices existent sans avoir ouvert la Bibliothèque
     const countAfter = await db.exercises.count();
     expect(countAfter).toBe(DEFAULT_EXERCISES.length);
-    expect(countAfter).toBe(22);
+    expect(countAfter).toBe(49);
 
     const exercises = await getAllExercises();
-    expect(exercises.map((e) => e.name)).toContain('Développé couché');
+    expect(exercises.map((e) => e.name)).toContain('Développé couché barre');
   });
 
   it('deux exécutions → pas de doublon (idempotent)', async () => {

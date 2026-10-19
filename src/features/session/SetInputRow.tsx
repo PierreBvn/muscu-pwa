@@ -274,7 +274,7 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
         <span className="block text-xs uppercase tracking-widest text-muted mb-1.5">
           Répétitions
         </span>
-        <div className="w-full flex items-center justify-between gap-1.5">
+        <div className="w-full flex items-center justify-between gap-1">
           {repSuggestions.buttons.map((btnReps) => {
             const isSelected = !isCustomReps && effectiveSelectedReps === btnReps;
 

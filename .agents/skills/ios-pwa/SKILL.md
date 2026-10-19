@@ -17,6 +17,9 @@ description: Règles de mise en page CSS, gestion des safe areas, défilement et
 - Toute liste qui défile vers un élément prévoit un espace en bas pour atteindre la position voulue.
 - Un affichage qui change souvent (minuteur, compteur) vit dans son propre composant ;
   il ne doit jamais provoquer le re-rendu ni le remontage de la liste parente.
+- Glisser-déposer : @dnd-kit avec poignée dédiée et TouchSensor (délai), jamais le drag-and-drop HTML5 natif.
+- touch-action: none uniquement sur la poignée, jamais sur la ligne entière.
+- Action principale d'un écran : en bas, dans la zone du pouce.
 
 
 ## Éléments fixes et superposition

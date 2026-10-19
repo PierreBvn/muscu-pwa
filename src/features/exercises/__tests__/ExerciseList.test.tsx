@@ -55,7 +55,7 @@ describe('ExerciseList UI component (grille & navigation)', () => {
 
     // Vue détaillée Pectoraux : les exercices sont affichés
     await waitFor(() => {
-      expect(screen.getByText('Développé couché')).toBeInTheDocument();
+      expect(screen.getByText('Développé couché barre')).toBeInTheDocument();
       expect(screen.getByText('Développé incliné haltères')).toBeInTheDocument();
       expect(screen.getByText('Écarté à la poulie')).toBeInTheDocument();
     });
@@ -70,16 +70,16 @@ describe('ExerciseList UI component (grille & navigation)', () => {
 
     // Les cartes d'exercices d'une catégorie n'affichent pas d'icône de groupe (réservée aux listes mélangées)
     expect(screen.queryAllByRole('img', { name: 'Pectoraux' })).toHaveLength(0);
-    expect(screen.getByText('Développé couché').closest('div')?.querySelector('img')).toBeNull();
+    expect(screen.getByText('Développé couché barre').closest('div')?.querySelector('img')).toBeNull();
 
     // Bouton Retour
     const backBtn = screen.getByRole('button', { name: /retour/i });
     expect(backBtn).toBeInTheDocument();
     fireEvent.click(backBtn);
 
-    // Retour sur la grille : Développé couché n'est plus dans le DOM, la tuile Pectoraux réapparaît
+    // Retour sur la grille : Développé couché barre n'est plus dans le DOM, la tuile Pectoraux réapparaît
     await waitFor(() => {
-      expect(screen.queryByText('Développé couché')).not.toBeInTheDocument();
+      expect(screen.queryByText('Développé couché barre')).not.toBeInTheDocument();
       expect(screen.getByRole('button', { name: /pectoraux/i })).toBeInTheDocument();
     });
   });
@@ -91,7 +91,7 @@ describe('ExerciseList UI component (grille & navigation)', () => {
     fireEvent.click(bicepsTile);
 
     await waitFor(() => {
-      expect(screen.getByText('Curl biceps barre')).toBeInTheDocument();
+      expect(screen.getByText('Curl barre')).toBeInTheDocument();
     });
 
     // Clic sur "+ Ajouter" dans la vue détaillée de Biceps
@@ -153,14 +153,14 @@ describe('ExerciseList UI component (grille & navigation)', () => {
     fireEvent.click(addButton);
 
     const input = screen.getByLabelText(/nom de l’exercice/i);
-    fireEvent.change(input, { target: { value: 'développé couché' } });
+    fireEvent.change(input, { target: { value: 'développé couché barre' } });
 
     const saveButton = screen.getByRole('button', { name: /enregistrer/i });
     fireEvent.click(saveButton);
 
     await waitFor(() => {
       expect(
-        screen.getByText(/un exercice nommé "développé couché" existe déjà/i)
+        screen.getByText(/un exercice nommé "développé couché barre" existe déjà/i)
       ).toBeInTheDocument();
     });
   });
@@ -173,12 +173,12 @@ describe('ExerciseList UI component (grille & navigation)', () => {
     fireEvent.click(pecTile);
 
     await waitFor(() => {
-      expect(screen.getByText('Développé couché')).toBeInTheDocument();
+      expect(screen.getByText('Développé couché barre')).toBeInTheDocument();
     });
 
     // Clic sur l'icône de suppression
     const deleteBtn = screen.getByRole('button', {
-      name: /supprimer développé couché/i,
+      name: /supprimer développé couché barre/i,
     });
     fireEvent.click(deleteBtn);
 
@@ -198,7 +198,7 @@ describe('ExerciseList UI component (grille & navigation)', () => {
 
     // L'exercice est retiré de la liste active
     await waitFor(() => {
-      expect(screen.queryByText('Développé couché')).not.toBeInTheDocument();
+      expect(screen.queryByText('Développé couché barre')).not.toBeInTheDocument();
     });
   });
 
