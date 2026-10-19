@@ -1,11 +1,23 @@
 import type { ExerciseStatPoint } from '../../db/stats';
-import { formatStatWeight, formatStatReps } from '../../db/stats';
+import {
+  formatStatWeight,
+  formatStatReps,
+  formatIndexChange,
+} from '../../db/stats';
 
 export interface ChartPadding {
   top: number;
   right: number;
   bottom: number;
   left: number;
+}
+
+export interface ChartPointInput {
+  date: string;
+  averageWeight?: number | null;
+  totalReps?: number;
+  value?: number | null;
+  isRecord?: boolean;
 }
 
 export interface ChartPointCoords {
@@ -32,8 +44,8 @@ export interface ComputedChartGeometry {
  * Calcule la géométrie du graphique SVG de manière pure (aucun effet de bord, aucun appel DOM/Dexie).
  */
 export function computeChartGeometry(params: {
-  points: ExerciseStatPoint[];
-  mode: 'weight' | 'reps';
+  points: Array<ExerciseStatPoint | ChartPointInput>;
+  mode: 'weight' | 'reps' | 'index';
   width?: number;
   height?: number;
   padding?: ChartPadding;
@@ -53,12 +65,19 @@ export function computeChartGeometry(params: {
   const innerW = width - padding.left - padding.right;
   const innerH = height - padding.top - padding.bottom;
 
-  const values = points.map((p) =>
-    mode === 'weight' ? (p.averageWeight ?? 0) : p.totalReps
-  );
+  const getPointValue = (p: ExerciseStatPoint | ChartPointInput): number | null => {
+    if (mode === 'weight') return 'averageWeight' in p ? (p.averageWeight ?? null) : null;
+    if (mode === 'reps') return 'totalReps' in p ? (p.totalReps ?? null) : null;
+    return 'value' in p ? (p.value ?? null) : null;
+  };
 
-  const rawMin = Math.min(...values);
-  const rawMax = Math.max(...values);
+  const pointValues = points.map(getPointValue);
+  const validValues = pointValues.filter((v): v is number => v !== null);
+
+  if (validValues.length === 0) return null;
+
+  const rawMin = Math.min(...validValues);
+  const rawMax = Math.max(...validValues);
 
   let minY: number;
   let maxY: number;
@@ -67,19 +86,27 @@ export function computeChartGeometry(params: {
     if (mode === 'weight') {
       minY = rawMin - 2.5;
       maxY = rawMax + 2.5;
-    } else {
+    } else if (mode === 'reps') {
       minY = Math.max(0, rawMin - 5);
       maxY = rawMax + 5;
+    } else {
+      // mode === 'index' : ±2,5 points pour un indice constant
+      minY = rawMin - 2.5;
+      maxY = rawMax + 2.5;
     }
   } else {
     minY = rawMin;
     maxY = rawMax;
   }
 
-  const formattedMinY =
-    mode === 'weight' ? formatStatWeight(minY) : formatStatReps(minY);
-  const formattedMaxY =
-    mode === 'weight' ? formatStatWeight(maxY) : formatStatReps(maxY);
+  const formatValue = (val: number): string => {
+    if (mode === 'weight') return formatStatWeight(val);
+    if (mode === 'reps') return formatStatReps(val);
+    return formatIndexChange(val);
+  };
+
+  const formattedMinY = formatValue(minY);
+  const formattedMaxY = formatValue(maxY);
 
   const coords: ChartPointCoords[] = [];
 
@@ -87,21 +114,24 @@ export function computeChartGeometry(params: {
     coords.push({
       x: padding.left + innerW / 2,
       y: padding.top + innerH / 2,
-      value: values[0],
-      isRecord: points[0].isRecord,
+      value: validValues[0],
+      isRecord: Boolean(points[0].isRecord),
       date: points[0].date,
     });
   } else {
     const rangeY = maxY - minY || 1;
     for (let i = 0; i < points.length; i++) {
+      const val = pointValues[i];
+      if (val === null) continue;
+
       const x = padding.left + (i / (points.length - 1)) * innerW;
-      const normalizedY = (values[i] - minY) / rangeY;
+      const normalizedY = (val - minY) / rangeY;
       const y = padding.top + innerH - normalizedY * innerH;
       coords.push({
         x,
         y,
-        value: values[i],
-        isRecord: points[i].isRecord,
+        value: val,
+        isRecord: Boolean(points[i].isRecord),
         date: points[i].date,
       });
     }
@@ -119,19 +149,17 @@ export function computeChartGeometry(params: {
   const startDate = points[0].date;
   const endDate = points[points.length - 1].date;
 
-  const firstValFormatted =
-    mode === 'weight'
-      ? formatStatWeight(values[0])
-      : formatStatReps(values[0]);
-  const lastValFormatted =
-    mode === 'weight'
-      ? formatStatWeight(values[values.length - 1])
-      : formatStatReps(values[values.length - 1]);
+  const firstValFormatted = formatValue(validValues[0]);
+  const lastValFormatted = formatValue(validValues[validValues.length - 1]);
 
   const ariaLabel =
-    points.length === 1
-      ? `Progression ${exerciseName} : 1 séance le ${startDate}, valeur ${firstValFormatted}`
-      : `Progression ${exerciseName} : ${points.length} séances du ${startDate} au ${endDate}, de ${firstValFormatted} à ${lastValFormatted}`;
+    mode === 'index'
+      ? points.length === 1
+        ? `Progression ${exerciseName} : 1 semaine le ${startDate}, valeur ${firstValFormatted}`
+        : `Progression ${exerciseName} : ${validValues.length} semaines du ${startDate} au ${endDate}, de ${firstValFormatted} à ${lastValFormatted}`
+      : points.length === 1
+        ? `Progression ${exerciseName} : 1 séance le ${startDate}, valeur ${firstValFormatted}`
+        : `Progression ${exerciseName} : ${points.length} séances du ${startDate} au ${endDate}, de ${firstValFormatted} à ${lastValFormatted}`;
 
   return {
     minY,

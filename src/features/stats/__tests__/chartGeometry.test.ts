@@ -142,7 +142,85 @@ describe('computeChartGeometry', () => {
     expect(geom.ariaLabel).toContain('2 séances');
   });
 
+  it('cas mode index constant : bornes Y élargies à ±2,5 points et graduations au format variation', () => {
+    const points = [
+      { date: '2026-10-05', value: 100 },
+      { date: '2026-10-12', value: 100 },
+    ];
+
+    const geom = computeChartGeometry({
+      points,
+      mode: 'index',
+      width,
+      height,
+      padding,
+      exerciseName: 'Général',
+    });
+
+    expect(geom).not.toBeNull();
+    if (!geom) return;
+
+    expect(geom.minY).toBe(97.5);
+    expect(geom.maxY).toBe(102.5);
+    expect(geom.formattedMinY).toBe('−2,5\u00A0%');
+    expect(geom.formattedMaxY).toBe('+2,5\u00A0%');
+
+    // Les points sont centrés verticalement
+    const centerY = padding.top + (height - padding.top - padding.bottom) / 2;
+    expect(geom.points[0].y).toBe(centerY);
+    expect(geom.points[1].y).toBe(centerY);
+  });
+
+  it('cas mode index sur 8 semaines avec semaines sans séance (null) : seuls les points non null sont tracés', () => {
+    // 8 semaines, avec séance seulement en semaine 1 (indice 0) et semaine 8 (indice 7)
+    const points = [
+      { date: '2026-08-31', value: 100 },
+      { date: '2026-09-07', value: null },
+      { date: '2026-09-14', value: null },
+      { date: '2026-09-21', value: null },
+      { date: '2026-09-28', value: null },
+      { date: '2026-10-05', value: null },
+      { date: '2026-10-12', value: null },
+      { date: '2026-10-19', value: 105 },
+    ];
+
+    const geom = computeChartGeometry({
+      points,
+      mode: 'index',
+      width,
+      height,
+      padding,
+      exerciseName: 'Pectoraux',
+    });
+
+    expect(geom).not.toBeNull();
+    if (!geom) return;
+
+    expect(geom.minY).toBe(100);
+    expect(geom.maxY).toBe(105);
+    expect(geom.formattedMinY).toBe('0,0\u00A0%');
+    expect(geom.formattedMaxY).toBe('+5,0\u00A0%');
+
+    // Seuls 2 points de coordonnées existent
+    expect(geom.points).toHaveLength(2);
+    // Point 1 en semaine 0 (x tout à gauche)
+    expect(geom.points[0].x).toBe(padding.left);
+    // Point 2 en semaine 7 (x tout à droite)
+    expect(geom.points[1].x).toBe(width - padding.right);
+
+    // Path reliant les 2 points
+    expect(geom.pathD).toBe(`M ${geom.points[0].x.toFixed(1)} ${geom.points[0].y.toFixed(1)} L ${geom.points[1].x.toFixed(1)} ${geom.points[1].y.toFixed(1)}`);
+  });
+
   it('renvoie null si la liste des points est vide', () => {
     expect(computeChartGeometry({ points: [], mode: 'weight' })).toBeNull();
+  });
+
+  it('renvoie null si tous les points ont une valeur nulle en mode index', () => {
+    const points = [
+      { date: '2026-10-05', value: null },
+      { date: '2026-10-12', value: null },
+    ];
+    expect(computeChartGeometry({ points, mode: 'index' })).toBeNull();
   });
 });

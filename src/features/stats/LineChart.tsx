@@ -1,10 +1,10 @@
 import React from 'react';
 import type { ExerciseStatPoint } from '../../db/stats';
-import { computeChartGeometry } from './chartGeometry';
+import { computeChartGeometry, type ChartPointInput } from './chartGeometry';
 
 interface LineChartProps {
-  points: ExerciseStatPoint[];
-  mode: 'weight' | 'reps';
+  points: Array<ExerciseStatPoint | ChartPointInput>;
+  mode: 'weight' | 'reps' | 'index';
   exerciseName?: string;
   width?: number;
   height?: number;

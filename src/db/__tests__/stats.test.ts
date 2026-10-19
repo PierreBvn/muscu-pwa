@@ -7,11 +7,14 @@ import {
   formatStatWeight,
   formatPersonalRecord,
   formatStatReps,
+  formatStatSets,
   getWeekRangeUtc,
   formatIndexChange,
   buildExerciseProgression,
   calculateWeeklyWorkSetsByGroup,
   calculateGeneralProgression,
+  calculateMuscleGroupProgression,
+  calculateAllMuscleGroupsProgression,
   calculateWeeklyMuscleStats,
   calculateMuscleGroupHistory,
   loadExerciseStatsData,
@@ -228,6 +231,13 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
       expect(formatStatReps(1)).toBe('1\u00A0rep');
       expect(formatStatReps(0)).toBe('0\u00A0rep');
       expect(formatStatReps(1000)).toBe('1\u00A0000\u00A0reps');
+    });
+
+    it('2.11 formatage des séries de travail (formatStatSets)', () => {
+      expect(formatStatSets(7)).toBe('7\u00A0séries');
+      expect(formatStatSets(1)).toBe('1\u00A0série');
+      expect(formatStatSets(0)).toBe('0\u00A0série');
+      expect(formatStatSets(1000)).toBe('1\u00A0000\u00A0séries');
     });
 
     it('2.5 exemple back-off : 3 séries lourdes à 100 kg × 5 et 1 back-off à 70 kg × 12', () => {
@@ -627,6 +637,76 @@ describe('src/db/stats.ts - Calculs des statistiques', () => {
         expect(history[i].workSets).toBe(0);
       }
       expect(history[7].workSets).toBe(7);
+    });
+
+    it('2.8 exemple obligatoire chiffré : indice de progression par groupe musculaire (Pectoraux)', () => {
+      const sessions: Session[] = [
+        { id: 1, date: '2026-10-07', startedAt: '2026-10-07T10:00:00Z', endedAt: '2026-10-07T11:00:00Z' }, // Semaine 7
+        { id: 2, date: '2026-10-14', startedAt: '2026-10-14T10:00:00Z', endedAt: '2026-10-14T11:00:00Z' }, // Semaine 8
+      ];
+
+      const exercises: Exercise[] = [
+        { id: 1, name: 'Développé couché', muscleGroup: 'Pectoraux', archived: false },
+        { id: 2, name: 'Curl biceps', muscleGroup: 'Biceps', archived: false },
+      ];
+
+      const sets: SetEntry[] = [
+        // S7 : Développé couché à 80 kg, 3 séries
+        { id: 1, sessionId: 1, exerciseId: 1, order: 1, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-07T10:05:00Z' },
+        { id: 2, sessionId: 1, exerciseId: 1, order: 2, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-07T10:10:00Z' },
+        { id: 3, sessionId: 1, exerciseId: 1, order: 3, weight: 80, reps: 10, type: 'work', createdAt: '2026-10-07T10:15:00Z' },
+        // S8 : Développé couché à 84 kg, 4 séries
+        { id: 4, sessionId: 2, exerciseId: 1, order: 1, weight: 84, reps: 10, type: 'work', createdAt: '2026-10-14T10:05:00Z' },
+        { id: 5, sessionId: 2, exerciseId: 1, order: 2, weight: 84, reps: 10, type: 'work', createdAt: '2026-10-14T10:10:00Z' },
+        { id: 6, sessionId: 2, exerciseId: 1, order: 3, weight: 84, reps: 10, type: 'work', createdAt: '2026-10-14T10:15:00Z' },
+        { id: 7, sessionId: 2, exerciseId: 1, order: 4, weight: 84, reps: 10, type: 'work', createdAt: '2026-10-14T10:20:00Z' },
+        // Série d'un autre groupe pour vérifier l'étanchéité
+        { id: 8, sessionId: 2, exerciseId: 2, order: 5, weight: 20, reps: 10, type: 'work', createdAt: '2026-10-14T10:25:00Z' },
+      ];
+
+      const prog = calculateMuscleGroupProgression({
+        sessions,
+        sets,
+        exercises,
+        referenceDate: '2026-10-18',
+        muscleGroup: 'Pectoraux',
+      });
+
+      expect(prog.muscleGroup).toBe('Pectoraux');
+      expect(prog.weeks).toHaveLength(8);
+
+      // Semaines 1 à 6 : aucune séance Pectoraux
+      for (let i = 0; i < 6; i++) {
+        expect(prog.weeks[i].index).toBeNull();
+        expect(prog.weeks[i].workSets).toBe(0);
+      }
+
+      // Semaine 7 : 80 kg base -> index = 100, 3 séries
+      expect(prog.weeks[6].index).toBe(100);
+      expect(prog.weeks[6].workSets).toBe(3);
+
+      // Semaine 8 : 84 kg -> index = 105, 4 séries
+      expect(prog.weeks[7].index).toBe(105);
+      expect(prog.weeks[7].workSets).toBe(4);
+      expect(prog.currentChange).toBe('+5,0\u00A0%');
+      expect(prog.currentWorkSets).toBe(4);
+    });
+
+    it('2.9 exhaustivité des 11 groupes musculaires (calculateAllMuscleGroupsProgression)', () => {
+      const allProg = calculateAllMuscleGroupsProgression({
+        sessions: [],
+        sets: [],
+        exercises: [],
+        referenceDate: '2026-10-18',
+      });
+
+      expect(Object.keys(allProg)).toHaveLength(11);
+      for (const group of MUSCLE_GROUPS) {
+        expect(allProg[group]).toBeDefined();
+        expect(allProg[group].currentChange).toBe('—');
+        expect(allProg[group].currentWorkSets).toBe(0);
+        expect(allProg[group].weeks).toHaveLength(8);
+      }
     });
 
     it('2.11 exemple formatage : formatIndexChange avec +5,8 %, −2,0 % et 0,0 %', () => {

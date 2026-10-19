@@ -7,6 +7,7 @@ import {
   type Session,
   type SetEntry,
 } from './schema';
+import { formatLocalDate } from './sessions';
 
 /**
  * Poids moyen par rep pour une séance (sur les séries de travail 'work').
@@ -104,6 +105,18 @@ export function formatStatReps(reps: number): string {
   const intStr = Math.round(reps).toString();
   const formatted = intStr.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0');
   const unit = Math.abs(reps) <= 1 ? 'rep' : 'reps';
+  return `${formatted}\u00A0${unit}`;
+}
+
+/**
+ * Formatage des séries de travail :
+ * ex. "7\u00A0séries", "1\u00A0série", "0\u00A0série".
+ * Formatage manuel sans toLocaleString ni Intl.NumberFormat.
+ */
+export function formatStatSets(sets: number): string {
+  const intStr = Math.round(sets).toString();
+  const formatted = intStr.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0');
+  const unit = Math.abs(sets) <= 1 ? 'série' : 'séries';
   return `${formatted}\u00A0${unit}`;
 }
 
@@ -410,15 +423,27 @@ export interface GeneralProgression {
   currentChange: string;
 }
 
+interface ProgressionCoreWeek {
+  weekStart: string;
+  weekEnd: string;
+  index: number | null;
+  workSets: number;
+  sessionCount: number;
+}
+
 /**
- * Calcul de la progression générale sur 8 semaines (indice et nombre de séances).
+ * Moteur interne pur calculant l'indice hebdomadaire et le décompte des séries/séances
+ * pour une liste d'exercices cibles sur 8 semaines consécutives.
  */
-export function calculateGeneralProgression(params: {
+function computeProgressionCore(params: {
   sessions: Session[];
   sets: SetEntry[];
   exercises: Exercise[];
   referenceDate: string;
-}): GeneralProgression {
+}): {
+  weeks: ProgressionCoreWeek[];
+  currentChange: string;
+} {
   const { sessions, sets, exercises, referenceDate } = params;
 
   const eightWeeks = getEightWeeksRangeUtc(referenceDate);
@@ -490,13 +515,16 @@ export function calculateGeneralProgression(params: {
     exerciseWeeklyAvg.set(exId, new Map<number, number>());
   }
 
+  const workSetsByWeek = new Array<number>(8).fill(0);
+
   for (let w = 0; w < 8; w++) {
     const sidsInWeek = finishedSessionsByWeek.get(w)!;
     if (sidsInWeek.size === 0) continue;
 
-    const weekSets = periodWorkSets.filter(
-      (s) => sidsInWeek.has(s.sessionId!) && eligibleExerciseIds.has(s.exerciseId)
-    );
+    const allWeekWorkSets = periodWorkSets.filter((s) => sidsInWeek.has(s.sessionId!));
+    workSetsByWeek[w] = allWeekWorkSets.length;
+
+    const weekSets = allWeekWorkSets.filter((s) => eligibleExerciseIds.has(s.exerciseId));
 
     const setsByEx = new Map<number, SetEntry[]>();
     for (const s of weekSets) {
@@ -527,7 +555,7 @@ export function calculateGeneralProgression(params: {
   }
 
   // Calcul de l'indice hebdomadaire
-  const weeks: WeeklyGeneralStatPoint[] = [];
+  const weeks: ProgressionCoreWeek[] = [];
 
   for (let w = 0; w < 8; w++) {
     const indicesInWeek: number[] = [];
@@ -551,6 +579,7 @@ export function calculateGeneralProgression(params: {
       weekStart: eightWeeks[w].startOfWeek,
       weekEnd: eightWeeks[w].endOfWeek,
       index: weekIndex,
+      workSets: workSetsByWeek[w],
       sessionCount: sessionCountByWeek[w],
     });
   }
@@ -561,6 +590,94 @@ export function calculateGeneralProgression(params: {
     weeks,
     currentChange,
   };
+}
+
+/**
+ * Calcul de la progression générale sur 8 semaines (indice et nombre de séances).
+ */
+export function calculateGeneralProgression(params: {
+  sessions: Session[];
+  sets: SetEntry[];
+  exercises: Exercise[];
+  referenceDate: string;
+}): GeneralProgression {
+  const core = computeProgressionCore(params);
+  return {
+    weeks: core.weeks.map((w) => ({
+      weekStart: w.weekStart,
+      weekEnd: w.weekEnd,
+      index: w.index,
+      sessionCount: w.sessionCount,
+    })),
+    currentChange: core.currentChange,
+  };
+}
+
+export interface WeeklyMuscleStatPoint {
+  weekStart: string;
+  weekEnd: string;
+  index: number | null;
+  workSets: number;
+}
+
+export interface MuscleGroupProgression {
+  muscleGroup: MuscleGroup;
+  weeks: WeeklyMuscleStatPoint[];
+  currentChange: string;
+  currentWorkSets: number;
+}
+
+/**
+ * Calcul de la progression sur 8 semaines pour un groupe musculaire donné.
+ * Restreint aux exercices dont muscleGroup correspond.
+ */
+export function calculateMuscleGroupProgression(params: {
+  sessions: Session[];
+  sets: SetEntry[];
+  exercises: Exercise[];
+  referenceDate: string;
+  muscleGroup: MuscleGroup;
+}): MuscleGroupProgression {
+  const { sessions, sets, exercises, referenceDate, muscleGroup } = params;
+  const groupExercises = exercises.filter((e) => e.muscleGroup === muscleGroup);
+  const core = computeProgressionCore({
+    sessions,
+    sets,
+    exercises: groupExercises,
+    referenceDate,
+  });
+
+  return {
+    muscleGroup,
+    weeks: core.weeks.map((w) => ({
+      weekStart: w.weekStart,
+      weekEnd: w.weekEnd,
+      index: w.index,
+      workSets: w.workSets,
+    })),
+    currentChange: core.currentChange,
+    currentWorkSets: core.weeks[7].workSets,
+  };
+}
+
+/**
+ * Calcul de la progression sur 8 semaines pour l'ensemble des 11 groupes musculaires.
+ * Renvoie un dictionnaire exhaustif de 11 clés.
+ */
+export function calculateAllMuscleGroupsProgression(params: {
+  sessions: Session[];
+  sets: SetEntry[];
+  exercises: Exercise[];
+  referenceDate: string;
+}): Record<MuscleGroup, MuscleGroupProgression> {
+  const result = {} as Record<MuscleGroup, MuscleGroupProgression>;
+  for (const group of MUSCLE_GROUPS) {
+    result[group] = calculateMuscleGroupProgression({
+      ...params,
+      muscleGroup: group,
+    });
+  }
+  return result;
 }
 
 export interface MuscleGroupWeeklyStat {
@@ -707,4 +824,50 @@ export async function loadGeneralStatsData(referenceDate: string): Promise<{
   const exercises = await db.exercises.toArray();
 
   return { sessions, sets, exercises };
+}
+
+/**
+ * Hook de chargement réactif de la progression générale sur 8 semaines.
+ * Emballe le résultat dans un objet { progression } pour distinguer l'état de chargement (undefined).
+ */
+export function useGeneralProgression(referenceDate?: string):
+  | { progression: GeneralProgression }
+  | undefined {
+  const today = referenceDate ?? formatLocalDate(new Date());
+  return useLiveQuery(
+    async () => {
+      const { sessions, sets, exercises } = await loadGeneralStatsData(today);
+      const progression = calculateGeneralProgression({
+        sessions,
+        sets,
+        exercises,
+        referenceDate: today,
+      });
+      return { progression };
+    },
+    [today]
+  );
+}
+
+/**
+ * Hook de chargement réactif de la progression des 11 groupes musculaires sur 8 semaines.
+ * Emballe le résultat dans un objet { progression } pour distinguer l'état de chargement (undefined).
+ */
+export function useMusclesProgression(referenceDate?: string):
+  | { progression: Record<MuscleGroup, MuscleGroupProgression> }
+  | undefined {
+  const today = referenceDate ?? formatLocalDate(new Date());
+  return useLiveQuery(
+    async () => {
+      const { sessions, sets, exercises } = await loadGeneralStatsData(today);
+      const progression = calculateAllMuscleGroupsProgression({
+        sessions,
+        sets,
+        exercises,
+        referenceDate: today,
+      });
+      return { progression };
+    },
+    [today]
+  );
 }
