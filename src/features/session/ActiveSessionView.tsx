@@ -46,6 +46,7 @@ import {
 } from '../../timer';
 import { unlockAudio, playTimerBeep } from '../../audio';
 import { useWakeLock } from '../../hooks/useWakeLock';
+import { calculateSessionSpacerHeight } from './sessionSpacer';
 
 interface ActiveSessionViewProps {
   session: Session;
@@ -53,8 +54,6 @@ interface ActiveSessionViewProps {
   program: Program | null | undefined;
   onFinishSession: () => Promise<void>;
 }
-
-const EXERCISE_HEADER_GAP_PX = 8;
 
 interface SortableExerciseCardProps {
   item: SessionExercise & { exercise?: Exercise };
@@ -109,6 +108,7 @@ const SortableExerciseCard: React.FC<SortableExerciseCardProps> = ({
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition,
+    scrollMarginTop: 'calc(var(--header-height) + env(safe-area-inset-top))',
   };
 
   const handleRef = (el: HTMLDivElement | null) => {
@@ -122,7 +122,7 @@ const SortableExerciseCard: React.FC<SortableExerciseCardProps> = ({
     <div
       ref={handleRef}
       style={style}
-      className={`scroll-mt-[calc(4.5rem+env(safe-area-inset-top))] ${
+      className={`scroll-mt-header scroll-mt-[calc(var(--header-height)+env(safe-area-inset-top))] ${
         isDragging ? 'relative z-drag shadow-md rounded-xl' : ''
       }`}
     >
@@ -149,7 +149,6 @@ const SortableExerciseCard: React.FC<SortableExerciseCardProps> = ({
     </div>
   );
 };
-const DEFAULT_HEADER_HEIGHT_PX = 64;
 
 export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   session,
@@ -232,57 +231,114 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
   const headerRef = useRef<HTMLElement>(null);
   const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const spacerRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<HTMLDivElement>(null);
+  const lastScrolledOpenIdRef = useRef<number | null>(null);
 
-  // Défilement automatique de l'exercice ouvert en 2e position visible (avec l'exercice précédent au-dessus)
+  const updateSpacer = useCallback(() => {
+    if (!spacerRef.current) return;
+    if (currentOpenId === null) {
+      spacerRef.current.style.height = '0px';
+      return;
+    }
+    const openEl = cardRefs.current.get(currentOpenId);
+    if (!openEl) {
+      spacerRef.current.style.height = '0px';
+      return;
+    }
+
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 0;
+    const headerHeight = headerRef.current?.getBoundingClientRect().height ?? 0;
+    const navEl =
+      typeof document !== 'undefined'
+        ? document.querySelector('nav[role="tablist"]')
+        : null;
+    const navHeight = navEl?.getBoundingClientRect().height ?? 0;
+    const timerHeight =
+      timerState && timerRef.current
+        ? timerRef.current.getBoundingClientRect().height
+        : timerState
+        ? 64
+        : 0;
+    const openExerciseHeight = openEl.getBoundingClientRect().height;
+
+    const spacerHeight = calculateSessionSpacerHeight({
+      viewportHeight,
+      headerHeight,
+      navHeight,
+      timerHeight,
+      openExerciseHeight,
+    });
+
+    spacerRef.current.style.height = `${spacerHeight}px`;
+  }, [currentOpenId, timerState]);
+
+  // Défilement automatique de l'exercice ouvert aligné juste sous l'en-tête (y compris le dernier)
   useEffect(() => {
-    if (currentOpenId === null) return;
-    const openIndex = details.exercises.findIndex((e) => e.id === currentOpenId);
-    if (openIndex === -1) return;
-
-    const prefersReducedMotion =
-      typeof window !== 'undefined' &&
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const behavior: ScrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
-
-    if (openIndex === 0) {
+    if (currentOpenId === null) {
+      lastScrolledOpenIdRef.current = null;
       if (spacerRef.current) {
         spacerRef.current.style.height = '0px';
       }
-      if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
-        window.scrollTo({ top: 0, behavior });
-      }
-    } else {
-      const prevExercise = details.exercises[openIndex - 1];
-      const prevEl = prevExercise?.id ? cardRefs.current.get(prevExercise.id) : null;
-      if (prevEl) {
-        const headerHeight =
-          headerRef.current?.getBoundingClientRect().height ?? DEFAULT_HEADER_HEIGHT_PX;
-        const elementTop = prevEl.getBoundingClientRect().top + window.scrollY;
-        const targetY = Math.max(0, elementTop - headerHeight - EXERCISE_HEADER_GAP_PX);
+      return;
+    }
 
-        if (typeof window !== 'undefined') {
-          const innerHeight = window.innerHeight;
-          const scrollHeight = document.documentElement.scrollHeight;
-          const currentSpacerHeight = spacerRef.current
-            ? parseFloat(spacerRef.current.style.height || '0') || 0
-            : 0;
-          const missingHeight = Math.max(
-            0,
-            targetY + innerHeight - (scrollHeight - currentSpacerHeight)
-          );
+    const openEl = cardRefs.current.get(currentOpenId);
+    if (!openEl) return;
 
-          if (spacerRef.current) {
-            spacerRef.current.style.height = `${missingHeight}px`;
+    // Calcul direct de l'espaceur pour l'exercice ouvert
+    updateSpacer();
+
+    // ResizeObserver pour recalculer l'espaceur quand l'exercice ouvert change de hauteur (ex: ajout de séries)
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(() => {
+        updateSpacer();
+      });
+      ro.observe(openEl);
+    }
+
+    // Le défilement est fait après la mise en page (requestAnimationFrame), une seule fois par ouverture
+    if (lastScrolledOpenIdRef.current !== currentOpenId) {
+      lastScrolledOpenIdRef.current = currentOpenId;
+
+      const openIndex = details.exercises.findIndex((e) => e.id === currentOpenId);
+      const rafId = requestAnimationFrame(() => {
+        updateSpacer();
+
+        const prefersReducedMotion =
+          typeof window !== 'undefined' &&
+          typeof window.matchMedia === 'function' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const behavior: ScrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
+
+        if (openIndex === 0) {
+          if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+            window.scrollTo({ top: 0, behavior });
           }
-
-          if (typeof window.scrollTo === 'function') {
+        } else {
+          if (typeof openEl.scrollIntoView === 'function') {
+            openEl.scrollIntoView({ behavior, block: 'start', inline: 'nearest' });
+          } else if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+            const headerHeight = headerRef.current?.getBoundingClientRect().height ?? 0;
+            const targetY = Math.max(
+              0,
+              openEl.getBoundingClientRect().top + window.scrollY - headerHeight
+            );
             window.scrollTo({ top: targetY, behavior });
           }
         }
-      }
+      });
+
+      return () => {
+        cancelAnimationFrame(rafId);
+        ro?.disconnect();
+      };
     }
-  }, [currentOpenId, details.exercises]);
+
+    return () => {
+      ro?.disconnect();
+    };
+  }, [currentOpenId, details.exercises, updateSpacer]);
 
   const handleConfirmFinish = async () => {
     if (isFinishing) return;
@@ -540,8 +596,8 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
             </SortableContext>
           </DndContext>
         )}
-        {/* Spacer dynamique pour permettre à l'exercice ouvert d'atteindre la 2e position */}
-        <div ref={spacerRef} aria-hidden="true" />
+        {/* Spacer dynamique pour permettre à l'exercice ouvert d'être aligné sous l'en-tête */}
+        <div ref={spacerRef} aria-hidden="true" style={{ height: '0px' }} />
       </main>
 
       {/* Bouton flottant carré 56px « + » (Ajouter un exercice) */}
@@ -562,12 +618,14 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
 
       {/* Bandeau de repos */}
       {timerState && (
-        <RestBanner
-          timer={timerState}
-          onAddTime={handleAddRestTime}
-          onSkip={handleSkipRestTimer}
-          onExpire={handleTimerExpire}
-        />
+        <div ref={timerRef}>
+          <RestBanner
+            timer={timerState}
+            onAddTime={handleAddRestTime}
+            onSkip={handleSkipRestTimer}
+            onExpire={handleTimerExpire}
+          />
+        </div>
       )}
 
       {/* Modale d'ajout d'exercice */}
