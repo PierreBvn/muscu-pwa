@@ -107,7 +107,7 @@ const SortableExerciseCard: React.FC<SortableExerciseCardProps> = ({
   } = useSortable({ id: item.id! });
 
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
   };
 
@@ -123,7 +123,7 @@ const SortableExerciseCard: React.FC<SortableExerciseCardProps> = ({
       ref={handleRef}
       style={style}
       className={`scroll-mt-[calc(4.5rem+env(safe-area-inset-top))] ${
-        isDragging ? 'z-50 relative opacity-90' : ''
+        isDragging ? 'relative z-drag shadow-md rounded-xl' : ''
       }`}
     >
       <ExerciseCard

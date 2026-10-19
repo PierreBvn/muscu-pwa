@@ -20,6 +20,7 @@ description: Règles de mise en page CSS, gestion des safe areas, défilement et
 - Glisser-déposer : @dnd-kit avec poignée dédiée et TouchSensor (délai), jamais le drag-and-drop HTML5 natif.
 - touch-action: none uniquement sur la poignée, jamais sur la ligne entière.
 - Action principale d'un écran : en bas, dans la zone du pouce.
+- @dnd-kit : toujours CSS.Translate.toString(transform), jamais CSS.Transform (déforme les éléments de hauteurs différentes).
 
 
 ## Éléments fixes et superposition

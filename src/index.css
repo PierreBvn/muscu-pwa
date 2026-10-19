@@ -15,11 +15,16 @@
 :root {
   --header-height: 4rem;
   --tabbar-height: 4rem;
+  --z-drag: 10;
   --z-header: 20;
   --z-nav: 30;
   --z-fab: 40;
   --z-modal: 50;
   --z-confirm: 60;
+}
+
+.z-drag {
+  z-index: var(--z-drag);
 }
 
 .z-header {
