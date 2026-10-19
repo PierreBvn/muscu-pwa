@@ -59,7 +59,7 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col flex-1 pt-header min-h-svh">
+    <div className="w-full max-w-md mx-auto flex-1 flex flex-col pt-header">
       {/* En-tête fixe avec Séance + date du jour en petit + bouton Paramètres */}
       <header className="fixed top-0 left-0 right-0 z-header bg-bg/95 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top)]">
         <div className="max-w-md mx-auto px-4 flex items-center justify-between h-[var(--header-height)]">
@@ -84,11 +84,11 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
         </div>
       </header>
 
-      {/* Contenu principal */}
-      <main className="flex-1 px-4 py-6 flex flex-col justify-between">
+      {/* Contenu principal calibré entre l'en-tête et la barre de navigation */}
+      <main className="flex-1 px-4 py-3 flex flex-col justify-between">
         <div className="w-full">
           {/* Ligne « Cette semaine : N séances » */}
-          <div className="mb-4 flex items-center justify-between text-sm text-muted">
+          <div className="mb-3 flex items-center justify-between text-xs text-muted">
             <span>{summary.weeklySessionsText}</span>
           </div>
 
@@ -96,22 +96,22 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
           {nextProgram ? (
             <section
               aria-label="Prochaine séance"
-              className="rounded-2xl bg-surface border border-line p-5 shadow-none"
+              className="rounded-2xl bg-surface border border-line p-4 shadow-none"
             >
-              <span className="text-xs font-semibold text-gold uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-gold uppercase tracking-wider">
                 Prochaine séance
               </span>
-              <h2 className="text-xl font-bold text-text mt-1 tracking-tight">
+              <h2 className="text-lg font-bold text-text mt-0.5 tracking-tight">
                 {nextProgram.program.name}
               </h2>
 
               {/* Groupes musculaires travaillés */}
               {nextProgram.muscleGroups.length > 0 ? (
-                <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
                   {nextProgram.muscleGroups.map((group) => (
                     <span
                       key={group}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-2 border border-line text-xs font-medium text-text"
+                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-surface-2 border border-line text-xs font-medium text-text"
                     >
                       <MuscleIcon
                         group={group}
@@ -128,21 +128,21 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
               )}
 
               {/* Métadonnées : nombre d'exercices et dernière fois */}
-              <div className="flex items-center justify-between mt-4 pt-3 border-t border-line text-xs text-muted">
+              <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-line text-xs text-muted">
                 <span>{nextProgram.exerciseCountText}</span>
                 <span>{nextProgram.lastDoneText}</span>
               </div>
             </section>
           ) : (
-            <div className="rounded-2xl bg-surface border border-line p-6 text-center my-6">
-              <p className="text-sm text-muted mb-6">
+            <div className="rounded-2xl bg-surface border border-line p-5 text-center my-4">
+              <p className="text-sm text-muted mb-4">
                 Aucune séance type enregistrée
               </p>
               {onCreateProgram && (
                 <button
                   type="button"
                   onClick={onCreateProgram}
-                  className="w-full min-h-[48px] rounded-xl bg-gold px-4 py-2.5 text-sm font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition text-center"
+                  className="w-full min-h-[44px] rounded-xl bg-gold px-4 py-2.5 text-sm font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition text-center"
                 >
                   Créer une séance type
                 </button>
@@ -151,16 +151,16 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
           )}
         </div>
 
-        {/* Bas de l'écran, au-dessus de la barre de navigation */}
-        <div className="mt-auto pt-6 space-y-3">
+        {/* Bas de l'écran, immédiatement au-dessus de la barre de navigation */}
+        <div className="mt-auto pt-3 space-y-2">
           {nextProgram ? (
             <>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setIsPickerOpen(true)}
                   disabled={isStarting}
-                  className="w-full min-h-[48px] rounded-xl bg-surface-2 border border-line px-3 py-2.5 text-sm font-semibold text-text hover:bg-surface active:opacity-90 transition text-center disabled:opacity-50"
+                  className="w-full min-h-[44px] rounded-xl bg-surface-2 border border-line px-3 py-2 text-sm font-semibold text-text hover:bg-surface active:opacity-90 transition text-center disabled:opacity-50"
                 >
                   Autre séance
                 </button>
@@ -168,7 +168,7 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
                   type="button"
                   onClick={handleStartFree}
                   disabled={isStarting}
-                  className="w-full min-h-[48px] rounded-xl bg-surface-2 border border-line px-3 py-2.5 text-sm font-semibold text-text hover:bg-surface active:opacity-90 transition text-center disabled:opacity-50"
+                  className="w-full min-h-[44px] rounded-xl bg-surface-2 border border-line px-3 py-2 text-sm font-semibold text-text hover:bg-surface active:opacity-90 transition text-center disabled:opacity-50"
                 >
                   Séance libre
                 </button>
@@ -178,7 +178,7 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
                 type="button"
                 onClick={handleStartMain}
                 disabled={isStarting}
-                className="w-full min-h-[52px] rounded-xl bg-gold px-5 py-3 text-base font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition shadow-lg shadow-gold/10 flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full min-h-[48px] rounded-xl bg-gold px-5 py-3 text-base font-semibold text-gold-ink hover:opacity-95 active:opacity-90 transition shadow-lg shadow-gold/10 flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <span>Démarrer {nextProgram.program.name}</span>
               </button>
@@ -188,7 +188,7 @@ export const StartSessionView: React.FC<StartSessionViewProps> = ({
               type="button"
               onClick={handleStartFree}
               disabled={isStarting}
-              className="w-full min-h-[48px] rounded-xl bg-surface-2 border border-line px-4 py-2.5 text-sm font-semibold text-text hover:bg-surface active:opacity-90 transition text-center disabled:opacity-50"
+              className="w-full min-h-[44px] rounded-xl bg-surface-2 border border-line px-4 py-2 text-sm font-semibold text-text hover:bg-surface active:opacity-90 transition text-center disabled:opacity-50"
             >
               Séance libre
             </button>
