@@ -157,12 +157,12 @@ const ExercisePickerContent: React.FC<ExercisePickerProps> = ({
                     aria-label={exercise.name}
                     onClick={() => handleSelect(exercise)}
                     disabled={isAdding}
-                    className="w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-surface-2 border border-line hover:border-gold/50 active:bg-surface text-left transition flex items-center justify-between group disabled:opacity-50"
+                    className="w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-surface-2 border border-line hover:border-gold/50 active:bg-surface text-left transition flex items-center justify-between gap-3 group disabled:opacity-50"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <MuscleIcon group={exercise.muscleGroup} className="w-10 h-10 shrink-0 object-contain" />
                       <div className="min-w-0">
-                        <span className="font-semibold text-text text-sm block truncate">
+                        <span className="font-semibold text-text text-sm block line-clamp-2 break-words">
                           {exercise.name}
                         </span>
                         <span className="text-xs text-muted block truncate">
@@ -172,7 +172,7 @@ const ExercisePickerContent: React.FC<ExercisePickerProps> = ({
                     </div>
                     <span
                       aria-hidden="true"
-                      className="text-xs text-gold font-medium group-hover:translate-x-0.5 transition-transform"
+                      className="text-xs text-gold font-medium group-hover:translate-x-0.5 transition-transform shrink-0"
                     >
                       + Ajouter
                     </span>
@@ -217,16 +217,16 @@ const ExercisePickerContent: React.FC<ExercisePickerProps> = ({
                         aria-label={exercise.name}
                         onClick={() => handleSelect(exercise)}
                         disabled={isAdding}
-                        className="w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-surface-2 border border-line hover:border-gold/50 active:bg-surface text-left transition flex items-center justify-between group disabled:opacity-50"
+                        className="w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-surface-2 border border-line hover:border-gold/50 active:bg-surface text-left transition flex items-center justify-between gap-3 group disabled:opacity-50"
                       >
                         <div className="min-w-0">
-                          <span className="font-semibold text-text text-sm block truncate">
+                          <span className="font-semibold text-text text-sm block line-clamp-2 break-words">
                             {exercise.name}
                           </span>
                         </div>
                         <span
                           aria-hidden="true"
-                          className="text-xs text-gold font-medium group-hover:translate-x-0.5 transition-transform"
+                          className="text-xs text-gold font-medium group-hover:translate-x-0.5 transition-transform shrink-0"
                         >
                           + Ajouter
                         </span>

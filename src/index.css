@@ -63,11 +63,13 @@ body,
   padding-bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom));
 }
 
+html,
+body,
 * {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-*::-webkit-scrollbar {
+::-webkit-scrollbar {
   display: none;
 }

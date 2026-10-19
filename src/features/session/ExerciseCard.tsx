@@ -169,18 +169,18 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 className="w-10 h-10 shrink-0 object-contain"
               />
             )}
-            <span className="text-base font-semibold text-text truncate">
+            <span className="text-base font-semibold text-text line-clamp-2 break-words">
               {exName}
             </span>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             {showCheck ? (
-              <span aria-label="Terminé" className="text-gold font-bold text-sm">
+              <span aria-label="Terminé" className="text-gold font-bold text-sm shrink-0">
                 ✓
               </span>
             ) : showRatio ? (
-              <span aria-label={`${workSetsDone}/${item.workSets}`} className="text-xs text-muted font-semibold tabular-nums">
+              <span aria-label={`${workSetsDone}/${item.workSets}`} className="text-xs text-muted font-semibold tabular-nums shrink-0">
                 {workSetsDone}/{item.workSets}
               </span>
             ) : null}
@@ -193,7 +193,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 e.stopPropagation();
                 setMenuOpen((prev) => !prev);
               }}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:text-text active:bg-surface-2 transition text-lg tracking-widest font-bold"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:text-text active:bg-surface-2 transition text-lg tracking-widest font-bold shrink-0"
             >
               ⋯
             </button>
@@ -229,11 +229,11 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
               className="w-10 h-10 shrink-0 object-contain"
             />
           )}
-          <h2 className="text-base font-semibold text-text truncate">
+          <h2 className="text-base font-semibold text-text line-clamp-2 break-words">
             {exName}
           </h2>
           {isArchived && (
-            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-surface-2 border border-line text-muted">
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-surface-2 border border-line text-muted shrink-0">
               Archivé
             </span>
           )}
@@ -247,7 +247,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 e.stopPropagation();
                 if (item.id) onSkipExercise(item.id, true);
               }}
-              className="min-h-[44px] px-3 rounded-xl bg-surface-2 border border-line text-xs font-semibold text-text hover:bg-surface active:opacity-90 transition"
+              className="min-h-[44px] px-3 rounded-xl bg-surface-2 border border-line text-xs font-semibold text-text hover:bg-surface active:opacity-90 transition shrink-0"
             >
               Passer
             </button>
@@ -261,7 +261,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
               e.stopPropagation();
               setMenuOpen((prev) => !prev);
             }}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:text-text active:bg-surface-2 transition text-lg tracking-widest font-bold"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:text-text active:bg-surface-2 transition text-lg tracking-widest font-bold shrink-0"
           >
             ⋯
           </button>

@@ -146,15 +146,15 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                         />
                       )}
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-semibold text-muted tabular-nums">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-xs font-mono font-semibold text-muted tabular-nums shrink-0">
                             #{index + 1}
                           </span>
-                          <h3 className="text-base font-semibold text-text truncate">
+                          <h3 className="text-base font-semibold text-text line-clamp-2 break-words">
                             {exName}
                           </h3>
                           {isArchived && (
-                            <span className="inline-flex items-center rounded-full bg-surface-2 border border-line px-2 py-0.5 text-xs font-medium text-muted">
+                            <span className="inline-flex items-center rounded-full bg-surface-2 border border-line px-2 py-0.5 text-xs font-medium text-muted shrink-0">
                               Archivé
                             </span>
                           )}
@@ -162,14 +162,14 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       {/* Bouton Monter ↑ */}
                       <button
                         type="button"
                         aria-label={`Monter ${exName}`}
                         disabled={index === 0}
                         onClick={() => pe.id && moveProgramExercise(pe.id, 'up')}
-                        className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl transition ${
+                        className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl transition shrink-0 ${
                           index === 0
                             ? 'text-muted/30 cursor-not-allowed'
                             : 'text-muted hover:text-text active:bg-surface-2'
@@ -196,7 +196,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                         aria-label={`Descendre ${exName}`}
                         disabled={index === exercises.length - 1}
                         onClick={() => pe.id && moveProgramExercise(pe.id, 'down')}
-                        className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl transition ${
+                        className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl transition shrink-0 ${
                           index === exercises.length - 1
                             ? 'text-muted/30 cursor-not-allowed'
                             : 'text-muted hover:text-text active:bg-surface-2'
@@ -222,7 +222,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({
                         type="button"
                         aria-label={`Retirer ${exName}`}
                         onClick={() => pe.id && removeExerciseFromProgram(pe.id)}
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:text-danger active:bg-surface-2 transition"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:text-danger active:bg-surface-2 transition shrink-0"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
