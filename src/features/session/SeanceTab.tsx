@@ -9,7 +9,7 @@ import {
   formatLocalDate,
 } from '../../db/sessions';
 import {
-  getAllPrograms,
+  getAllProgramsWithSummary,
   getProgram,
 } from '../../db/programs';
 import { getHomeSummary } from '../../db/homeSummary';
@@ -61,7 +61,7 @@ export const SeanceTab: React.FC<SeanceTabProps> = ({ onNavigateToPrograms }) =>
   );
 
   const allProgramsResult = useLiveQuery(
-    async () => ({ programs: await getAllPrograms() }),
+    async () => ({ programs: await getAllProgramsWithSummary() }),
     []
   );
 

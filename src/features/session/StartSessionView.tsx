@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Settings } from 'lucide-react';
-import type { Program } from '../../db/schema';
+import type { ProgramWithSummary } from '../../db/programs';
 import type { HomeSummary } from '../../db/homeSummary';
 import { MuscleIcon } from '../../components/MuscleIcon';
 import { ProgramPickerModal } from './ProgramPickerModal';
 
 interface StartSessionViewProps {
   summary: HomeSummary;
-  allPrograms: Program[];
+  allPrograms: ProgramWithSummary[];
   onStartProgram: (programId: number) => Promise<void>;
   onStartFreeSession: () => Promise<void>;
   onCreateProgram?: () => void;

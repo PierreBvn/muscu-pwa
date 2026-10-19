@@ -2,13 +2,18 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { StartSessionView } from '../StartSessionView';
 import type { HomeSummary } from '../../../db/homeSummary';
-import type { Program } from '../../../db/schema';
+import type { ProgramWithSummary } from '../../../db/programs';
 
 describe('StartSessionView', () => {
-  const mockProgram: Program = {
+  const mockProgram: ProgramWithSummary = {
     id: 42,
     name: 'Pectoraux & Bras',
     weekdays: [1, 4],
+    exerciseCount: 4,
+    exerciseCountText: '4 exercices',
+    muscleGroups: ['Pectoraux', 'Triceps', 'Biceps'],
+    muscleGroupsText: 'Pectoraux, Triceps, Biceps',
+    summaryText: 'Pectoraux · Triceps · Biceps · 4 exos',
   };
 
   const normalSummary: HomeSummary = {
@@ -21,6 +26,7 @@ describe('StartSessionView', () => {
       exerciseCountText: '4 exercices',
       muscleGroups: ['Pectoraux', 'Triceps', 'Biceps'],
       muscleGroupsText: 'Pectoraux, Triceps, Biceps',
+      summaryText: 'Pectoraux · Triceps · Biceps · 4 exos',
       daysAgo: 4,
       lastDoneText: 'Dernière fois : il y a 4 j',
     },
@@ -117,8 +123,26 @@ describe('StartSessionView', () => {
   });
 
   it('ouvre la modale de sélection de programme lors du clic sur Autre séance', () => {
-    const p1: Program = { id: 1, name: 'Dos & Épaules', weekdays: [2] };
-    const p2: Program = { id: 2, name: 'Jambes', weekdays: [5] };
+    const p1: ProgramWithSummary = {
+      id: 1,
+      name: 'Dos & Épaules',
+      weekdays: [2],
+      exerciseCount: 3,
+      exerciseCountText: '3 exercices',
+      muscleGroups: ['Dos', 'Épaules'],
+      muscleGroupsText: 'Dos, Épaules',
+      summaryText: 'Dos · Épaules · 3 exos',
+    };
+    const p2: ProgramWithSummary = {
+      id: 2,
+      name: 'Jambes',
+      weekdays: [5],
+      exerciseCount: 0,
+      exerciseCountText: '0 exercice',
+      muscleGroups: [],
+      muscleGroupsText: '',
+      summaryText: 'Aucun exercice',
+    };
 
     render(
       <StartSessionView
@@ -134,7 +158,9 @@ describe('StartSessionView', () => {
     // La modale ProgramPickerModal s'ouvre
     expect(screen.getByRole('dialog', { name: /choisir une séance type/i })).toBeInTheDocument();
     expect(screen.getByText('Dos & Épaules')).toBeInTheDocument();
+    expect(screen.getByText('Dos · Épaules · 3 exos')).toBeInTheDocument();
     expect(screen.getByText('Jambes')).toBeInTheDocument();
+    expect(screen.getByText('Aucun exercice')).toBeInTheDocument();
   });
 
   it('affiche l’état base vide quand aucun programme n’existe', () => {

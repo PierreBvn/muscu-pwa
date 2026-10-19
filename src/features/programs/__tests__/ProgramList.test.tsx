@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ProgramList } from '../ProgramList';
 import { db } from '../../../db/schema';
-import { createProgram } from '../../../db/programs';
+import { createProgram, addExerciseToProgram } from '../../../db/programs';
+import { addExercise } from '../../../db/exercises';
 
 describe('ProgramList UI', () => {
   beforeEach(async () => {
@@ -158,6 +159,29 @@ describe('ProgramList UI', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('Cardio')).not.toBeInTheDocument();
+    });
+  });
+
+  it('affiche sous le nom de chaque séance type les groupes musculaires et le nombre d’exercices', async () => {
+    const exDos = await addExercise({ name: 'Rowing', muscleGroup: 'Dos' });
+    const exBi = await addExercise({ name: 'Curl pupitre', muscleGroup: 'Biceps' });
+
+    const pTraction = await createProgram({ name: 'Traction & Bras', weekdays: [1, 3] });
+    await addExerciseToProgram({ programId: pTraction, exerciseId: exDos });
+    await addExerciseToProgram({ programId: pTraction, exerciseId: exBi });
+
+    await createProgram({ name: 'Cardio', weekdays: [7] });
+
+    render(<ProgramList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Traction & Bras')).toBeInTheDocument();
+      // Format : « Dos · Biceps · 2 exos »
+      expect(screen.getByText('Dos · Biceps · 2 exos')).toBeInTheDocument();
+
+      expect(screen.getByText('Cardio')).toBeInTheDocument();
+      // Séance type vide : « Aucun exercice »
+      expect(screen.getByText('Aucun exercice')).toBeInTheDocument();
     });
   });
 });

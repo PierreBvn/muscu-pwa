@@ -1,7 +1,11 @@
 import React from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Program } from '../../db/schema';
-import { getProgramExercises } from '../../db/programs';
+import {
+  getProgramExercises,
+  type ProgramWithSummary,
+  type ProgramSummary,
+} from '../../db/programs';
 
 const DAY_NAMES: Record<number, string> = {
   1: 'Lun',
@@ -14,7 +18,7 @@ const DAY_NAMES: Record<number, string> = {
 };
 
 interface ProgramCardProps {
-  program: Program;
+  program: Program | ProgramWithSummary | (Program & Partial<ProgramSummary>);
   onSelect: (program: Program) => void;
   onEdit: (program: Program) => void;
   onDelete: (program: Program) => void;
@@ -26,12 +30,15 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({
   onEdit,
   onDelete,
 }) => {
+  // Si le résumé n'a pas été fourni (ex. rendu isolé hors de ProgramList), fallback vers la requête Dexie
+  const hasPrecomputedSummary = 'summaryText' in program && program.summaryText !== undefined;
+
   const exercises = useLiveQuery(
     async () => {
-      if (!program.id) return [];
+      if (hasPrecomputedSummary || !program.id) return [];
       return await getProgramExercises(program.id);
     },
-    [program.id],
+    [program.id, hasPrecomputedSummary],
     undefined
   );
 
@@ -39,10 +46,21 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({
     .map((day) => DAY_NAMES[day] ?? `${day}`)
     .join(', ');
 
+  const summaryText =
+    ('summaryText' in program && program.summaryText)
+      ? program.summaryText
+      : exercises === undefined
+        ? '...'
+        : exercises.length === 0
+          ? 'Aucun exercice'
+          : `${exercises.length} ${exercises.length > 1 ? 'exercices' : 'exercice'}`;
+
   const exerciseCountText =
-    exercises === undefined
-      ? '...'
-      : `${exercises.length} ${exercises.length > 1 ? 'exercices' : 'exercice'}`;
+    ('exerciseCountText' in program && program.exerciseCountText)
+      ? program.exerciseCountText
+      : exercises === undefined
+        ? '...'
+        : `${exercises.length} ${exercises.length > 1 ? 'exercices' : 'exercice'}`;
 
   return (
     <div
@@ -54,12 +72,15 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({
         <button
           type="button"
           onClick={() => onSelect(program)}
-          className="text-left flex-1 min-h-[44px] flex flex-col justify-center -m-1 p-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold"
+          className="text-left flex-1 min-h-[44px] flex flex-col justify-center -m-1 p-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold min-w-0"
         >
-          <h2 className="text-base font-semibold text-text tracking-tight transition">
+          <h2 className="text-base font-semibold text-text tracking-tight transition line-clamp-2 break-words">
             {program.name}
           </h2>
-          <p className="text-xs text-muted font-medium mt-0.5">
+          <p className="text-xs text-muted mt-0.5 line-clamp-2 break-words">
+            {summaryText}
+          </p>
+          <p className="text-xs text-muted font-medium mt-1">
             {formattedDays || 'Aucun jour'}
           </p>
         </button>

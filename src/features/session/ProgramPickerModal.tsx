@@ -1,11 +1,11 @@
 import React from 'react';
-import type { Program } from '../../db/schema';
+import type { ProgramWithSummary } from '../../db/programs';
 import { useModalScrollLock } from '../../hooks/useModalScrollLock';
 import { Portal } from '../../components/Portal';
 
 interface ProgramPickerModalProps {
   isOpen: boolean;
-  programs: Program[];
+  programs: ProgramWithSummary[];
   onClose: () => void;
   onSelect: (programId: number) => void;
 }
@@ -63,12 +63,17 @@ export const ProgramPickerModal: React.FC<ProgramPickerModalProps> = ({
                     onSelect(program.id);
                   }
                 }}
-                className="w-full min-h-[48px] px-4 py-3 rounded-xl bg-surface-2 border border-line hover:border-gold/50 active:bg-surface text-left transition flex items-center justify-between"
+                className="w-full min-h-[48px] px-4 py-3 rounded-xl bg-surface-2 border border-line hover:border-gold/50 active:bg-surface text-left transition flex items-center justify-between gap-3"
               >
-                <span className="font-semibold text-text text-sm">
-                  {program.name}
-                </span>
-                <span className="text-xs text-gold">Démarrer →</span>
+                <div className="min-w-0 flex-1">
+                  <span className="font-semibold text-text text-sm block line-clamp-2 break-words">
+                    {program.name}
+                  </span>
+                  <p className="text-xs text-muted mt-0.5 line-clamp-2 break-words">
+                    {program.summaryText}
+                  </p>
+                </div>
+                <span className="text-xs text-gold shrink-0">Démarrer →</span>
               </button>
             ))
           )}

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Program } from '../../db/schema';
 import {
-  getAllPrograms,
+  getAllProgramsWithSummary,
   createProgram,
   updateProgram,
   deleteProgram,
@@ -19,7 +19,7 @@ export const ProgramList: React.FC = () => {
   const [programToDelete, setProgramToDelete] = useState<Program | null>(null);
 
   const programsQuery = useLiveQuery(
-    async () => ({ list: await getAllPrograms() }),
+    async () => ({ list: await getAllProgramsWithSummary() }),
     []
   );
   const programs = programsQuery?.list;
