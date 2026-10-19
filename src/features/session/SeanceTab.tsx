@@ -12,14 +12,18 @@ import {
   getAllPrograms,
   getProgram,
 } from '../../db/programs';
-import { getSuggestedProgramForDate } from '../../db/suggestions';
+import { getHomeSummary } from '../../db/homeSummary';
 import { StartSessionView } from './StartSessionView';
 import { ForgottenSessionPrompt } from './ForgottenSessionPrompt';
 import { ActiveSessionView } from './ActiveSessionView';
 import { SettingsScreen } from '../settings/SettingsScreen';
 import { clearTimer } from '../../timer';
 
-export const SeanceTab: React.FC = () => {
+interface SeanceTabProps {
+  onNavigateToPrograms?: () => void;
+}
+
+export const SeanceTab: React.FC<SeanceTabProps> = ({ onNavigateToPrograms }) => {
   const [hasResumed, setHasResumed] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -51,8 +55,8 @@ export const SeanceTab: React.FC = () => {
     [activeSession?.programId]
   );
 
-  const suggestedResult = useLiveQuery(
-    async () => ({ suggested: await getSuggestedProgramForDate(now) }),
+  const summaryResult = useLiveQuery(
+    async () => ({ summary: await getHomeSummary(now) }),
     [todayDate]
   );
 
@@ -112,14 +116,14 @@ export const SeanceTab: React.FC = () => {
   }
 
   // Cas 2 : Aucune séance en cours -> Démarrage
-  // Tant que le programme suggéré ou la liste des programmes n'est pas chargé : rien n'est affiché
-  if (suggestedResult === undefined || allProgramsResult === undefined) {
+  // Tant que le résumé d'accueil ou la liste des programmes n'est pas chargé : rien n'est affiché
+  if (summaryResult === undefined || allProgramsResult === undefined) {
     return null;
   }
 
   return (
     <StartSessionView
-      suggestedProgram={suggestedResult.suggested}
+      summary={summaryResult.summary}
       allPrograms={allProgramsResult.programs ?? []}
       onStartProgram={async (programId) => {
         await startSession({ programId });
@@ -127,8 +131,8 @@ export const SeanceTab: React.FC = () => {
       onStartFreeSession={async () => {
         await startSession();
       }}
+      onCreateProgram={onNavigateToPrograms}
       onOpenSettings={() => setIsSettingsOpen(true)}
     />
   );
 };
-

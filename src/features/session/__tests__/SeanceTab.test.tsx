@@ -77,21 +77,46 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     expect(startBtn).toBeInTheDocument();
   });
 
-  it('4. affiche le message et les options quand aucune séance type n’est prévue aujourd’hui', async () => {
+  it('4. affiche le message et les options quand aucune séance type n’existe (base vide)', async () => {
     vi.setSystemTime(new Date(2026, 9, 21, 10, 0, 0));
 
-    await createProgram({ name: 'Full Body', weekdays: [1] });
+    render(<SeanceTab onNavigateToPrograms={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/aucune séance type enregistrée/i)
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('button', { name: /créer une séance type/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /séance libre/i })).toBeInTheDocument();
+  });
+
+  it('4b. affiche la nouvelle interface d’accueil complète (en-tête date, carte, cette semaine, boutons)', async () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 10, 0, 0));
+
+    const exPec = await addExercise({ name: 'Développé couché', muscleGroup: 'Pectoraux' });
+    const exTri = await addExercise({ name: 'Dips', muscleGroup: 'Triceps' });
+    const progId = await createProgram({ name: 'Push Day', weekdays: [1] });
+    await addExerciseToProgram({ programId: progId, exerciseId: exPec });
+    await addExerciseToProgram({ programId: progId, exerciseId: exTri });
 
     render(<SeanceTab />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/aucune séance type prévue aujourd’hui/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText('lundi 19 octobre')).toBeInTheDocument();
+      expect(screen.getByText('Cette semaine : 0 séance')).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: /prochaine séance/i })).toBeInTheDocument();
+      expect(screen.getByText('Push Day')).toBeInTheDocument();
+      expect(screen.getByText('2 exercices')).toBeInTheDocument();
+      expect(screen.getByText('Jamais faite')).toBeInTheDocument();
+      expect(screen.getByText('Pectoraux')).toBeInTheDocument();
+      expect(screen.getByText('Triceps')).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('button', { name: /choisir une séance type/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /autre séance/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /séance libre/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /démarrer push day/i })).toBeInTheDocument();
   });
 
   it('5. permet de démarrer une séance libre', async () => {

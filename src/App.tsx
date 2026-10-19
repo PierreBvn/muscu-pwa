@@ -19,7 +19,9 @@ function App() {
             aria-labelledby="tab-seance"
             className="flex-1 flex flex-col"
           >
-            <SeanceTab />
+            <SeanceTab
+              onNavigateToPrograms={() => setActiveTab('programs')}
+            />
           </div>
         )}
 

@@ -31,12 +31,22 @@ les mêmes exercices. À la salle, je veux enregistrer chaque série en
   régler warmupSets et workSets par exercice.
 - Supprimer un programme n'efface aucune séance passée.
 
-## Démarrer une séance
-- Séance en cours (endedAt absent) → bouton "Reprendre".
-- Sinon : bouton "Démarrer <programme du jour>".
-  Plusieurs programmes ce jour-là → le premier par ordre de nom.
-- Toujours disponible : "Choisir un autre programme" et "Séance libre".
+## Démarrer une séance (Accueil Séance hors séance en cours)
+- En-tête : titre « Séance » + date du jour en petit sous le titre (formatage manuel en français, sans Intl) + bouton ⚙ Paramètres.
+- Ligne de décompte : « Cette semaine : N séances » (séances terminées, intervalle hebdomadaire UTC du lundi au dimanche).
+- Carte « Prochaine séance » :
+  - Nom de la séance type (séance prévue aujourd'hui, sinon la plus proche dans la semaine, ou première alphabétiquement).
+  - Groupes musculaires travaillés avec pictogrammes MuscleIcon.
+  - Nombre d'exercices (« N exercices »).
+  - Statut de réalisation : « Dernière fois : il y a N j » ou « Jamais faite » si aucune séance terminée n'existe pour ce programme.
+- Bas de l'écran au-dessus de la barre de navigation :
+  - 2 boutons secondaires côte à côte : « Autre séance » (ouvre le sélecteur de séance type) et « Séance libre ».
+  - Bouton principal pleine largeur : « Démarrer <nom> ».
+- Base vide (aucune séance type enregistrée) :
+  - Texte court « Aucune séance type enregistrée ».
+  - Bouton principal « Créer une séance type » (oriente vers l'onglet Programmes) et bouton « Séance libre ».
 - Démarrer = copier les exercices du programme dans la séance.
+- Séance en cours non terminée (endedAt absent) → reprise de la séance active ou dialogue de séance oubliée.
 
 ## Pendant la séance
 - Chaque exercice affiche ses séries prévues :
