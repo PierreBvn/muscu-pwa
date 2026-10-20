@@ -108,7 +108,7 @@ const SortableExerciseCard: React.FC<SortableExerciseCardProps> = ({
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition,
-    scrollMarginTop: 'calc(var(--header-height) + env(safe-area-inset-top))',
+    scrollMarginTop: 'calc(var(--header-height) + env(safe-area-inset-top) + 1rem)',
   };
 
   const handleRef = (el: HTMLDivElement | null) => {
@@ -122,7 +122,7 @@ const SortableExerciseCard: React.FC<SortableExerciseCardProps> = ({
     <div
       ref={handleRef}
       style={style}
-      className={`scroll-mt-header scroll-mt-[calc(var(--header-height)+env(safe-area-inset-top))] ${
+      className={`scroll-mt-header ${
         isDragging ? 'relative z-drag shadow-md rounded-xl' : ''
       }`}
     >
@@ -331,7 +331,7 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
           window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const behavior: ScrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
 
-        if (openIndex === 0) {
+        if (targetIndex === 0) {
           if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
             window.scrollTo({ top: 0, behavior });
           }
@@ -340,9 +340,10 @@ export const ActiveSessionView: React.FC<ActiveSessionViewProps> = ({
             targetEl.scrollIntoView({ behavior, block: 'start', inline: 'nearest' });
           } else if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
             const headerHeight = headerRef.current?.getBoundingClientRect().height ?? 0;
+            const gap = 16;
             const targetY = Math.max(
               0,
-              targetEl.getBoundingClientRect().top + window.scrollY - headerHeight
+              targetEl.getBoundingClientRect().top + window.scrollY - headerHeight - gap
             );
             window.scrollTo({ top: targetY, behavior });
           }

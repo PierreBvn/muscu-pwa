@@ -69,7 +69,7 @@ body,
 }
 
 .scroll-mt-header {
-  scroll-margin-top: calc(var(--header-height) + env(safe-area-inset-top));
+  scroll-margin-top: calc(var(--header-height) + env(safe-area-inset-top) + 1rem);
 }
 
 html,
