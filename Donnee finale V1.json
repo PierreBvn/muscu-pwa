@@ -1,0 +1,357 @@
+{
+  "app": "muscu-pwa",
+  "dbVersion": 3,
+  "exportedAt": "2026-10-19T18:46:06.793Z",
+  "tables": {
+    "exercises": [
+          {
+            "name": "Développé couché barre",
+            "muscleGroup": "Pectoraux",
+            "archived": false,
+            "id": 1
+          },
+          {
+            "name": "Développé couché haltères",
+            "muscleGroup": "Pectoraux",
+            "archived": false,
+            "id": 2
+          },
+          {
+            "name": "Développé incliné barre",
+            "muscleGroup": "Pectoraux",
+            "archived": false,
+            "id": 3
+          },
+          {
+            "name": "Développé incliné haltères",
+            "muscleGroup": "Pectoraux",
+            "archived": false,
+            "id": 4
+          },
+          {
+            "name": "Écarté à la poulie",
+            "muscleGroup": "Pectoraux",
+            "archived": false,
+            "id": 5
+          },
+          {
+            "name": "Écarté à la poulie haute",
+            "muscleGroup": "Pectoraux",
+            "archived": false,
+            "id": 6
+          },
+          {
+            "name": "Écarté à la poulie basse",
+            "muscleGroup": "Pectoraux",
+            "archived": false,
+            "id": 7
+          },
+          {
+            "name": "Tractions",
+            "muscleGroup": "Dos",
+            "archived": false,
+            "id": 8
+          },
+          {
+            "name": "Tirage vertical prise large",
+            "muscleGroup": "Dos",
+            "archived": false,
+            "id": 9
+          },
+          {
+            "name": "Tirage vertical prise serrée",
+            "muscleGroup": "Dos",
+            "archived": false,
+            "id": 10
+          },
+          {
+            "name": "Tirage vertical unilatéral",
+            "muscleGroup": "Dos",
+            "archived": false,
+            "id": 11
+          },
+          {
+            "name": "Tirage horizontal prise large",
+            "muscleGroup": "Dos",
+            "archived": false,
+            "id": 12
+          },
+          {
+            "name": "Tirage horizontal prise serrée",
+            "muscleGroup": "Dos",
+            "archived": false,
+            "id": 13
+          },
+          {
+            "name": "Tirage horizontal unilatéral",
+            "muscleGroup": "Dos",
+            "archived": false,
+            "id": 14
+          },
+          {
+            "name": "Pull-Over",
+            "muscleGroup": "Dos",
+            "archived": false,
+            "id": 15
+          },
+          {
+            "name": "Bûcheron",
+            "muscleGroup": "Dos",
+            "archived": false,
+            "id": 16
+          },
+          {
+            "name": "Soulevé de terre",
+            "muscleGroup": "Dos",
+            "archived": false,
+            "id": 17
+          },
+          {
+            "name": "Rowing barre",
+            "muscleGroup": "Dos",
+            "archived": false,
+            "id": 18
+          },
+          {
+            "name": "Développé militaire",
+            "muscleGroup": "Épaules",
+            "archived": false,
+            "id": 19
+          },
+          {
+            "name": "Élévations latérales",
+            "muscleGroup": "Épaules",
+            "archived": false,
+            "id": 20
+          },
+          {
+            "name": "Élévations frontales",
+            "muscleGroup": "Épaules",
+            "archived": false,
+            "id": 21
+          },
+          {
+            "name": "Élévations frontales unilatérales",
+            "muscleGroup": "Épaules",
+            "archived": false,
+            "id": 22
+          },
+          {
+            "name": "Arrière d'épaule",
+            "muscleGroup": "Épaules",
+            "archived": false,
+            "id": 23
+          },
+          {
+            "name": "Oiseau banc incliné",
+            "muscleGroup": "Épaules",
+            "archived": false,
+            "id": 24
+          },
+          {
+            "name": "Squat",
+            "muscleGroup": "Quadriceps",
+            "archived": false,
+            "id": 25
+          },
+          {
+            "name": "Jambes extensions",
+            "muscleGroup": "Quadriceps",
+            "archived": false,
+            "id": 26
+          },
+          {
+            "name": "Fentes",
+            "muscleGroup": "Quadriceps",
+            "archived": false,
+            "id": 27
+          },
+          {
+            "name": "Presse",
+            "muscleGroup": "Quadriceps",
+            "archived": false,
+            "id": 28
+          },
+          {
+            "name": "Leg curl",
+            "muscleGroup": "Ischios",
+            "archived": false,
+            "id": 29
+          },
+          {
+            "name": "Leg curl unilatéral",
+            "muscleGroup": "Ischios",
+            "archived": false,
+            "id": 30
+          },
+          {
+            "name": "Curl poulie basse",
+            "muscleGroup": "Biceps",
+            "archived": false,
+            "id": 31
+          },
+          {
+            "name": "Curl poulie basse unilatéral",
+            "muscleGroup": "Biceps",
+            "archived": false,
+            "id": 32
+          },
+          {
+            "name": "Curl banc incliné haltères",
+            "muscleGroup": "Biceps",
+            "archived": false,
+            "id": 33
+          },
+          {
+            "name": "Curl pupitre",
+            "muscleGroup": "Biceps",
+            "archived": false,
+            "id": 34
+          },
+          {
+            "name": "Curl haltères",
+            "muscleGroup": "Biceps",
+            "archived": false,
+            "id": 35
+          },
+          {
+            "name": "Curl marteau",
+            "muscleGroup": "Biceps",
+            "archived": false,
+            "id": 36
+          },
+          {
+            "name": "Curl barre",
+            "muscleGroup": "Biceps",
+            "archived": false,
+            "id": 37
+          },
+          {
+            "name": "Dips",
+            "muscleGroup": "Triceps",
+            "archived": false,
+            "id": 38
+          },
+          {
+            "name": "Poulie haute",
+            "muscleGroup": "Triceps",
+            "archived": false,
+            "id": 39
+          },
+          {
+            "name": "Poulie haute unilatéral",
+            "muscleGroup": "Triceps",
+            "archived": false,
+            "id": 40
+          },
+          {
+            "name": "Poulie basse",
+            "muscleGroup": "Triceps",
+            "archived": false,
+            "id": 41
+          },
+          {
+            "name": "Poulie basse unilatéral",
+            "muscleGroup": "Triceps",
+            "archived": false,
+            "id": 42
+          },
+          {
+            "name": "Barre au front",
+            "muscleGroup": "Triceps",
+            "archived": false,
+            "id": 43
+          },
+          {
+            "name": "Tirage poulie avant-bras",
+            "muscleGroup": "Avant-bras",
+            "archived": false,
+            "id": 44
+          },
+          {
+            "name": "Crunch",
+            "muscleGroup": "Abdos",
+            "archived": false,
+            "id": 45
+          },
+          {
+            "name": "Gainage planche",
+            "muscleGroup": "Abdos",
+            "archived": false,
+            "id": 46
+          },
+          {
+            "name": "Crunch à la poulie haute",
+            "muscleGroup": "Abdos",
+            "archived": false,
+            "id": 47
+          },
+          {
+            "name": "Hip thrust",
+            "muscleGroup": "Fessiers",
+            "archived": false,
+            "id": 48
+          },
+          {
+            "name": "Extension mollets",
+            "muscleGroup": "Mollets",
+            "archived": false,
+            "id": 49
+          },
+          {
+            "name": "Lombaires",
+            "muscleGroup": "Dos",
+            "archived": false,
+            "id": 50
+          }
+    ],
+    "sessions": [
+      {"date":"2026-10-19","startedAt":"2026-10-19T14:38:14.622Z","programId":1,"id":3,"endedAt":"2026-10-19T16:09:37.556Z"}
+    ],
+    "sets": [
+      {"sessionId":3,"exerciseId":9,"order":0,"reps":12,"weight":30,"type":"warmup","createdAt":"2026-10-19T14:38:47.550Z","id":11},
+      {"sessionId":3,"exerciseId":9,"order":1,"reps":12,"weight":55,"type":"work","createdAt":"2026-10-19T14:40:26.538Z","id":12},
+      {"sessionId":3,"exerciseId":9,"order":2,"reps":10,"weight":60,"type":"work","createdAt":"2026-10-19T14:43:50.605Z","id":13},
+      {"sessionId":3,"exerciseId":9,"order":3,"reps":10,"weight":60,"type":"work","createdAt":"2026-10-19T14:47:57.733Z","id":14},
+      {"sessionId":3,"exerciseId":13,"order":4,"reps":12,"weight":30,"type":"warmup","createdAt":"2026-10-19T14:51:59.251Z","id":15},
+      {"sessionId":3,"exerciseId":13,"order":5,"reps":12,"weight":45,"type":"work","createdAt":"2026-10-19T14:55:59.265Z","id":16},
+      {"sessionId":3,"exerciseId":13,"order":6,"reps":10,"weight":50,"type":"work","createdAt":"2026-10-19T15:00:05.486Z","id":17},
+      {"sessionId":3,"exerciseId":13,"order":7,"reps":10,"weight":50,"type":"work","createdAt":"2026-10-19T15:04:40.790Z","id":18},
+      {"sessionId":3,"exerciseId":15,"order":8,"reps":12,"weight":12.5,"type":"warmup","createdAt":"2026-10-19T15:09:35.545Z","id":19},
+      {"sessionId":3,"exerciseId":15,"order":9,"reps":12,"weight":17.5,"type":"work","createdAt":"2026-10-19T15:12:48.089Z","id":20},
+      {"sessionId":3,"exerciseId":15,"order":10,"reps":10,"weight":20,"type":"work","createdAt":"2026-10-19T15:16:17.138Z","id":21},
+      {"sessionId":3,"exerciseId":15,"order":11,"reps":12,"weight":17.5,"type":"work","createdAt":"2026-10-19T15:19:49.382Z","id":23},
+      {"sessionId":3,"exerciseId":31,"order":12,"reps":15,"weight":12.5,"type":"warmup","createdAt":"2026-10-19T15:24:38.375Z","id":24},
+      {"sessionId":3,"exerciseId":31,"order":13,"reps":10,"weight":22.5,"type":"work","createdAt":"2026-10-19T15:24:46.866Z","id":25},
+      {"sessionId":3,"exerciseId":31,"order":14,"reps":10,"weight":22.5,"type":"work","createdAt":"2026-10-19T15:29:51.406Z","id":26},
+      {"sessionId":3,"exerciseId":31,"order":15,"reps":10,"weight":22.5,"type":"work","createdAt":"2026-10-19T15:35:47.006Z","id":27},
+      {"sessionId":3,"exerciseId":32,"order":16,"reps":10,"weight":0,"type":"warmup","createdAt":"2026-10-19T15:37:17.149Z","id":28},
+      {"sessionId":3,"exerciseId":32,"order":17,"reps":10,"weight":7.5,"type":"work","createdAt":"2026-10-19T15:37:28.376Z","id":29},
+      {"sessionId":3,"exerciseId":32,"order":18,"reps":10,"weight":7.5,"type":"work","createdAt":"2026-10-19T15:41:28.530Z","id":30},
+      {"sessionId":3,"exerciseId":32,"order":19,"reps":10,"weight":7.5,"type":"work","createdAt":"2026-10-19T15:46:12.280Z","id":31},
+      {"sessionId":3,"exerciseId":50,"order":20,"reps":10,"weight":0,"type":"warmup","createdAt":"2026-10-19T15:49:32.514Z","id":32},
+      {"sessionId":3,"exerciseId":50,"order":21,"reps":12,"weight":20,"type":"work","createdAt":"2026-10-19T15:55:49.989Z","id":33},
+      {"sessionId":3,"exerciseId":50,"order":22,"reps":12,"weight":20,"type":"work","createdAt":"2026-10-19T16:01:18.948Z","id":34},
+      {"sessionId":3,"exerciseId":50,"order":23,"reps":12,"weight":20,"type":"work","createdAt":"2026-10-19T16:09:02.364Z","id":35}
+    ],
+    "programs": [
+      {"name":"Pull","weekdays":[1,2],"id":1}
+    ],
+    "programExercises": [
+      {"programId":1,"exerciseId":13,"order":0,"warmupSets":1,"workSets":3,"id":1},
+      {"programId":1,"exerciseId":9,"order":1,"warmupSets":1,"workSets":3,"id":2},
+      {"programId":1,"exerciseId":15,"order":2,"warmupSets":1,"workSets":3,"id":3},
+      {"programId":1,"exerciseId":31,"order":3,"warmupSets":1,"workSets":3,"id":4},
+      {"programId":1,"exerciseId":32,"order":4,"warmupSets":1,"workSets":3,"id":5},
+      {"programId":1,"exerciseId":50,"order":5,"warmupSets":1,"workSets":3,"id":6}
+    ],
+    "sessionExercises": [
+      {"sessionId":3,"exerciseId":9,"order":0,"warmupSets":1,"workSets":3,"skipped":false,"id":9},
+      {"sessionId":3,"exerciseId":13,"order":1,"warmupSets":1,"workSets":3,"skipped":false,"id":10},
+      {"sessionId":3,"exerciseId":15,"order":2,"warmupSets":1,"workSets":3,"skipped":false,"id":6},
+      {"sessionId":3,"exerciseId":31,"order":3,"warmupSets":1,"workSets":3,"skipped":false,"id":7},
+      {"sessionId":3,"exerciseId":32,"order":4,"warmupSets":1,"workSets":3,"skipped":false,"id":8},
+      {"sessionId":3,"exerciseId":50,"order":5,"warmupSets":1,"workSets":3,"skipped":false,"id":11}
+    ]
+  }
+}
