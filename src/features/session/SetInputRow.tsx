@@ -172,7 +172,7 @@ export const SetInputRow: React.FC<SetInputRowProps> = ({
   };
 
   return (
-    <div className="rounded-xl bg-surface-2/40 border border-line p-3.5 space-y-3.5">
+    <div className="rounded-xl bg-surface-2/40 border border-line p-3 space-y-3.5">
       <div className="flex items-center justify-between">
         <h3 className="text-xs uppercase tracking-widest text-gold font-semibold">
           {setLabel}

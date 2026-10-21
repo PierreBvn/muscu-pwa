@@ -1287,7 +1287,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     render(<SeanceTab />);
 
     // L'exercice 1 est ouvert par défaut : le bouton "Passer" visible est présent à côté de ⋯
-    const skipBtn = await screen.findByRole('button', { name: /^passer$/i });
+    const skipBtn = await screen.findByRole('button', { name: /^passer développé couché$/i });
     expect(skipBtn).toBeInTheDocument();
 
     // Clic sur Passer
@@ -1306,7 +1306,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
     });
 
     // Dans l'exercice 1 rouvert et sauté, le bouton "Passer" visible direct n'est plus affiché
-    expect(screen.queryByRole('button', { name: /^passer$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^passer développé couché$/i })).not.toBeInTheDocument();
   });
 
 

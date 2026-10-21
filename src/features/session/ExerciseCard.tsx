@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, SkipForward } from 'lucide-react';
 import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core';
 import type { SessionExercise, Exercise, SetEntry } from '../../db/schema';
 import { MuscleIcon } from '../../components/MuscleIcon';
@@ -101,7 +101,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     >
       <button
         type="button"
-        aria-label={isSkipped ? `Rétablir ${exName}` : `Passer ${exName}`}
+        aria-label={isSkipped ? `Rétablir ${exName}` : undefined}
         onClick={(e) => {
           e.stopPropagation();
           setMenuOpen(false);
@@ -109,7 +109,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
         }}
         className="min-h-[44px] px-3 rounded-lg text-left text-xs font-semibold text-text hover:bg-surface flex items-center gap-2.5 transition"
       >
-        <span className="text-sm font-bold">{isSkipped ? '↺' : '↷'}</span>
+        <span className="text-sm font-bold" aria-hidden="true">{isSkipped ? '↺' : '↷'}</span>
         <span>{isSkipped ? 'Rétablir' : 'Passer'}</span>
       </button>
 
@@ -209,47 +209,46 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   return (
     <div className="rounded-xl border border-line bg-surface p-4 space-y-3.5 transition">
       {/* En-tête de l'exercice ouvert */}
-      <div className="flex items-center justify-between gap-2 min-h-[44px]">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <button
-            type="button"
-            aria-label={`Réordonner ${exName}`}
-            {...dragHandleProps?.attributes}
-            {...dragHandleProps?.listeners}
-            onClick={(e) => e.stopPropagation()}
-            className="min-h-[44px] min-w-[44px] -ml-2 flex items-center justify-center text-muted hover:text-text active:text-gold transition touch-none cursor-grab active:cursor-grabbing shrink-0"
-            style={{ touchAction: 'none' }}
-          >
-            <GripVertical className="w-5 h-5" aria-hidden="true" />
-          </button>
-          {item.exercise?.muscleGroup && (
-            <MuscleIcon
-              group={item.exercise.muscleGroup}
-              alt={item.exercise.muscleGroup}
-              className="w-10 h-10 shrink-0 object-contain"
-            />
-          )}
-          <h2 className="text-base font-semibold text-text line-clamp-2 break-words">
-            {exName}
-          </h2>
-          {isArchived && (
-            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-surface-2 border border-line text-muted shrink-0">
-              Archivé
-            </span>
-          )}
-        </div>
+      <div className="flex items-center gap-2 min-h-[44px]">
+        <button
+          type="button"
+          aria-label={`Réordonner ${exName}`}
+          {...dragHandleProps?.attributes}
+          {...dragHandleProps?.listeners}
+          onClick={(e) => e.stopPropagation()}
+          className="min-h-[44px] min-w-[44px] -ml-2 flex items-center justify-center text-muted hover:text-text active:text-gold transition touch-none cursor-grab active:cursor-grabbing shrink-0"
+          style={{ touchAction: 'none' }}
+        >
+          <GripVertical className="w-5 h-5" aria-hidden="true" />
+        </button>
+        {item.exercise?.muscleGroup && (
+          <MuscleIcon
+            group={item.exercise.muscleGroup}
+            alt={item.exercise.muscleGroup}
+            className="w-10 h-10 shrink-0 object-contain"
+          />
+        )}
+        <h2 className="text-base font-semibold text-text line-clamp-2 break-words min-w-0 flex-1">
+          {exName}
+        </h2>
+        {isArchived && (
+          <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-surface-2 border border-line text-muted shrink-0">
+            Archivé
+          </span>
+        )}
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           {!isSkipped && (
             <button
               type="button"
+              aria-label={`Passer ${exName}`}
               onClick={(e) => {
                 e.stopPropagation();
                 if (item.id) onSkipExercise(item.id, true);
               }}
-              className="min-h-[44px] px-3 rounded-xl bg-surface-2 border border-line text-xs font-semibold text-text hover:bg-surface active:opacity-90 transition shrink-0"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:text-text active:bg-surface-2 transition shrink-0"
             >
-              Passer
+              <SkipForward className="w-5 h-5" aria-hidden="true" />
             </button>
           )}
 
