@@ -874,9 +874,7 @@ describe('SeanceTab (Tasks 4a, 4b & 4c)', () => {
 
     render(<SeanceTab />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Dips')).toBeInTheDocument();
-    });
+    await screen.findByText('Série 1');
 
     // Ouvrir le menu ⋯
     const optionsBtn = await screen.findByRole('button', { name: /options dips/i });

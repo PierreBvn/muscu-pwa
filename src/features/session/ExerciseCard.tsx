@@ -101,7 +101,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     >
       <button
         type="button"
-        aria-label={isSkipped ? `Rétablir ${exName}` : undefined}
+        aria-label={isSkipped ? `Rétablir ${exName}` : `Passer ${exName}`}
         onClick={(e) => {
           e.stopPropagation();
           setMenuOpen(false);
@@ -238,7 +238,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
         )}
 
         <div className="flex items-center gap-1 shrink-0">
-          {!isSkipped && (
+          {!isSkipped && !menuOpen && (
             <button
               type="button"
               aria-label={`Passer ${exName}`}

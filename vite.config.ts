@@ -33,7 +33,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         skipWaiting: true,
         clientsClaim: true,
       },
@@ -41,9 +41,12 @@ export default defineConfig({
         name: 'Muscu PWA',
         short_name: 'Muscu',
         description: 'Suivi de musculation hors-ligne',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone',
         theme_color: '#0A0A0A',
         background_color: '#0A0A0A',
-        display: 'standalone',
+        lang: 'fr',
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

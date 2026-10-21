@@ -4,7 +4,7 @@ PWA de suivi de musculation (iPhone iOS 18, installée sur l'écran d'accueil, h
 Stack : Vite, React 19, TypeScript strict, Tailwind CSS v4, Dexie (IndexedDB), Vitest.
 
 ## 5 Règles fondamentales
-1. **Préproduction** : Projet en préproduction, sans données réelles : réinitialiser la base est acceptable, ne pas écrire de code de compatibilité pour d'anciennes données.
+1. **Données réelles** : L'app contient des données réelles : ne jamais vider ni réinitialiser la base ; tout changement de schéma = migration Dexie testée.
 2. **Validation absolue** : Aucune tâche n'est terminée sans `npm run ship` (`npm run verify` à 0 erreur puis push).
 3. **Architecture Dexie** : L'état d'une séance vit dans Dexie via `useLiveQuery` ; les composants n'importent jamais l'objet `db` en direct.
 4. **Zéro calcul dans l'UI** : Les composants délèguent tous les calculs métier et filtrages à `src/db/`.
