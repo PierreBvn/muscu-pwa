@@ -13,19 +13,19 @@ Elle s'installe sur l'écran d'accueil comme une app native. Toutes les données
 
 | Accueil Séance | Séance en cours | Minuteur de repos |
 |:---:|:---:|:---:|
-| <img src="docs/screenshots/01-accueil.png" width="230"> | <img src="docs/screenshots/02-seance.png" width="230"> | <img src="docs/screenshots/03-minuteur.png" width="230"> |
+| <img src="docs/screenshots/01-accueil.PNG" width="230"> | <img src="docs/screenshots/02-seance.PNG" width="230"> | <img src="docs/screenshots/03-minuteur.PNG" width="230"> |
 
 | Séances types | Bibliothèque d'exercices | Choix d'un exercice |
 |:---:|:---:|:---:|
-| <img src="docs/screenshots/04-seances-types.png" width="230"> | <img src="docs/screenshots/05-exercices.png" width="230"> | <img src="docs/screenshots/06-picker.png" width="230"> |
+| <img src="docs/screenshots/04-seances-types.PNG" width="230"> | <img src="docs/screenshots/05-exercices.PNG" width="230"> | <img src="docs/screenshots/06-picker.PNG" width="230"> |
 
 | Progrès : Général | Progrès : Muscles | Progrès : Exercices |
 |:---:|:---:|:---:|
-| <img src="docs/screenshots/07-progres-general.png" width="230"> | <img src="docs/screenshots/08-progres-muscles.png" width="230"> | <img src="docs/screenshots/09-progres-exercices.png" width="230"> |
+| <img src="docs/screenshots/07-progres-general.PNG" width="230"> | <img src="docs/screenshots/08-progres-muscles.PNG" width="230"> | <img src="docs/screenshots/09-progres-exercices.PNG" width="230"> |
 
 | Paramètres |
 |:---:|
-| <img src="docs/screenshots/10-parametres.png" width="230"> |
+| <img src="docs/screenshots/10-parametres.PNG" width="230"> |
 
 ---
 
